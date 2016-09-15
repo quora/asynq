@@ -1,0 +1,13 @@
+DS_Store
+ld/
+dist/
+*.egg-info/
+*.egg
+*.py[cod]
+__pycache__/
+*.so
+*.c
+*.h
+*~
+/nose*
+.arcconfig
