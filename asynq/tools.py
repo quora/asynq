@@ -18,6 +18,7 @@ Helper functions for use with asynq (similar to itertools).
 
 """
 
+from .contexts import AsyncContext
 from .decorators import async, async_proxy, make_async_decorator
 from .futures import ConstFuture
 from .scheduler import get_scheduler
@@ -25,7 +26,7 @@ from .scheduler import get_scheduler
 # under Python versions that lack our patch to allow returning from generators
 from .utils import result
 
-from qcore import get_original_fn
+from qcore import get_original_fn, utime
 from qcore.caching import set_cached_per_instance_getstate, get_args_tuple, get_kwargs_defaults
 from qcore.inspection import getargspec
 import functools
@@ -265,3 +266,42 @@ def deduplicate():
 
         return make_async_decorator(fun, wrapper_fn, 'deduplicate')
     return decorator
+
+
+class AsyncTimer(AsyncContext):
+    """Simple async-aware timer class.
+
+    Use this to find out how long a block of code takes within an async task. If
+    other tasks run interspersed with the task in which this is used, time spent
+    executing those tasks will not be counted. The result (in microseconds) will
+    be available as the total_time attribute on the context object after exiting
+    the context.
+
+    The total_time attribute may have a nonzero value during the context if any
+    yields were performed. Because of optimizations that may be done in the
+    future to how contexts work between tasks, the value shouldn't be trusted
+    until exiting the context.
+
+    Usage example:
+        @async()
+        def potentially_slow_function(x):
+
+            with AsyncTimer() as t:
+                yield do_a_lot_of_work.async(x)
+                # don't use t.total_time here!
+
+            report_time_for_x(x, t.total_time)
+
+        yield [potentially_slow_function(x) for x in all_x_values]
+
+    """
+
+    def __init__(self):
+        self.total_time = 0
+        self._last_start_time = None
+
+    def resume(self):
+        self._last_start_time = utime()
+
+    def pause(self):
+        self.total_time += utime() - self._last_start_time
