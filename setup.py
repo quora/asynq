@@ -36,7 +36,7 @@ CYTHON_MODULES = [
 DATA_FILES = ['%s.pxd' % module for module in CYTHON_MODULES]
 
 
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 
 EXTENSIONS = [
