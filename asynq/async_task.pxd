@@ -94,7 +94,7 @@ cdef class AsyncTask(futures.FutureBase):
 
 
 @cython.locals(length=int, future=futures.FutureBase, tpl=tuple, lst=list, dct=dict)
-cdef inline object unwrap(object value)
+cdef object unwrap(object value)
 
 cpdef object _cancel_futures(object value, object error)
 
