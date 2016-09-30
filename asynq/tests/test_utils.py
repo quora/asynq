@@ -34,12 +34,12 @@ def test_execute_on_separate_scheduler():
     ctx2 = Context()
     ctx3 = Context()
 
-    def inner():
+    def inner(arg1, arg2=''):
         assert_eq('resume', ctx1.state)
         assert_eq('resume', ctx2.state)
         assert_eq('pause', ctx3.state)
         yield
-        result('capybara'); return
+        result(arg1 + arg2); return
 
     @async()
     def outer():
@@ -47,8 +47,11 @@ def test_execute_on_separate_scheduler():
             pass
 
         with ctx2:
-            value = execute_on_separate_scheduler(inner, [ctx1, ctx2])
-            assert_eq('capybara', value)
+            value = execute_on_separate_scheduler(inner, [ctx1, ctx2], args=('hello',))
+            assert_eq('hello', value)
+            value = execute_on_separate_scheduler(inner, [ctx1, ctx2], args=('hello',),
+                                                  kwargs={'arg2': ' world'})
+            assert_eq('hello world', value)
 
     outer()
 

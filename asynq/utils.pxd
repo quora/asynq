@@ -25,7 +25,7 @@ cimport _debug
 cdef _debug.DebugOptions _debug_options
 
 @cython.locals(task=async_task.AsyncTask, current_scheduler=scheduler.TaskScheduler, new_scheduler=scheduler.TaskScheduler)
-cpdef object execute_on_separate_scheduler(object async_pull_fn, list contexts)
+cpdef object execute_on_separate_scheduler(object async_pull_fn, list contexts, tuple args=?, dict kwargs=?)
 
 cdef inline object _await(tuple args)
 
