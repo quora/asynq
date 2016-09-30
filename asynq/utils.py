@@ -23,12 +23,12 @@ from . import _debug
 _debug_options = _debug.options
 
 
-def execute_on_separate_scheduler(async_pull_fn, contexts):
+def execute_on_separate_scheduler(async_pull_fn, contexts, args=(), kwargs={}):
     current_scheduler = scheduler.get_scheduler()
     new_scheduler = current_scheduler._clone()
     try:
         with new_scheduler.activate(True, False):
-            task = async_task.AsyncTask(async_pull_fn(), async_pull_fn, (), {})
+            task = async_task.AsyncTask(async_pull_fn(*args, **kwargs), async_pull_fn, args, kwargs)
             # The above tasks should have no contexts right now (because it is created in a vacuum).
             # We filter the contexts that are already active because they will remain active
             # throughout the execution of this task. Not filtering them would result in calling
