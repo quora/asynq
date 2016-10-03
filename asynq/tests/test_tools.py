@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
+
 from asynq import async, AsyncContext, result
 from asynq.tools import (
     amap,
@@ -24,8 +26,9 @@ from asynq.tools import (
     acached_per_instance,
     call_with_context,
     deduplicate,
+    AsyncTimer,
 )
-from qcore.asserts import assert_eq, assert_is, AssertRaises
+from qcore.asserts import assert_eq, assert_gt, assert_is, AssertRaises
 
 
 @async()
@@ -228,3 +231,37 @@ def test_deduplicate_recursion():
 @async()
 def _check_deduplicate_recursion():
     yield recursive_incrementer.async(20), increment_value.async(0)
+
+
+def test_async_timer():
+    _check_async_timer()
+
+
+@async()
+def _slow_task(t):
+    yield None
+    time.sleep(t)
+    result(0); return
+
+
+@async()
+def _timed_slow_task(t):
+    with AsyncTimer() as timer:
+        yield None
+        time.sleep(t)
+    result(timer.total_time); return
+
+
+@async()
+def _check_async_timer():
+    with AsyncTimer() as t:
+        results = yield [_slow_task.async(0.1), _timed_slow_task.async(0.1),
+                         _slow_task.async(0.1), _timed_slow_task.async(0.1)]
+        assert_eq(0, results[0])
+        assert_eq(105000, results[1], tolerance=5000)
+        assert_eq(0, results[0])
+        assert_eq(105000, results[3], tolerance=5000)
+
+    assert_eq(210000, sum(results), tolerance=10000)
+    assert_eq(410000, t.total_time, tolerance=10000)
+    assert_gt(t.total_time, sum(results))
