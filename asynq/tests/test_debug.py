@@ -154,9 +154,7 @@ def test_extract_traceback():
         traceback_to_verify = sys.exc_info()[2]
     extracted_traceback_to_verify = asynq.debug.extract_tb(
             traceback_to_verify)
-    assert_eq(4, len(extracted_traceback_to_verify))
 
-    # this test will fail qcore gets updated.
     this_level = extracted_traceback_to_verify[0]
     assert_eq_extracted_traceback_entry(
         this_level,
@@ -164,21 +162,23 @@ def test_extract_traceback():
         'test_extract_traceback',
         'async_function_whose_child_async_task_will_throw_an_error()')
 
-    async_wrapper_level = extracted_traceback_to_verify[1]
+    # now check the last 3 frames. Between the 1st and the last 3 frames there may
+    # or may not be a frame from six.reraise depending on the python version.
+    async_wrapper_level = extracted_traceback_to_verify[-3]
     assert_eq_extracted_traceback_entry(
         async_wrapper_level,
         __file__,
         'async_function_whose_child_async_task_will_throw_an_error',
         'yield async_function_that_raises_an_error.async()')
 
-    async_raiser_level = extracted_traceback_to_verify[2]
+    async_raiser_level = extracted_traceback_to_verify[-2]
     assert_eq_extracted_traceback_entry(
         async_raiser_level,
         __file__,
         'async_function_that_raises_an_error',
         'non_async_function_that_raises_an_error()')
 
-    normal_function_raising_exception_level = extracted_traceback_to_verify[3]
+    normal_function_raising_exception_level = extracted_traceback_to_verify[-1]
     assert_eq_extracted_traceback_entry(
         normal_function_raising_exception_level,
         __file__,
