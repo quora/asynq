@@ -18,9 +18,6 @@ Asynq is a framework for asynchronous programming in Python.
 
 It supports futures, batching, and asynchronous contexts.
 
-For usage documentation, see:
-https://quora.quip.com/5tbJAZlr5fGH
-
 """
 __team__ = 'platform'
 __reviewer__ = 'jelle, manan'
