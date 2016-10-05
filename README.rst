@@ -13,7 +13,9 @@ that takes advantage of batching without radical changes in code structure from 
 use batching.
 
 For example, synchronous code to retrieve the names of the authors of a list of Quora answers may
-look like this::
+look like this:
+
+.. code-block:: python
 
     def all_author_names(aids):
         uids = [author_of_answer(aid) for aid in aids]
@@ -21,7 +23,9 @@ look like this::
         return names
 
 Here, each call to ``author_of_answer`` and ``name_of_user`` would result in a memcache request.
-Converted to use ``asynq``, this code would look like::
+Converted to use ``asynq``, this code would look like:
+
+.. code-block:: python
 
     @async()
     def all_author_names(aids):
@@ -70,11 +74,15 @@ It also creates a ``.async`` attribute on the function that allows calling the f
 asynchronously. Calling this attribute will return an ``AsyncTask`` object corresponding to the
 function.
 
-You can call an asynchronous function synchronously like this::
+You can call an asynchronous function synchronously like this:
+
+.. code-block:: python
 
     result = async_fn(a, b)
 
-and asynchronously like this::
+and asynchronously like this:
+
+.. code-block:: python
 
     result = yield async_fn.async(a, b)
 
@@ -87,7 +95,9 @@ this option only in special cases like decorators for asynchronous functions.
 ``asynq`` also provides an ``@async_proxy()`` decorator for functions that return a Future
 directly. Functions decorated with ``@async_proxy()`` look like ``@async()`` functions externally.
 An example use case is a function that takes either an asynchronous or a synchronous function,
-and calls it accordingly::
+and calls it accordingly:
+
+.. code-block:: python
 
     @async_proxy()
     def async_call(fn, *args, **kwargs):
@@ -120,7 +130,9 @@ Contexts
 
 ``asynq`` provides support for Python context managers that are automatically activated and
 deactivated when a particular task is scheduled. This feature is necessary because the scheduler
-can schedule tasks in arbitrary order. For example, consider the following code::
+can schedule tasks in arbitrary order. For example, consider the following code:
+
+.. code-block:: python
 
     @async()
     def show_warning():
@@ -142,7 +154,9 @@ active.
 
 To remedy this problem, you should use an ``AsyncContext``, which will be automatically paused when
 the task that created it is no longer active and resumed when it becomes active again. An
-``asynq``-compatible version of ``catch_warnings`` would look something like this::
+``asynq``-compatible version of ``catch_warnings`` would look something like this:
+
+.. code-block:: python
 
     class catch_warnings(asynq.AsyncContext):
         def pause(self):
