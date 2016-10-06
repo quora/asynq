@@ -186,7 +186,7 @@ def test_extract_traceback():
         'raise ValueError')
 
 
-a_return_value = MarkerObject('A return value.')
+a_return_value = MarkerObject(u'A return value.')
 
 
 @asynq.mock.patch('asynq.debug.traceback.format_list')

@@ -19,8 +19,8 @@ from six.moves import xrange
 from asynq import async, async_proxy, ConstFuture, result, FutureBase
 
 
-unknown = qcore.MarkerObject('unknown @ entities')
-must_load = qcore.MarkerObject('must_load @ entities')
+unknown = qcore.MarkerObject(u'unknown @ entities')
+must_load = qcore.MarkerObject(u'must_load @ entities')
 
 
 class EntityState(qcore.Flags):

@@ -24,7 +24,7 @@ __traceback_hide__ = True
 
 
 _debug_options = _debug.options
-_none = core_helpers.MarkerObject("none (futures)")
+_none = core_helpers.MarkerObject(u"none (futures)")
 globals()['_none'] = _none
 
 

@@ -24,7 +24,7 @@ from .decorators import async, async_proxy
 from .futures import ConstFuture
 from .utils import result
 
-END_OF_GENERATOR = qcore.MarkerObject('end of generator')
+END_OF_GENERATOR = qcore.MarkerObject(u'end of generator')
 
 
 def async_generator():
