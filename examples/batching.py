@@ -25,7 +25,7 @@ import core
 import itertools
 import memcache
 
-MISS = core.MarkerObject('miss')
+MISS = core.MarkerObject(u'miss')
 
 
 class Client(object):

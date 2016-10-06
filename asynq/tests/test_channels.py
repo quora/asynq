@@ -20,7 +20,7 @@ from collections import deque
 # TODO(alex): finish w/this test
 
 
-empty = MarkerObject('empty @ asynq.channels')
+empty = MarkerObject(u'empty @ asynq.channels')
 future_empty = ConstFuture(empty)
 future_false = ConstFuture(False)
 future_true = ConstFuture(True)
