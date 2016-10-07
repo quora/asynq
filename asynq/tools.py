@@ -19,7 +19,7 @@ Helper functions for use with asynq (similar to itertools).
 """
 
 from .contexts import AsyncContext
-from .decorators import async, async_proxy, make_async_decorator
+from .decorators import async, async_proxy, make_async_decorator, async_call
 from .futures import ConstFuture
 from .scheduler import get_scheduler
 # we shouldn't use the return syntax in generators here so that asynq can be imported
@@ -29,6 +29,8 @@ from .utils import result
 from qcore import get_original_fn, utime
 from qcore.caching import set_cached_per_instance_getstate, get_args_tuple, get_kwargs_defaults
 from qcore.inspection import getargspec
+from qcore.events import EventHook
+from qcore.errors import reraise, prepare_for_reraise
 import functools
 import itertools
 
@@ -305,3 +307,39 @@ class AsyncTimer(AsyncContext):
 
     def pause(self):
         self.total_time += utime() - self._last_start_time
+
+
+class AsyncEventHook(EventHook):
+    """EventHook that supports async handlers.
+
+    When the event triggers, all the handlers will be invoked asynchronously using async_call.
+
+    Since it uses async_call, it supports normal handlers by default
+    (they don't need to be @async() decorated).
+
+    """
+
+    @async()
+    def trigger(self, *args):
+        yield [async_call.async(handler, *args) for handler in self]
+
+    @async()
+    def safe_trigger(self, *args):
+        wrapped_handlers = [self._create_safe_wrapper(handler) for handler in self]
+        results = yield [wrapped_handler.async(*args) for wrapped_handler in wrapped_handlers]
+        results = filter(None, results)
+        if len(results) > 0:
+            reraise(results[0])
+
+    @staticmethod
+    def _create_safe_wrapper(handler):
+        @async()
+        def wrapped(*args):
+            error = None
+            try:
+                yield async_call.async(handler, *args)
+            except BaseException as e:
+                prepare_for_reraise(e)
+                error = e
+            result(error); return
+        return wrapped
