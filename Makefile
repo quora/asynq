@@ -30,6 +30,6 @@ clean:
 	rm -f asynq/*.c
 
 test:
-	/usr/bin/python setup.py build_ext --inplace
+	python setup.py build_ext --inplace
 	mv *.so asynq/
-	/usr/bin/python -m nose
+	python -m nose
