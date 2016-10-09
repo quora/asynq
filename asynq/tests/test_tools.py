@@ -27,8 +27,9 @@ from asynq.tools import (
     call_with_context,
     deduplicate,
     AsyncTimer,
+    AsyncEventHook,
 )
-from qcore.asserts import assert_eq, assert_gt, assert_is, AssertRaises
+from qcore.asserts import assert_eq, assert_gt, assert_is, AssertRaises, assert_unordered_list_eq
 
 
 @async()
@@ -265,3 +266,45 @@ def _check_async_timer():
     assert_eq(210000, sum(results), tolerance=10000)
     assert_eq(410000, t.total_time, tolerance=10000)
     assert_gt(t.total_time, sum(results))
+
+
+def test_async_event_hook():
+    calls = []
+    @async()
+    def handler1(*args):
+        assert_gt(len(args), 0)
+        calls.append('handler1%s' % str(args))
+
+    def handler2(*args):
+        calls.append('handler2%s' % str(args))
+
+    hook = AsyncEventHook([handler1])
+    hook.subscribe(handler2)
+
+    # trigger
+    hook.trigger(1, 2, 'a')
+    assert_unordered_list_eq(['handler1(1, 2, \'a\')', 'handler2(1, 2, \'a\')'], calls)
+
+    calls = []
+    @async()
+    def async_trigger():
+        yield hook.trigger.async(2,3)
+
+    async_trigger()
+    assert_unordered_list_eq(['handler1(2, 3)', 'handler2(2, 3)'], calls)
+
+    # safe_trigger
+    calls = []
+    hook2 = AsyncEventHook([handler1, handler2])
+    # calling it with no args will raise AssertionError in handler1
+    with AssertRaises(AssertionError):
+        hook2.safe_trigger()
+    assert_eq(['handler2()'], calls)
+
+    # make sure that the order doesn't matter
+    calls = []
+    hook3 = AsyncEventHook([handler2, handler1])
+    # calling it with no args will raise AssertionError in handler1
+    with AssertRaises(AssertionError):
+        hook3.safe_trigger()
+    assert_eq(['handler2()'], calls)
