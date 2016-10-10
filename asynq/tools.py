@@ -312,10 +312,9 @@ class AsyncTimer(AsyncContext):
 class AsyncEventHook(EventHook):
     """EventHook that supports async handlers.
 
-    When the event triggers, all the handlers will be invoked asynchronously using async_call.
+    When the event triggers, all the async handlers will be invoked asynchronously.
 
-    Since it uses async_call, it supports normal handlers by default
-    (they don't need to be @async() decorated).
+    All non-async handlers will be invoked normally (same as EventHook).
 
     """
 
@@ -327,9 +326,8 @@ class AsyncEventHook(EventHook):
     def safe_trigger(self, *args):
         wrapped_handlers = [self._create_safe_wrapper(handler) for handler in self]
         results = yield [wrapped_handler.async(*args) for wrapped_handler in wrapped_handlers]
-        results = filter(None, results)
-        if len(results) > 0:
-            reraise(results[0])
+        for error in filter(None, results):
+            reraise(error)
 
     @staticmethod
     def _create_safe_wrapper(handler):
