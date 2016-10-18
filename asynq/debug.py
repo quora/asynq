@@ -207,6 +207,20 @@ def attach_exception_hook():
         # detect whether we're running in IPython
         __IPYTHON__
     except NameError:
+        shell = None
+    else:
+        # override ipython's exception handler if in a shell.
+        # we need to do this because ipython overrides sys.excepthook
+        # so just the else block doesn't cover that case.
+        from IPython.core.getipython import get_ipython
+
+        # this may be None if __IPYTHON__ is somehow defined, but we are not
+        # in fact in a shell
+        shell = get_ipython()
+
+    if shell is not None:
+        shell.set_custom_exc((BaseException,), ipython_custom_exception_handler)
+    else:
         global is_attached, original_hook
         if is_attached:
             sys.stderr.write("Warning: async exception hook was already attached.\n")
@@ -214,13 +228,6 @@ def attach_exception_hook():
         original_hook = sys.excepthook
         sys.excepthook = async_exception_hook
         is_attached = True
-    else:
-        # override ipython's exception handler if in a shell.
-        # we need to do this because ipython overrides sys.excepthook
-        # so just the else block doesn't cover that case.
-        from IPython.core.getipython import get_ipython
-        shell = get_ipython()
-        shell.set_custom_exc((BaseException,), ipython_custom_exception_handler)
 
 
 def detach_exception_hook():
