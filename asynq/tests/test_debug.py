@@ -207,7 +207,7 @@ def test_format_tb(mock_extract_tb, mock_format_list):
 
 @asynq.mock.patch('asynq.debug.format_error')
 def test_asynq_stack_trace_formatter(format_error):
-    format_error.return_value = u''
+    format_error.return_value = u'This is some traceback.'
     stderr_string_io = StringIO()
     handler = logging.StreamHandler(stream=stderr_string_io)
     handler.setFormatter(asynq.debug.AsynqStackTracebackFormatter())
@@ -221,3 +221,4 @@ def test_asynq_stack_trace_formatter(format_error):
         logger.exception('Test')
     ty, val, tb = exc_info
     format_error.assert_called_once_with(val, tb=tb)
+    assert_eq(u'Test\nThis is some traceback.\n', stderr_string_io.getvalue())
