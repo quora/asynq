@@ -27,12 +27,13 @@ from .scheduler import get_scheduler
 from .utils import result
 
 from qcore import get_original_fn, utime
-from qcore.caching import set_cached_per_instance_getstate, get_args_tuple, get_kwargs_defaults
+from qcore.caching import get_args_tuple, get_kwargs_defaults
 from qcore.inspection import getargspec
 from qcore.events import EventHook
 from qcore.errors import reraise, prepare_for_reraise
 import functools
 import itertools
+import weakref
 
 
 @async()
@@ -170,26 +171,22 @@ def acached_per_instance():
         arg_names = argspec.args[1:]  # remove self
         async_fun = fun.async
         kwargs_defaults = get_kwargs_defaults(argspec)
+        cache = weakref.WeakKeyDictionary()
 
         def cache_key(args, kwargs):
-            args = get_args_tuple(args, kwargs, arg_names, kwargs_defaults)
-            return (fun.__module__, fun.__name__, args)
+            return get_args_tuple(args, kwargs, arg_names, kwargs_defaults)
 
         @async_proxy()
         @functools.wraps(fun)
         def new_fun(self, *args, **kwargs):
-            try:
-                cache = self.__lib_cache
-            except AttributeError:
-                cache = self.__lib_cache = {}
-                set_cached_per_instance_getstate(self)
+            instance_cache = cache.setdefault(self, {})
 
             k = cache_key(args, kwargs)
             try:
-                return ConstFuture(cache[k])
+                return ConstFuture(instance_cache[k])
             except KeyError:
                 def callback(task):
-                    cache[k] = task.value()
+                    instance_cache[k] = task.value()
 
                 task = async_fun(self, *args, **kwargs)
                 task.on_computed.subscribe(callback)
