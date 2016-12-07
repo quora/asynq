@@ -171,15 +171,22 @@ def acached_per_instance():
         arg_names = argspec.args[1:]  # remove self
         async_fun = fun.async
         kwargs_defaults = get_kwargs_defaults(argspec)
-        cache = weakref.WeakKeyDictionary()
+        cache = {}
 
         def cache_key(args, kwargs):
             return get_args_tuple(args, kwargs, arg_names, kwargs_defaults)
 
+        def clear_cache(instance_key, ref):
+            del cache[instance_key]
+
         @async_proxy()
         @functools.wraps(fun)
         def new_fun(self, *args, **kwargs):
-            instance_cache = cache.setdefault(self, {})
+            instance_key = id(self)
+            if instance_key not in cache:
+                ref = weakref.ref(self, functools.partial(clear_cache, instance_key))
+                cache[instance_key] = (ref, {})
+            instance_cache = cache[instance_key][1]
 
             k = cache_key(args, kwargs)
             try:
@@ -191,6 +198,9 @@ def acached_per_instance():
                 task = async_fun(self, *args, **kwargs)
                 task.on_computed.subscribe(callback)
                 return task
+
+        # just so unit tests can check that this is cleaned up correctly
+        new_fun.__acached_per_instance_cache__ = cache
         return new_fun
     return cache_fun
 
