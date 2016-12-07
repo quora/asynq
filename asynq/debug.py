@@ -19,6 +19,7 @@ import qcore
 import inspect
 import linecache
 import traceback
+import logging
 from sys import stderr, stdout
 
 from . import _debug
@@ -82,6 +83,13 @@ def format_error(error, tb=None):
     if isinstance(error, BaseException):
         result += '\n' + ''.join(traceback.format_exception_only(error.__class__, error))
     return result
+
+
+class AsynqStackTracebackFormatter(logging.Formatter):
+    """Prints traceback skipping asynq frames during logger.exception/error usages."""
+    def formatException(self, exc_info):
+        ty, val, tb = exc_info
+        return format_error(val, tb=tb)
 
 
 def _should_skip_frame(frame):
