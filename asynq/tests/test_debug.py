@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import traceback
+import logging
 
 from six import StringIO
 from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
@@ -202,3 +203,22 @@ def test_format_tb(mock_extract_tb, mock_format_list):
     assert_is(a_return_value, asynq.debug.format_tb(traceback_to_verify))
     mock_extract_tb.assert_called_once_with(traceback_to_verify)
     mock_format_list.assert_called_once_with(a_return_value)
+
+
+@asynq.mock.patch('asynq.debug.format_error')
+def test_asynq_stack_trace_formatter(mock_format_error):
+    mock_format_error.return_value = u'This is some traceback.'
+    stderr_string_io = StringIO()
+    handler = logging.StreamHandler(stream=stderr_string_io)
+    handler.setFormatter(asynq.debug.AsynqStackTracebackFormatter())
+    logger = logging.getLogger('test_asynq')
+    logger.addHandler(handler)
+    exc_info = None
+    try:
+        async_function_whose_child_async_task_will_throw_an_error()
+    except ValueError:
+        exc_info = sys.exc_info()
+        logger.exception('Test')
+    ty, val, tb = exc_info
+    mock_format_error.assert_called_once_with(val, tb=tb)
+    assert_eq(u'Test\nThis is some traceback.\n', stderr_string_io.getvalue())
