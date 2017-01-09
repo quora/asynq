@@ -1,0 +1,10 @@
+## 0.1.4
+* Add an asynq stack trace formatter for loggers
+* Enable using objects with a custom __reduce__ in @acached_per_instance()
+* Add *args and **kwargs to utils.execute_on_separate_scheduler
+* Add AsyncEventHook
+* Fix some Python 3 test failures
+* Add AsyncTimer
+
+## 0.1.3
+* Initial public release
