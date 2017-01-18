@@ -52,7 +52,7 @@ def test():
             assert ayp.name == 'John'
 
             model.flush_and_clear_local_caches()
-            assert_eq(8, model.mc._batch.index)
+            assert_eq(11, model.mc._batch.index)
             assert_eq(11, model.db._batch.index)
         print()
 

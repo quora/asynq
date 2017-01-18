@@ -18,7 +18,6 @@ import cython
 cdef class DebugOptions(object):
     cdef public bint DUMP_PRE_ERROR_STATE
     cdef public bint DUMP_EXCEPTIONS
-    cdef public bint DUMP_AWAIT_RECURSION
     cdef public bint DUMP_SCHEDULE_TASK
     cdef public bint DUMP_CONTINUE_TASK
     cdef public bint DUMP_SCHEDULE_BATCH
@@ -29,9 +28,7 @@ cdef class DebugOptions(object):
     cdef public bint DUMP_YIELD_RESULTS
     cdef public bint DUMP_QUEUED_RESULTS
     cdef public bint DUMP_CONTEXTS
-    cdef public bint DUMP_SCHEDULER_CHANGE
     cdef public bint DUMP_SYNC
-    cdef public bint DUMP_PRIMER
     cdef public bint DUMP_STACK
     cdef public bint DUMP_SCHEDULER_STATE
 

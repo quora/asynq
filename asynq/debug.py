@@ -28,7 +28,6 @@ options = _debug.options  # Must be the same object
 
 options.DUMP_PRE_ERROR_STATE  = True
 options.DUMP_EXCEPTIONS       = False
-options.DUMP_AWAIT_RECURSION  = False
 options.DUMP_SCHEDULE_TASK    = False
 options.DUMP_CONTINUE_TASK    = False
 options.DUMP_SCHEDULE_BATCH   = False
@@ -39,9 +38,7 @@ options.DUMP_NEW_TASKS        = False
 options.DUMP_YIELD_RESULTS    = False
 options.DUMP_QUEUED_RESULTS   = False
 options.DUMP_CONTEXTS         = False
-options.DUMP_SCHEDULER_CHANGE = False
 options.DUMP_SYNC             = False
-options.DUMP_PRIMER           = False
 options.DUMP_STACK            = False  # When it's meaningful, e.g. on batch flush
 options.DUMP_SCHEDULER_STATE  = False
 

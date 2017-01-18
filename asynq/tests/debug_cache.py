@@ -26,11 +26,6 @@ class DebugExternalCache(ExternalCacheBase):
         self._remote = LocalCache()
         self.run_scheduler_before_flush = False
 
-    def _before_flush(self, batch):
-        if self.run_scheduler_before_flush:
-            print('Invoking scheduler recursively before batch flush.')
-            scheduler.get_scheduler().await()
-
     def _flush(self, batch):
         print('%s batch %i:' % (self.name, batch.index))
         for item in batch.items:

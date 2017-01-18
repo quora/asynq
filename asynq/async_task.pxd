@@ -29,32 +29,22 @@ cdef object _none_future
 
 
 cdef class AsyncTask(futures.FutureBase):
-    cdef public bint is_scheduled
     cdef public long iteration_index
-    cdef public bint group_cancel
     cdef public object fn
     cdef public object args
     cdef public object kwargs
     cdef public AsyncTask caller
-    cdef public int depth
-    cdef public int max_depth
-    cdef public scheduler.TaskScheduler scheduler
     cdef public AsyncTask creator
     cdef public object _generator
     cdef public object _last_value
     cdef public object _frame_info
-    cdef public set _dependencies
+    cdef public list _dependencies
     cdef public list _contexts
+    cdef public bint _contexts_active
+    cdef public bint _dependencies_scheduled
 
     cpdef bint is_blocked(self) except -1
     cpdef bint can_continue(self) except -1
-
-    @cython.locals(s=scheduler.TaskScheduler)
-    cpdef AsyncTask start(self, bint run_immediately=?)
-    @cython.locals(s=scheduler.TaskScheduler)
-    cpdef AsyncTask after(self, futures.FutureBase future)
-    @cython.locals(dependencies=list)
-    cpdef cancel_dependencies(self, error)
 
     cpdef _compute(self)
     cpdef _computed(self)
@@ -69,15 +59,6 @@ cdef class AsyncTask(futures.FutureBase):
     cpdef _queue_exit(self, result)
     cpdef _queue_throw_error(self, error)
 
-    # Must be CPython method to bind:
-    # cpdef _remove_dependency(self, dependency)
-    cdef object _remove_dependency_cython(self, dependency)
-
-    cpdef make_dependency(self, task, scheduler)
-
-    cdef object _before_continue(self)
-    cdef object _after_continue(self)
-
     cpdef _computed(self)
     cpdef list traceback(self)
 
@@ -88,15 +69,15 @@ cdef class AsyncTask(futures.FutureBase):
     cdef _enter_context(self, context)
     cdef _leave_context(self, context)
     @cython.locals(i=int)
-    cdef _pause_contexts(self)
+    cpdef _pause_contexts(self)
     @cython.locals(i=int)
-    cdef _resume_contexts(self)
+    cpdef _resume_contexts(self)
 
 
 @cython.locals(length=int, future=futures.FutureBase, tpl=tuple, lst=list, dct=dict)
 cdef object unwrap(object value)
 
-cpdef object _cancel_futures(object value, object error)
+cpdef extract_futures(object value, list result)
 
 cdef tuple _empty_tuple
 cdef dict _empty_dictionary

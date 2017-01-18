@@ -43,7 +43,6 @@ def test():
     reset_caches()
     init()()
     async_test()()
-    await()
 #    flush_and_clear_local_caches()
 #    async_test()()
 #    flush_and_clear_local_caches()

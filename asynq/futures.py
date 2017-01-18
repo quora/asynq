@@ -137,14 +137,6 @@ class FutureBase(object):
         """
         raise NotImplementedError()
 
-    def make_dependency(self, task, scheduler):
-        """Makes this Future into a dependency for the given task.
-
-        By default, does nothing. Subclasses can override this to implement dependency registration.
-
-        """
-        pass
-
     def raise_if_error(self):
         if self._error is not None:
             core_errors.reraise(self._error)

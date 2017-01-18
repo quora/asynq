@@ -241,12 +241,7 @@ def deduplicate():
     despite the caching, because a second async task may enter the body while the first one is
     still active.
 
-    This decorator will *not* deduplicate tasks that are scheduled on different asynq schedulers. In
-    practice, this can happen when the await recursion depth (the number of async tasks that call
-    .value() on async tasks) reaches 10 (see scheduler.py). If we attempt to deduplicate across
-    multiple schedulers, the scheduler may end up being blocked on a future that is owned by a
-    different scheduler, and this will lead the scheduler to fail with "No task to continue or batch
-    to flush".
+    This decorator will *not* deduplicate tasks that are scheduled on different asynq schedulers.
 
     """
     def decorator(fun):

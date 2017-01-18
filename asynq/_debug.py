@@ -27,7 +27,6 @@ class DebugOptions(object):
     def __init__(self):
         self.DUMP_PRE_ERROR_STATE  = False
         self.DUMP_EXCEPTIONS       = False
-        self.DUMP_AWAIT_RECURSION  = False
         self.DUMP_SCHEDULE_TASK    = False
         self.DUMP_CONTINUE_TASK    = False
         self.DUMP_SCHEDULE_BATCH   = False
@@ -38,9 +37,7 @@ class DebugOptions(object):
         self.DUMP_YIELD_RESULTS    = False
         self.DUMP_QUEUED_RESULTS   = False
         self.DUMP_CONTEXTS         = False
-        self.DUMP_SCHEDULER_CHANGE = False
         self.DUMP_SYNC             = False
-        self.DUMP_PRIMER           = False
         self.DUMP_STACK            = False  # When it's meaningful, e.g. on batch flush
         self.DUMP_SCHEDULER_STATE  = False
 

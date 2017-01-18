@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import async, await
+from asynq import async
 from .debug_cache import reset_caches
 from .model import reset_cache_batch_indexes, get_user_passport, Profiler, flush_and_clear_local_caches, mc, db, init
 
@@ -34,7 +34,7 @@ def test():
             assert none is None
 
             flush_and_clear_local_caches()
-            assert mc._batch.index == 5
+            assert mc._batch.index == 11
             assert db._batch.index == 3
         print()
 
@@ -56,6 +56,7 @@ def test():
         reset_caches()
         init()()
         test1()()
-        test2().start()()  # Actually the same as simply test2()()
+        test2()()
+
     print()
 

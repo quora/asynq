@@ -198,6 +198,6 @@ def init():
         print(js_p)
 
         flush_and_clear_local_caches()
-        assert_eq(9, mc._batch.index)
+        assert_eq(10, mc._batch.index)
         assert_eq(9, db._batch.index)
     print()

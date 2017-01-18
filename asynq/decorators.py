@@ -350,7 +350,7 @@ def _cached_impl(cache, original_fn, fn, args, kwargs):
         result = fn(*args, **kwargs)
         if isinstance(result, futures.FutureBase):
             result = yield result
-        _cache_set(cache, key, result).start()
+        _cache_set(cache, key, result).value()
         raise async_task.AsyncTaskResult(result); return
 
 # Applying decorator by this way to make it work with Cython
