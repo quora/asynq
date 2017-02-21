@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import sample
 from . import test_base
-from . import test_model
 from . import test_batching
 from . import test_exceptions
 from . import test_yield_result

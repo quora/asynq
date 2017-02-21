@@ -428,5 +428,8 @@ def extract_futures(value, result):
         while i >= 0:
             extract_futures(value[i], result)
             i -= 1
+    elif type(value) is dict:
+        for item in six.itervalues(value):
+            extract_futures(item, result)
     return result
 

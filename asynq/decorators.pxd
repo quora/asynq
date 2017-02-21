@@ -63,12 +63,3 @@ cdef class AsyncProxyDecorator(AsyncDecorator):
 cdef class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
     pass
 
-
-# Private part
-
-cdef object _assert_apply_without_invocation(object decorator, tuple task_args, dict task_kwargs=*)
-
-cdef object _cached
-cdef object _cache_set
-
-cpdef object _get_cache_key(object fn, tuple args, dict kwargs)

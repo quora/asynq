@@ -16,7 +16,8 @@ from asynq import AsyncContext, async, debug, result, NonAsyncContext
 from .helpers import Profiler
 from qcore.asserts import assert_eq, assert_is, AssertRaises
 
-from . import model
+from .debug_cache import mc
+from .caching import ExternalCacheBatchItem
 
 
 current_context = None
@@ -143,19 +144,19 @@ class Ctx(NonAsyncContext):
 
 def test_non_async_context():
     @async()
-    def async_fn_with_yield(arg, should_yield):
+    def async_fn_with_yield(should_yield):
         with Ctx():
             if should_yield:
-                user = yield model.get_user(arg)
+                ret = yield ExternalCacheBatchItem(mc._batch, 'get', 'test')
             else:
-                user = 'user ' + arg
-        result(user); return
+                ret = 0
+        result(ret); return
 
     @async()
     def batch(should_yield=True):
-        user1, user2 = yield async_fn_with_yield.async('1', should_yield), \
-            async_fn_with_yield.async('2', should_yield)
-        result((user1, user2)); return
+        ret1, ret2 = yield async_fn_with_yield.async(should_yield), \
+            async_fn_with_yield.async(should_yield)
+        result((ret1, ret2)); return
 
     with AssertRaises(AssertionError):
         batch()

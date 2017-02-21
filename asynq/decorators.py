@@ -244,35 +244,6 @@ def async_proxy(pure=False, sync_fn=None):
     return decorate
 
 
-def cached(cache):
-    """Caching decorator. Caches method execution result
-    based on its name an arguments.
-    * Works for both async and non-async methods
-    * Result is always async method returning AsyncTask object
-    * Provides dirty(...) member allowing to dirty appropriate cache entry.
-
-    """
-    _assert_apply_without_invocation("async", (cache,))
-
-    def decorate(fn):
-        original_fn = core_inspection.get_original_fn(fn)
-
-        @core_inspection.wraps(fn)
-        def new_fn(*args, **kwargs):
-            return _cached(cache, original_fn, fn, args, kwargs)
-
-        def dirty(*args, **kwargs):
-            key = _get_cache_key(original_fn, args, kwargs)
-            cache.set(key, core_helpers.miss)
-
-        new_fn.dirty = dirty
-        new_fn.fn = fn
-        new_fn.is_pure_async_fn = core_helpers.true_fn
-
-        return new_fn
-    return decorate
-
-
 @async_proxy()
 def async_call(fn, *args, **kwargs):
     """Use this if you are not sure if fn is async or not.
@@ -329,43 +300,3 @@ def make_async_decorator(fn, wrapper_fn, name):
         name,
     )(fn)
 
-
-# Private part
-
-def _assert_apply_without_invocation(decorator, task_args, task_kwargs={}):
-    if not task_kwargs and len(task_args) == 1:
-        assert not isinstance(task_args[0], FunctionType), "you must use @%s(...) instead of @%s" % (decorator, decorator)
-
-
-def _cached_impl(cache, original_fn, fn, args, kwargs):
-    """Internal async method used by @cached decorator.
-    Implements cache check/update in async fashion.
-
-    """
-    key = _get_cache_key(original_fn, args, kwargs)
-    cached = yield cache.get(key)
-    if cached is not core_helpers.miss:
-        raise async_task.AsyncTaskResult(cached); return
-    else:
-        result = fn(*args, **kwargs)
-        if isinstance(result, futures.FutureBase):
-            result = yield result
-        _cache_set(cache, key, result).value()
-        raise async_task.AsyncTaskResult(result); return
-
-# Applying decorator by this way to make it work with Cython
-_cached = async(pure=True)(_cached_impl)
-globals()['_cached'] = _cached
-
-
-def _cache_set_impl(cache, key, value):
-    yield cache.set(key, value)
-    raise StopIteration()
-
-# Applying decorator by this way to make it work with Cython
-_cache_set = async(pure=True)(_cache_set_impl)
-globals()['_cache_set'] = _cache_set
-
-
-def _get_cache_key(fn, args, kwargs):
-    return core_inspection.get_function_call_repr(fn, args, kwargs)
