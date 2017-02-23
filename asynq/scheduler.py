@@ -55,8 +55,7 @@ class TaskScheduler(object):
         else:
             _id = 0
         self.name = '%s / %d' % (thread_name, _id)
-        self._batches = set()
-        self._tasks = []
+        self.reset()
 
     def reset(self):
         self._batches = set()
@@ -95,7 +94,7 @@ class TaskScheduler(object):
             if len(self._tasks) > MAX_TASK_RECURSION_DEPTH:
                 self.reset()
                 debug.dump(self)
-                assert False, 'maximum recursion depth exceeded while calling an asynq task'
+                raise RuntimeError('maximum recursion depth exceeded while calling an asynq task')
 
             # _tasks is a stack, so take the last one.
             task = self._tasks[-1]

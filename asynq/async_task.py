@@ -139,12 +139,12 @@ class AsyncTask(futures.FutureBase):
                     self._queue_exit(None)
             except BaseException as error:
                 self._accept_error(error)
-            finally:
-                if self.is_computed():
-                    self._dependencies = []
-                    return
-                if len(self._dependencies) > 0:
-                    return
+
+            if self.is_computed():
+                self._dependencies = []
+                return
+            if len(self._dependencies) > 0:
+                return
 
     def _continue_on_generator(self, value, error):
         try:
