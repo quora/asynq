@@ -103,42 +103,13 @@ class TaskScheduler(object):
 
             if task.is_computed():
                 self._tasks.pop()
+            elif isinstance(task, AsyncTask):
+                self._handle_async_task(task)
             elif isinstance(task, batching.BatchItemBase):
                 # This can happen multiple times per batch item (if we run _execute and this batch
                 # item doesn't get flushed), but that's ok because self._batches is a set.
                 self._schedule_batch(task.batch)
                 self._tasks.pop()
-            elif isinstance(task, AsyncTask):
-                # is_blocked indicates that one of the tasks dependencies isn't computed yet,
-                # so we can't run _continue until they are.
-                if task.is_blocked():
-                    # _dependencies_scheduled indicates if we've already added the task's
-                    # dependencies to the task stack. If the task is blocked and we've already
-                    # scheduled and run its dependencies, it's blocked on batch items waiting
-                    # to be flushed so we're done with this task.
-                    if task._dependencies_scheduled:
-                        # Set _dependencies_scheduled to false so on future runs of _execute,
-                        # we add the dependencies to the task stack (since some of the batch items
-                        # in the subtree might have been flushed)
-                        if _debug_options.DUMP_CONTINUE_TASK:
-                            debug.write('@async: skipping %s' % debug.str(task))
-                        task._dependencies_scheduled = False
-                        task._pause_contexts()
-                        self._tasks.pop()
-                    # If the task is blocked and we haven't scheduled its dependencies, we
-                    # should do so now.
-                    else:
-                        task._dependencies_scheduled = True
-                        task._resume_contexts()
-                        for dependency in task._dependencies:
-                            if not dependency.is_computed():
-                                if _debug_options.DUMP_SCHEDULE_TASK:
-                                    debug.write('@async: scheduling task %s' % debug.str(dependency))
-                                if _debug_options.DUMP_DEPENDENCIES:
-                                    debug.write('@async: +dependency: %s needs %s' % (debug.str(task), debug.str(dependency)))
-                                self._tasks.append(dependency)
-                else:
-                    self._continue_with_task(task)
             else:
                 task._compute()
                 self._tasks.pop()
@@ -160,6 +131,39 @@ class TaskScheduler(object):
         finally:
             self.on_after_batch_flush(batch)
         return 0
+
+    def _handle_async_task(self, task):
+        # is_blocked indicates that one of the tasks dependencies isn't computed yet,
+        # so we can't run _continue until they are.
+        if task.is_blocked():
+            # _dependencies_scheduled indicates if we've already added the task's
+            # dependencies to the task stack. If the task is blocked and we've already
+            # scheduled and run its dependencies, it's blocked on batch items waiting
+            # to be flushed so we're done with this task.
+            if task._dependencies_scheduled:
+                # Set _dependencies_scheduled to false so on future runs of _execute,
+                # we add the dependencies to the task stack (since some of the batch items
+                # in the subtree might have been flushed)
+                if _debug_options.DUMP_CONTINUE_TASK:
+                    debug.write('@async: skipping %s' % debug.str(task))
+                task._dependencies_scheduled = False
+                task._pause_contexts()
+                self._tasks.pop()
+            # If the task is blocked and we haven't scheduled its dependencies, we
+            # should do so now.
+            else:
+                task._dependencies_scheduled = True
+                task._resume_contexts()
+                for dependency in task._dependencies:
+                    if not dependency.is_computed():
+                        if _debug_options.DUMP_SCHEDULE_TASK:
+                            debug.write('@async: scheduling task %s' % debug.str(dependency))
+                        if _debug_options.DUMP_DEPENDENCIES:
+                            debug.write('@async: +dependency: %s needs %s' % (debug.str(task), debug.str(dependency)))
+                        self._tasks.append(dependency)
+        else:
+            self._continue_with_task(task)
+
 
     def _continue_with_task(self, task):
         task._resume_contexts()

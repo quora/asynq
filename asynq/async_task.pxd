@@ -43,23 +43,22 @@ cdef class AsyncTask(futures.FutureBase):
     cdef public bint _contexts_active
     cdef public bint _dependencies_scheduled
 
-    cpdef bint is_blocked(self) except -1
-    cpdef bint can_continue(self) except -1
+    cdef bint is_blocked(self) except -1
+    cdef bint can_continue(self) except -1
 
     cpdef _compute(self)
     cpdef _computed(self)
 
-    cpdef _continue(self)
+    cdef _continue(self)
     cdef inline object _continue_on_generator(self, value, error)
 
     @cython.locals(scheduler=scheduler.TaskScheduler)
     cdef inline object _accept_yield_result(self, result)
     cdef inline object _accept_error(self, error)
 
-    cpdef _queue_exit(self, result)
-    cpdef _queue_throw_error(self, error)
+    cdef _queue_exit(self, result)
+    cdef _queue_throw_error(self, error)
 
-    cpdef _computed(self)
     cpdef list traceback(self)
 
     cpdef dump(self, int indent=?)
@@ -69,9 +68,9 @@ cdef class AsyncTask(futures.FutureBase):
     cdef _enter_context(self, context)
     cdef _leave_context(self, context)
     @cython.locals(i=int)
-    cpdef _pause_contexts(self)
+    cdef _pause_contexts(self)
     @cython.locals(i=int)
-    cpdef _resume_contexts(self)
+    cdef _resume_contexts(self)
 
 
 @cython.locals(length=int, future=futures.FutureBase, tpl=tuple, lst=list, dct=dict)

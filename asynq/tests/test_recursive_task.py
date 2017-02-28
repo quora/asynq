@@ -22,5 +22,5 @@ def bad_function():
 
 
 def test_it():
-    with AssertRaises(AssertionError):
+    with AssertRaises(RuntimeError):
         bad_function()

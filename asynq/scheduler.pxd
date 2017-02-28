@@ -35,17 +35,18 @@ cdef class TaskScheduler(object):
     cdef public str name
     cdef public list _tasks
 
-    cpdef reset(self)
+    cdef reset(self)
 
-    cpdef int await(self, async_task.AsyncTask task) except -1
-    cpdef int _execute(self, async_task.AsyncTask root_task) except -1
+    cdef int await(self, async_task.AsyncTask task) except -1
+    cdef int _execute(self, async_task.AsyncTask root_task) except -1
 
-    cpdef _schedule_batch(self, batching.BatchBase batch)
+    cdef _schedule_batch(self, batching.BatchBase batch)
     cdef int _flush_batch(self, batching.BatchBase batch) except -1
 
-    cdef async_task.AsyncTask _continue_with_task(self, async_task.AsyncTask task)
+    cdef int _handle_async_task(self, async_task.AsyncTask task)
+    cdef int _continue_with_task(self, async_task.AsyncTask task)
     cdef batching.BatchBase _continue_with_batch(self)
-    cpdef batching.BatchBase _select_batch_to_flush(self)
+    cdef batching.BatchBase _select_batch_to_flush(self)
 
     cpdef dump(self, int indent=?)
     @cython.locals(current_time=float)
