@@ -261,8 +261,8 @@ def sync():
     assert False, "'import asynq' seems broken: this function must be replaced with async.batching.sync."
 
 
-def get_frame_info(generator):
-    """Given a generator, returns its current frame info."""
+def get_frame(generator):
+    """Given a generator, returns its current frame."""
     if getattr(generator, 'gi_frame', None) is not None:
-        return inspect.getframeinfo(generator.gi_frame)
+        return generator.gi_frame
     return None

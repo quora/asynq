@@ -63,7 +63,7 @@ class AsyncTask(futures.FutureBase):
         self.caller = None
         self.creator = scheduler.get_active_task()
         self._generator = generator
-        self._frame_info = None
+        self._frame = None
         self._last_value = None
         self._dependencies = []
         self._contexts = []
@@ -160,7 +160,7 @@ class AsyncTask(futures.FutureBase):
                 return self._generator.send(value)
             else:
                 self._last_value = None  # No need to keep it further
-                self._frame_info = debug.get_frame_info(self._generator)
+                self._frame = debug.get_frame(self._generator)
                 if hasattr(error, '_task'):
                     return self._generator.throw(error._type_, error, error._traceback)
                 else:
@@ -179,12 +179,12 @@ class AsyncTask(futures.FutureBase):
             # If the task failed, we want to save the frame info here so that the traceback can
             # show where in the async task the failure happened. However, if the error was thrown
             # into the generator, we'll already have set the frame info.
-            if self._frame_info is None:
+            if self._frame is None:
                 tb = sys.exc_info()[2]
 
                 while tb.tb_next is not None:
                     tb = tb.tb_next
-                self._frame_info = inspect.getframeinfo(tb.tb_frame)
+                self._frame = tb.tb_frame
             self._generator = None
             raise
 
@@ -245,7 +245,7 @@ class AsyncTask(futures.FutureBase):
         try:
             self_str = self._traceback_line()
         except Exception:
-            # If _traceback_line failed for whatever reason (e.g. there is no correct frame_info),
+            # If _traceback_line failed for whatever reason (e.g. there is no correct frame),
             # fall back to __str__ so that we can still provide useful information for debugging
             self_str = core_helpers.safe_str(self)
         if self.caller is None:
@@ -255,10 +255,12 @@ class AsyncTask(futures.FutureBase):
         return result
 
     def _traceback_line(self):
-        frame_info = self._frame_info
-        if frame_info is None and self._generator is not None:
-            frame_info = debug.get_frame_info(self._generator)
-        if frame_info is not None:
+        frame = self._frame
+        if frame is None and self._generator is not None:
+            frame = debug.get_frame(self._generator)
+
+        if frame is not None:
+            frame_info = inspect.getframeinfo(frame)
             template = '''File "%(file)s", line %(lineno)s, in %(funcname)s
     %(codeline)s'''
             return template % {
