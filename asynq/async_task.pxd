@@ -42,7 +42,7 @@ cdef class AsyncTask(futures.FutureBase):
     cdef public AsyncTask creator
     cdef public object _generator
     cdef public object _last_value
-    cdef public object _frame_info
+    cdef public object _frame
     cdef public set _dependencies
     cdef public list _contexts
 
