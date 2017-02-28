@@ -124,11 +124,12 @@ class AsyncTask(futures.FutureBase):
             except StopIteration as error:  # Most frequent, so it's the first one
                 try:
                     # We're on a Python version that supports adding a value to StopIteration
-                    self._queue_exit(error.value)
+                    return_value = error.value
                 except AttributeError:
                     # This means there was no asynq.result() call, so the value of
                     # this task should be None
-                    self._queue_exit(None)
+                    return_value = None
+                self._queue_exit(return_value)
             except GeneratorExit as error:
                 error_type = type(error)
                 if error_type is AsyncTaskResult:
