@@ -24,7 +24,6 @@ cimport _debug
 
 cdef _debug.DebugOptions _debug_options
 cdef object _futures_none
-cdef int MAX_RECURSION_DEPTH
 
 cdef class TaskScheduler(object):
     cdef public float _last_dump_time

@@ -61,7 +61,6 @@ class AsyncTask(futures.FutureBase):
         self.kwargs = kwargs
         self.iteration_index = 0
         self.caller = None
-        self.creator = scheduler.get_active_task()
         self._generator = generator
         self._frame = None
         self._last_value = None
@@ -69,6 +68,7 @@ class AsyncTask(futures.FutureBase):
         self._contexts = []
         self._dependencies_scheduled = False
         if _debug_options.DUMP_NEW_TASKS:
+            self.creator = scheduler.get_active_task()
             debug.write('@async: new task: %s, created by %s' %
                 (debug.str(self), debug.str(self.creator)))
 
@@ -329,14 +329,14 @@ class AsyncTask(futures.FutureBase):
         self._contexts_active = False
         contexts = self._contexts
         i = len(contexts) - 1
-        # execute each __pause__() in a try/except and if 1 or more of them
+        # execute each pause() in a try/except and if 1 or more of them
         # raise an exception, then save the last exception raised so that it
         # can be re-raised later. We re-raise the last exception to make the
         # behavior consistent with __exit__.
         error = None
         while i >= 0:
             try:
-                contexts[i].__pause__()
+                contexts[i].pause()
             except BaseException as e:
                 error = e
                 core_errors.prepare_for_reraise(error)
@@ -356,7 +356,7 @@ class AsyncTask(futures.FutureBase):
         error = None
         while i < l:
             try:
-                contexts[i].__resume__()
+                contexts[i].resume()
             except BaseException as e:
                 if error is None:
                     error = e

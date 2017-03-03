@@ -30,8 +30,6 @@ assert str(__name__).endswith('asynq.scheduler') \
     or str(__name__).endswith('asynq.lib64.scheduler'), \
     "Are you importing asynq from the wrong directory?"
 
-MAX_TASK_RECURSION_DEPTH = 100000
-
 _debug_options = _debug.options
 _futures_none = futures._none
 
@@ -91,10 +89,10 @@ class TaskScheduler(object):
         # Run the execution loop until the root_task is complete (it's either blocked on batch
         # items waiting to be flushed, or computed).
         while len(self._tasks) > init_num_tasks:
-            if len(self._tasks) > MAX_TASK_RECURSION_DEPTH:
+            if len(self._tasks) > _debug_options.MAX_TASK_STACK_SIZE:
                 self.reset()
                 debug.dump(self)
-                raise RuntimeError('maximum recursion depth exceeded while calling an asynq task')
+                raise RuntimeError('maximum task stack size exceeded while calling an asynq task')
 
             # _tasks is a stack, so take the last one.
             task = self._tasks[-1]
@@ -103,7 +101,7 @@ class TaskScheduler(object):
 
             if task.is_computed():
                 self._tasks.pop()
-            elif isinstance(task, AsyncTask):
+            elif type(task) is AsyncTask:
                 self._handle_async_task(task)
             elif isinstance(task, batching.BatchItemBase):
                 # This can happen multiple times per batch item (if we run _execute and this batch

@@ -35,6 +35,7 @@ cdef class DebugOptions(object):
     cdef public float SCHEDULER_STATE_DUMP_INTERVAL
     cdef public int DEBUG_STR_REPR_MAX_LENGTH
     cdef public object STACK_DUMP_LIMIT
+    cdef public int MAX_TASK_STACK_SIZE
 
     cdef public object ENABLE_COMPLEX_ASSERTIONS
 

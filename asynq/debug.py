@@ -42,9 +42,10 @@ options.DUMP_SYNC             = False
 options.DUMP_STACK            = False  # When it's meaningful, e.g. on batch flush
 options.DUMP_SCHEDULER_STATE  = False
 
-options.SCHEDULER_STATE_DUMP_INTERVAL = 1    # In seconds
-options.DEBUG_STR_REPR_MAX_LENGTH     = 240  # In characters, 0 means infinity
-options.STACK_DUMP_LIMIT              = 10   # In frames, None means infinity
+options.SCHEDULER_STATE_DUMP_INTERVAL = 1       # In seconds
+options.DEBUG_STR_REPR_MAX_LENGTH     = 240     # In characters, 0 means infinity
+options.STACK_DUMP_LIMIT              = 10      # In frames, None means infinity
+options.MAX_TASK_STACK_SIZE           = 1000000 # Max number of concurrent futures + batch items
 
 options.ENABLE_COMPLEX_ASSERTIONS = True
 
