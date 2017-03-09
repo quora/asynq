@@ -127,7 +127,6 @@ class FutureBase(object):
         # Otherwise lots of negative effects are possible - e.g.
         # some of them might be left in blocked state.
         self.on_computed.safe_trigger(self)
-        del self.on_computed
 
     def _compute(self):
         """Protected method invoked to acquire the value.
