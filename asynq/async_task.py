@@ -104,6 +104,8 @@ class AsyncTask(futures.FutureBase):
                 self._generator = None
         finally:
             # super() doesn't work in Cython-ed version here
+            self._dependencies = []
+            self._last_value = None
             futures.FutureBase._computed(self)
             error = self.error()
 
@@ -142,7 +144,6 @@ class AsyncTask(futures.FutureBase):
                 self._accept_error(error)
 
             if self.is_computed():
-                self._dependencies = []
                 return
             if len(self._dependencies) > 0:
                 return

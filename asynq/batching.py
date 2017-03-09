@@ -87,6 +87,7 @@ class BatchBase(futures.FutureBase):
                 debug.dump_stack()
         try:
             self.error()  # Makes future to compute w/o raising an error
+            del self.items[:]
         finally:
             if _debug_options.DUMP_FLUSH_BATCH:
                 debug.write('@async: <- batch flushed: %s' % debug.str(self))
