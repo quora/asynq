@@ -15,6 +15,7 @@
 from sys import stderr, stdout
 import time
 import collections
+import six
 import threading
 
 import qcore.events as core_events
@@ -573,6 +574,9 @@ def extract_futures(value, result):
         result.append(value)
     elif type(value) is tuple or type(value) is list:
         for item in value:
+            extract_futures(item, result)
+    elif type(value) is dict:
+        for item in six.itervalues(value):
             extract_futures(item, result)
     return result
 
