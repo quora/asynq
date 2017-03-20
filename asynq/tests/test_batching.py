@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import async
+from asynq import async, result
 from .debug_cache import reset_caches, mc
 from .caching import ExternalCacheBatchItem
 
@@ -20,7 +20,7 @@ def test_chain():
     @async()
     def foo(num_yield):
         if num_yield == 0:
-            return 0
+            result(0); return
 
         yield ExternalCacheBatchItem(mc._batch, 'get', 'test')
         yield foo.async(num_yield - 1)
@@ -34,7 +34,7 @@ def test_tree():
     @async()
     def foo(depth):
         if depth == 0:
-            return (yield ExternalCacheBatchItem(mc._batch, 'get', 'test'))
+            result((yield ExternalCacheBatchItem(mc._batch, 'get', 'test'))); return
         yield foo.async(depth - 1), foo.async(depth - 1)
 
     reset_caches()
