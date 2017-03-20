@@ -34,12 +34,11 @@ from .futures import FutureBase, Future, FutureIsAlreadyComputed, none_future, C
     ErrorFuture
 from .batching import BatchBase, BatchItemBase, BatchingError, BatchCancelledError
 from .async_task import AsyncTask, AsyncTaskCancelledError, AsyncTaskResult
-from .scheduler import TaskScheduler, get_scheduler, get_active_task, set_scheduler, \
-    AsyncTaskError
-from .decorators import async, async_proxy, cached, has_async_fn, \
+from .scheduler import TaskScheduler, get_scheduler, get_active_task, AsyncTaskError
+from .decorators import async, async_proxy, has_async_fn, \
     is_pure_async_fn, is_async_fn, get_async_fn, get_async_or_sync_fn, async_call, \
     make_async_decorator
-from .utils import await, result
+from .utils import result
 from .contexts import NonAsyncContext, AsyncContext
 from .scoped_value import AsyncScopedValue, async_override
 from . import mock_ as mock
@@ -47,3 +46,4 @@ from .generator import END_OF_GENERATOR, async_generator, list_of_generator, tak
 
 debug.sync = batching.sync
 debug.attach_exception_hook()
+

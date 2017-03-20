@@ -34,25 +34,8 @@ def test():
         result(counter); return
 
     @async(pure=True)
-    def test_group_cancel():
+    def test():
         global counter
-        print('Testing exceptions with group cancel:')
-        counter = 0
-        tasks = (throw(0, False), throw(1, True), throw(2, False))
-        try:
-            yield tasks
-            raise AssertionError()
-        except RuntimeError:
-            pass
-        assert counter == 1
-        assert tasks[0].value() == 1
-        assert tasks[1].error() is not None
-        assert tasks[2].error() is not None
-
-    @async(pure=True, group_cancel=False)
-    def test_no_group_cancel():
-        global counter
-        print('Testing exceptions with no group cancel:')
         counter = 0
         tasks = (throw(0, False), throw(1, True), throw(1, False))
         try:
@@ -66,8 +49,7 @@ def test():
         assert tasks[2].value() == 2
 
     with Profiler('test_exceptions()'):
-        test_group_cancel()()
-        test_no_group_cancel()()
+        test()()
 
 
 context_is_active = 0
@@ -78,17 +60,15 @@ def test_async_context():
         def __init__(self, raise_in_pause, raise_in_resume):
             self.raise_in_pause = raise_in_pause
             self.raise_in_resume = raise_in_resume
-            self.has_paused = False
 
         def resume(self):
-            if self.raise_in_resume and self.has_paused:
+            if self.raise_in_resume:
                 # we raise a BaseException because cythonized async
                 # can ignore system generated exceptions as well.
                 # e.g. we raise KeyboardInterrupt before restarting a webserver
                 raise KeyboardInterrupt()
 
         def pause(self):
-            self.has_paused = True
             if self.raise_in_pause:
                 raise KeyboardInterrupt()
 

@@ -26,11 +26,6 @@ class DebugExternalCache(ExternalCacheBase):
         self._remote = LocalCache()
         self.run_scheduler_before_flush = False
 
-    def _before_flush(self, batch):
-        if self.run_scheduler_before_flush:
-            print('Invoking scheduler recursively before batch flush.')
-            scheduler.get_scheduler().await()
-
     def _flush(self, batch):
         print('%s batch %i:' % (self.name, batch.index))
         for item in batch.items:
@@ -64,19 +59,13 @@ class DebugExternalCache(ExternalCacheBase):
         return
 
 
-lc = LocalCache()
 mc = DebugExternalCache('MC')
-db = DebugExternalCache('DB')
-db.use_local_cache = False
 
 
 def reset_caches():
     print('Cache reset:')
-    lc.clear()
     mc.cancel_flush()
     mc.clear()
-    db.cancel_flush()
-    db.clear()
     flush_caches()
     reset_cache_batch_indexes()
     print('Caches are clear.')
@@ -85,18 +74,14 @@ def reset_caches():
 
 def reset_cache_batch_indexes():
     mc._batch.index = 1
-    db._batch.index = 1
 
 
 def flush_caches():
     if mc._batch.items:
         mc.flush()
-    if db._batch.items:
-        db.flush()
 
 
 def flush_and_clear_local_caches():
     flush_caches()
-    lc.clear()
     mc._local.clear()
     db._local.clear()

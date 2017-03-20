@@ -58,21 +58,5 @@ def order_test():
     yield  # Nothing happens here
     assert len(values) == 11  # Done at this point
 
-
-@async(pure=True)
-def continue_with_test():
-    global values
-    values = {}
-
-    simpleFuture = Future(lambda: None)
-    task1 = set(0, 'value').after(simpleFuture)
-    task2 = get(0).after(task1)
-    scheduler.get_active_task().after(task2)  # Another way of adding a dependency
-    yield
-    assert task2.is_computed()
-    assert task2.value() == 'value'
-
-
 def test():
     order_test()()
-    continue_with_test()()

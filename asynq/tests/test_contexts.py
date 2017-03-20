@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import AsyncContext, async, await, debug, result, NonAsyncContext
+from asynq import AsyncContext, async, debug, result, NonAsyncContext
 from .helpers import Profiler
 from qcore.asserts import assert_eq, assert_is, AssertRaises
 
-from . import model
+from .debug_cache import mc
+from .caching import ExternalCacheBatchItem
 
 
 current_context = None
@@ -70,10 +71,10 @@ def test_parallel():
                 )
 
     with Profiler('test_parallel()'):
-        await(
-            parallel('taskA', None, 0),
-            parallel('taskB', None, 0)
-        )
+        @async()
+        def together():
+            yield parallel('taskA', None, 0), parallel('taskB', None, 0)
+        together()
     print()
 
 
@@ -124,35 +125,11 @@ def test_adder():
         result((a, b, c)); return
 
     assert_eq(2, async_add(1, 1)())
-    assert_eq((7, 7, 2), await(add_twice(1, 1), add_twice(1, 1), async_add(1, 1)))
     assert_eq((7, 7, 2), useless()())
 
     expected_change_amount_base += 1
     with AsyncAddChanger(1):
-        assert_eq((10, 10, 3), await(add_twice(1, 1), add_twice(1, 1), async_add(1, 1)))
-
-
-def test_context_binding_on_construction():
-    global current_context
-
-    @async(pure=True)
-    def nested(ctx):
-        assert_is(current_context, ctx)
-        yield
-
-    @async(pure=True)
-    def outermost():
-        assert_is(None, current_context)
-        with Context('ctx', None, assert_state_changes=False) as ctx:
-            assert_is(current_context, ctx)
-            task = nested(ctx)  # Active async contexts are bound to task on construction
-
-        assert_is(None, current_context)
-        assert_eq(1, len(task._contexts))
-        assert_is(ctx, task._contexts[0])  # The ctx is captured
-        result((yield task)); return
-
-    outermost()()
+        assert_eq((10, 10, 3), useless()())
 
 
 class Ctx(NonAsyncContext):
@@ -167,19 +144,19 @@ class Ctx(NonAsyncContext):
 
 def test_non_async_context():
     @async()
-    def async_fn_with_yield(arg, should_yield):
+    def async_fn_with_yield(should_yield):
         with Ctx():
             if should_yield:
-                user = yield model.get_user(arg)
+                ret = yield ExternalCacheBatchItem(mc._batch, 'get', 'test')
             else:
-                user = 'user ' + arg
-        result(user); return
+                ret = 0
+        result(ret); return
 
     @async()
     def batch(should_yield=True):
-        user1, user2 = yield async_fn_with_yield.async('1', should_yield), \
-            async_fn_with_yield.async('2', should_yield)
-        result((user1, user2)); return
+        ret1, ret2 = yield async_fn_with_yield.async(should_yield), \
+            async_fn_with_yield.async(should_yield)
+        result((ret1, ret2)); return
 
     with AssertRaises(AssertionError):
         batch()

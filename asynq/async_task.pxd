@@ -29,56 +29,36 @@ cdef object _none_future
 
 
 cdef class AsyncTask(futures.FutureBase):
-    cdef public bint is_scheduled
     cdef public long iteration_index
-    cdef public bint group_cancel
     cdef public object fn
     cdef public object args
     cdef public object kwargs
     cdef public AsyncTask caller
-    cdef public int depth
-    cdef public int max_depth
-    cdef public scheduler.TaskScheduler scheduler
     cdef public AsyncTask creator
     cdef public object _generator
     cdef public object _last_value
     cdef public object _frame
-    cdef public set _dependencies
+    cdef public list _dependencies
     cdef public list _contexts
+    cdef public bint _contexts_active
+    cdef public bint _dependencies_scheduled
 
-    cpdef bint is_blocked(self) except -1
-    cpdef bint can_continue(self) except -1
-
-    @cython.locals(s=scheduler.TaskScheduler)
-    cpdef AsyncTask start(self, bint run_immediately=?)
-    @cython.locals(s=scheduler.TaskScheduler)
-    cpdef AsyncTask after(self, futures.FutureBase future)
-    @cython.locals(dependencies=list)
-    cpdef cancel_dependencies(self, error)
+    cdef bint is_blocked(self) except -1
+    cdef bint can_continue(self) except -1
 
     cpdef _compute(self)
     cpdef _computed(self)
 
-    cpdef _continue(self)
+    cdef _continue(self)
     cdef inline object _continue_on_generator(self, value, error)
 
     @cython.locals(scheduler=scheduler.TaskScheduler)
     cdef inline object _accept_yield_result(self, result)
     cdef inline object _accept_error(self, error)
 
-    cpdef _queue_exit(self, result)
-    cpdef _queue_throw_error(self, error)
+    cdef _queue_exit(self, result)
+    cdef _queue_throw_error(self, error)
 
-    # Must be CPython method to bind:
-    # cpdef _remove_dependency(self, dependency)
-    cdef object _remove_dependency_cython(self, dependency)
-
-    cpdef make_dependency(self, task, scheduler)
-
-    cdef object _before_continue(self)
-    cdef object _after_continue(self)
-
-    cpdef _computed(self)
     cpdef list traceback(self)
 
     cpdef dump(self, int indent=?)
@@ -96,7 +76,7 @@ cdef class AsyncTask(futures.FutureBase):
 @cython.locals(length=int, future=futures.FutureBase, tpl=tuple, lst=list, dct=dict)
 cdef object unwrap(object value)
 
-cpdef object _cancel_futures(object value, object error)
+cpdef extract_futures(object value, list result)
 
 cdef tuple _empty_tuple
 cdef dict _empty_dictionary

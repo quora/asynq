@@ -192,11 +192,6 @@ class BatchItemBase(futures.FutureBase):
         self.index = len(batch.items)
         batch.items.append(self)
 
-    def make_dependency(self, task, scheduler):
-        task._dependencies.add(self)
-        self.on_computed.subscribe(task._remove_dependency)
-        scheduler.schedule_batch(self.batch)
-
     def _compute(self):
         """This method ensures the value is available
         by flushing the batch, if necessary.

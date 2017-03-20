@@ -46,7 +46,6 @@ cdef class BatchItemBase(futures.FutureBase):
     cdef public BatchBase batch
     cdef public long index
 
-    cpdef make_dependency(self, task, scheduler)
     cpdef _compute(self)
 
 

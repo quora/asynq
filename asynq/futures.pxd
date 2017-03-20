@@ -39,7 +39,6 @@ cdef class FutureBase(object):
     cpdef bint is_computed(self) except -1
     cpdef _compute(self)
     cpdef _computed(self)
-    cpdef make_dependency(self, task, scheduler)
 
     cdef inline raise_if_error(self)
 

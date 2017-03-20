@@ -15,17 +15,12 @@
 from asynq import async, result
 from qcore.asserts import AssertRaises
 
-task = None
-
 
 @async()
 def bad_function():
-    global task
-    if task is None:
-        task = bad_function.async()
-    yield task
+    yield bad_function.async()
 
 
 def test_it():
-    with AssertRaises(AssertionError):
+    with AssertRaises(RuntimeError):
         bad_function()

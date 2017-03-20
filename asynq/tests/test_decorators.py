@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
-from asynq import async, async_proxy, is_pure_async_fn, result, await, async_call, ConstFuture
+from asynq import async, async_proxy, is_pure_async_fn, result, async_call, ConstFuture
 from asynq.decorators import lazy, get_async_fn, get_async_or_sync_fn, make_async_decorator, AsyncDecorator
 import pickle
 
@@ -210,7 +210,6 @@ def test_async_proxy():
 def test():
     obj = MyClass()
     assert obj is obj.method(1)
-    assert obj is await(obj.method.async(2))
 
 
 def test_staticmethod_sync_fn():

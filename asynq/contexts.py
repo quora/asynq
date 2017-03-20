@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import scheduler
+from scheduler import _state
 
 
 class NonAsyncContext(object):
@@ -34,15 +34,16 @@ class NonAsyncContext(object):
     def __exit__(self, typ, val, tb):
         leave_context(self, self._active_task)
 
-    def __pause__(self):
+    def pause(self):
         assert False, 'Task %s cannot yield while %s is active' % (self._active_task, self)
 
-    def __resume__(self):
+    def resume(self):
         assert False, 'Task %s cannot yield while %s is active' % (self._active_task, self)
 
 
 def enter_context(context):
-    active_task = scheduler.get_active_task()
+    global _state
+    active_task = _state.current.active_task # perf optimization: inline get_active_task
     if active_task is not None:
         active_task._enter_context(context)
     return active_task
@@ -71,23 +72,15 @@ class AsyncContext(object):
 
     def __enter__(self):
         self._active_task = enter_context(self)
-        self.__resume__()
+        self.resume()
         return self
 
     def __exit__(self, ty, value, tb):
         leave_context(self, self._active_task)
-        self.__pause__()
-
-    def __resume__(self):
-        self._is_active = True
-        self.resume()
+        self.pause()
 
     def resume(self):
         raise NotImplementedError()
-
-    def __pause__(self):
-        self.pause()
-        self._is_active = False
 
     def pause(self):
         raise NotImplementedError()
