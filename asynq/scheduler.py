@@ -101,7 +101,7 @@ class TaskScheduler(object):
 
             if task.is_computed():
                 self._tasks.pop()
-            elif type(task) is AsyncTask:
+            elif isinstance(task, AsyncTask):
                 self._handle_async_task(task)
             elif isinstance(task, batching.BatchItemBase):
                 # This can happen multiple times per batch item (if we run _execute and this batch
