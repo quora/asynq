@@ -212,5 +212,5 @@ Compatibility
 Contributors
 ------------
 
-`Alex Yakunin <https://github.com/alexyakunin>`_, `Jelle Zijlstra <https://github.com/JelleZijlstra>`_, `Manan Nayak <https://github.com/manannayak>`_, `Martin Michelsen <https://github.com/fuzziqersoftware>`_, `Shrey Banga <https://github.com/banga>`_, `Suren Nihalani <https://github.com/snihalani>`_ and
+`Alex Yakunin <https://github.com/alexyakunin>`_, `Jelle Zijlstra <https://github.com/JelleZijlstra>`_, `Manan Nayak <https://github.com/manannayak>`_, `Martin Michelsen <https://github.com/fuzziqersoftware>`_, `Shrey Banga <https://github.com/banga>`_, `Suren Nihalani <https://github.com/snihalani>`_, `Suchir Balaji <https://github.com/suchir>`_ and
 other engineers at Quora.
