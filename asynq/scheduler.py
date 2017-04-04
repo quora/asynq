@@ -24,7 +24,7 @@ from . import debug
 from . import futures
 from . import batching
 from . import _debug
-from async_task import AsyncTask
+from .async_task import AsyncTask
 
 assert str(__name__).endswith('asynq.scheduler') \
     or str(__name__).endswith('asynq.lib64.scheduler'), \
