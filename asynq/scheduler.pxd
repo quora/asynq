@@ -36,7 +36,7 @@ cdef class TaskScheduler(object):
 
     cdef reset(self)
 
-    cdef int await(self, async_task.AsyncTask task) except -1
+    cpdef int await(self, async_task.AsyncTask task) except -1
     cdef int _execute(self, async_task.AsyncTask root_task) except -1
 
     cdef _schedule_batch(self, batching.BatchBase batch)

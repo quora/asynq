@@ -22,8 +22,9 @@ import qcore.errors as core_errors
 
 from . import debug
 from . import futures
-from . import scheduler
 from . import _debug
+
+import asynq
 
 __traceback_hide__ = True
 
@@ -66,9 +67,10 @@ class AsyncTask(futures.FutureBase):
         self._last_value = None
         self._dependencies = []
         self._contexts = []
+        self._contexts_active = False
         self._dependencies_scheduled = False
         if _debug_options.DUMP_NEW_TASKS:
-            self.creator = scheduler.get_active_task()
+            self.creator = asynq.scheduler.get_active_task()
             debug.write('@async: new task: %s, created by %s' %
                 (debug.str(self), debug.str(self.creator)))
 
@@ -93,7 +95,7 @@ class AsyncTask(futures.FutureBase):
 
     def _compute(self):
         # Forwards the call to task scheduler
-        scheduler.get_scheduler().await(self)
+        asynq.scheduler.get_scheduler().await(self)
         # No need to assign a value/error here, since
         # _continue method (called by TaskScheduler) does this.
 

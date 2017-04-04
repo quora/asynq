@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scheduler import _state
+import asynq
 
 
 class NonAsyncContext(object):
@@ -42,8 +42,8 @@ class NonAsyncContext(object):
 
 
 def enter_context(context):
-    global _state
-    active_task = _state.current.active_task # perf optimization: inline get_active_task
+    # perf optimization: inline get_active_task
+    active_task = asynq.scheduler._state.current.active_task
     if active_task is not None:
         active_task._enter_context(context)
     return active_task
