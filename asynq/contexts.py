@@ -42,7 +42,6 @@ class NonAsyncContext(object):
 
 
 def enter_context(context):
-    global _state
     # perf optimization: inline get_active_task
     active_task = asynq.scheduler._state.current.active_task
     if active_task is not None:
