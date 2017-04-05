@@ -9,7 +9,7 @@ class Batch:
 
     async def enqueue(self, item):
         self.items.add(item)
-        with await self.lock:
+        async with self.lock:
             if item not in self.items:
                 return
             items = self.items.copy()
@@ -32,14 +32,18 @@ class BatchItem:
     def set_value(self, value):
         self._value = value
 
-    async def get(self):
+    def value(self):
+        event_loop = asyncio.get_event_loop()
+        return event_loop.run_until_complete(self.future())
+
+    async def future(self):
         await self.batch.enqueue(self)
         return self._value
 
 
 class LocalState(threading.local):
     def __init__(self):
-        super(LocalState, self).__init__()
+        super().__init__()
         self.batches = {}
 
     def get_batch(self, batch_cls):
