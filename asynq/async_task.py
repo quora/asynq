@@ -73,6 +73,8 @@ class AsyncTask(futures.FutureBase):
             self.creator = asynq.scheduler.get_active_task()
             debug.write('@async: new task: %s, created by %s' %
                 (debug.str(self), debug.str(self.creator)))
+        elif _debug_options.DUMP_SYNC_CALLS:
+            self.creator = asynq.scheduler.get_active_task()
 
     def can_continue(self):
         """Indicates whether this async task has more steps to execute.
@@ -94,6 +96,10 @@ class AsyncTask(futures.FutureBase):
         return False
 
     def _compute(self):
+        if _debug_options.DUMP_SYNC_CALLS:
+            if self.creator is not None:
+                debug.write('@async: %s called synchronously from %s'
+                    % (debug.str(self), debug.str(self.creator)))
         # Forwards the call to task scheduler
         asynq.scheduler.get_scheduler().await(self)
         # No need to assign a value/error here, since

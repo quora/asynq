@@ -41,6 +41,7 @@ options.DUMP_CONTEXTS         = False
 options.DUMP_SYNC             = False
 options.DUMP_STACK            = False  # When it's meaningful, e.g. on batch flush
 options.DUMP_SCHEDULER_STATE  = False
+options.DUMP_SYNC_CALLS       = False
 
 options.SCHEDULER_STATE_DUMP_INTERVAL = 1       # In seconds
 options.DEBUG_STR_REPR_MAX_LENGTH     = 240     # In characters, 0 means infinity
