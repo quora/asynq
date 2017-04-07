@@ -47,6 +47,7 @@ from .contexts import NonAsyncContext, AsyncContext
 from .scoped_value import AsyncScopedValue, async_override
 from . import mock_ as mock
 from .generator import END_OF_GENERATOR, async_generator, list_of_generator, take_first, Value
+from . import py3
 
 debug.sync = batching.sync
 debug.attach_exception_hook()

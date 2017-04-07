@@ -1,7 +1,8 @@
 import asyncio
-import batching
-from decorators import coroutine
-from contexts import AsyncContext
+
+from asynq.py3 import batching
+from asynq.py3.decorators import coroutine
+from asynq.py3.contexts import AsyncContext
 
 from qcore.asserts import assert_eq
 
@@ -109,7 +110,3 @@ def coro2():
 def test():
     ret = coro2()
     print(ret)
-
-
-if __name__ == '__main__':
-    test()

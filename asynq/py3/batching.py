@@ -41,6 +41,17 @@ class BatchItem:
         return self._value
 
 
+class ConstFuture:
+    def __init__(self, value):
+        self._value = value
+
+    async def future(self):
+        return self._value
+
+    def value(self):
+        return self._value
+
+
 class LocalState(threading.local):
     def __init__(self):
         super().__init__()

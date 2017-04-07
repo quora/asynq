@@ -1,8 +1,9 @@
 import asyncio
-import types
+import inspect
 import threading
+import types
 
-import batching
+from . import batching
 
 
 class AsyncTask:
@@ -50,14 +51,14 @@ class AsyncTask:
 
     async def future(self):
         # first get the generator.
-        # need to do before/after continue in case the function is not a generator.
-        self._before_continue()
-        gen = self.fn(*self.args, **self.kwargs)
-        self._after_continue()
+        if not inspect.isgeneratorfunction(self.fn):
+            # need to do before/after continue in this case
+            self._before_continue()
+            result = self.fn(*self.args, **self.kwargs)
+            self._after_continue()
+            return result
 
-        # if fn is not a generator, then we already have the value.
-        if not isinstance(gen, types.GeneratorType):
-            return gen
+        gen = self.fn(*self.args, **self.kwargs)
 
         send_value = None
         while True:
@@ -74,13 +75,17 @@ class AsyncTask:
 
 def register_context(ctx):
     active_task = _state.current_task
+    if active_task is None:
+        # this means it was not called within an async function
+        return None
     active_task.add_context(ctx)
     return active_task
 
 
 def leave_context(ctx, task):
     assert (task == _state.current_task), '%r != %r' % (str(task), str(_state.current_task))
-    task.leave_context(ctx)
+    if task is not None:
+        task.leave_context(ctx)
 
 
 class LocalState(threading.local):
