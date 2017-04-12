@@ -261,15 +261,11 @@ class DeduplicateDecorator(AsyncDecorator):
 
     def dirty(self, *args, **kwargs):
         cache_key = self.cache_key(args, kwargs)
-
-        try:
-            del self.tasks[cache_key]
-        except KeyError:
-            pass
+        self.tasks.pop(cache_key, None)
 
 
 def deduplicate(keygetter=None):
-    """Decorator that (mostly) ensures that no two identical instances of a task run concurrently.
+    """Decorator that ensures that no two identical instances of a task run concurrently.
 
     This is useful in situations like this:
 
@@ -287,7 +283,9 @@ def deduplicate(keygetter=None):
     despite the caching, because a second async task may enter the body while the first one is
     still active.
 
-    This decorator will *not* deduplicate tasks that are scheduled on different asynq schedulers.
+    You can also call dirty on a deduplicated function to remove a cached async task with the
+    corresponding args and kwargs. This is useful if a deduplicating function ends up calling
+    itself with the same args and kwargs, either directly or deeper in the call stack.
 
     """
     def decorator(fun):
