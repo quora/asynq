@@ -213,6 +213,17 @@ def recursive_incrementer(n):
     result(recursive_incrementer(n - 1)); return
 
 
+@deduplicate()
+@async()
+def recursive_call_with_dirty():
+    global i
+    if i > 0:
+        result(i); return
+    i += 1
+    recursive_call_with_dirty.dirty()
+    yield recursive_call_with_dirty.async()
+
+
 def test_deduplicate():
     _check_deduplicate()
 
@@ -236,6 +247,10 @@ def _check_deduplicate():
     yield AsyncObject.deduplicated_static_method.async(), \
         AsyncObject.deduplicated_static_method.async(1)
     assert_eq(1, AsyncObject.cls_value)
+
+    i = 0
+    yield recursive_call_with_dirty.async()
+
 
 
 def test_deduplicate_recursion():
