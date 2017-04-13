@@ -248,7 +248,6 @@ def _check_deduplicate():
         AsyncObject.deduplicated_static_method.async(1)
     assert_eq(1, AsyncObject.cls_value)
 
-    global i
     i = 0
     yield recursive_call_with_dirty.async()
 
