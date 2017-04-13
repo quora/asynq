@@ -218,7 +218,7 @@ def recursive_incrementer(n):
 def recursive_call_with_dirty():
     global i
     if i > 0:
-        return i
+        result(i); return
     i += 1
     recursive_call_with_dirty.dirty()
     yield recursive_call_with_dirty.async()
