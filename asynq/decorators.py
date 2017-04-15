@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import inspect
-from types import FunctionType
-
 import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
 import qcore.decorators
