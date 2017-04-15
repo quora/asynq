@@ -19,6 +19,7 @@ Asynq is a framework for asynchronous programming in Python.
 It supports futures, batching, and asynchronous contexts.
 
 """
+import sys
 
 from . import debug
 from . import futures
@@ -35,9 +36,11 @@ from .futures import FutureBase, Future, FutureIsAlreadyComputed, none_future, C
 from .batching import BatchBase, BatchItemBase, BatchingError, BatchCancelledError
 from .async_task import AsyncTask, AsyncTaskCancelledError, AsyncTaskResult
 from .scheduler import TaskScheduler, get_scheduler, get_active_task, AsyncTaskError
-from .decorators import async, async_proxy, has_async_fn, \
+from .decorators import coroutine, async_proxy, has_async_fn, \
     is_pure_async_fn, is_async_fn, get_async_fn, get_async_or_sync_fn, async_call, \
     make_async_decorator
+if sys.version_info <= (3, 7):
+    exec('from .decorators import async')
 from .utils import result
 from .contexts import NonAsyncContext, AsyncContext
 from .scoped_value import AsyncScopedValue, async_override

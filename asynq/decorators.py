@@ -204,7 +204,7 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
         return self.sync_fn(*args, **kwargs)
 
 
-def async(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
+def coroutine(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
     """Async task decorator.
     Converts a method returning generator object to
     a method returning AsyncTask object.
@@ -217,7 +217,7 @@ def async(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
 
     def decorate(fn):
         assert not (is_pure_async_fn(fn) or has_async_fn(fn)), \
-            "@async() decorator can be applied just once"
+            "@coroutine() decorator can be applied just once"
         if pure:
             return qcore.decorators.decorate(PureAsyncDecorator, cls, kwargs)(fn)
         elif sync_fn is None:
@@ -226,6 +226,10 @@ def async(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
             return qcore.decorators.decorate(AsyncAndSyncPairDecorator, cls, sync_fn)(fn)
 
     return decorate
+
+
+if sys.version_info <= (3, 7):
+    globals()['async'] = coroutine
 
 
 def async_proxy(pure=False, sync_fn=None):
