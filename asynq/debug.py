@@ -80,7 +80,10 @@ def format_error(error, tb=None):
         tb = tb or error._traceback
         result += '\n\nTraceback:\n%s' % ''.join(format_tb(tb))
     if isinstance(error, BaseException):
-        result += '\n' + ''.join(traceback.format_exception_only(error.__class__, error))
+        exc_text = ''.join(traceback.format_exception_only(error.__class__, error))
+        if isinstance(exc_text, bytes):
+            exc_text = exc_text.decode('utf-8', 'replace')
+        result += '\n' + exc_text
     return result
 
 
