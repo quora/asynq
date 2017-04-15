@@ -101,7 +101,7 @@ class AsyncTask(futures.FutureBase):
                 debug.write('@async: %s called synchronously from %s'
                     % (debug.str(self), debug.str(self.creator)))
         # Forwards the call to task scheduler
-        asynq.scheduler.get_scheduler().await(self)
+        asynq.scheduler.get_scheduler().wait_for(self)
         # No need to assign a value/error here, since
         # _continue method (called by TaskScheduler) does this.
 

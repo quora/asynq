@@ -14,7 +14,6 @@
 
 from sys import stderr, stdout
 import time
-import collections
 import threading
 
 import qcore.events as core_events
@@ -60,11 +59,11 @@ class TaskScheduler(object):
         self._tasks = []
         self.active_task = None
 
-    def await(self, task):
+    def wait_for(self, task):
         """
         Executes a task and ensures it's complete when this method returns.
 
-        :param tasks: task to await for
+        :param tasks: task to wait for
         :return: ``None``
         """
         while not task.is_computed():
