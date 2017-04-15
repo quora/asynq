@@ -58,6 +58,7 @@ class TaskScheduler(object):
     def reset(self):
         self._batches = set()
         self._tasks = []
+        self.active_task = None
 
     def await(self, task):
         """
