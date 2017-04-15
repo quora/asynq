@@ -50,8 +50,10 @@ def is_pure_async_fn(fn):
     if hasattr(fn, 'is_pure_async_fn'):
         try:
             return fn.is_pure_async_fn()
-        except TypeError:
-            # this happens when calling e.g. is_pure_async_fn(AsyncDecorator)
+        except (IndexError, TypeError):
+            # This happens when calling e.g. is_pure_async_fn(AsyncDecorator). TypeError is the
+            # expected exception in this case, but with some versions of Cython IndexError is thrown
+            # instead.
             return False
     if hasattr(fn, 'fn'):
         result = is_pure_async_fn(fn.fn)
