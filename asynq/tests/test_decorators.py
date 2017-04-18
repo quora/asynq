@@ -13,13 +13,13 @@
 # limitations under the License.
 
 from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
-from asynq import async, async_proxy, is_pure_async_fn, result, async_call, ConstFuture
+from asynq import coroutine, async_proxy, is_pure_async_fn, result, async_call, ConstFuture
 from asynq.decorators import lazy, get_async_fn, get_async_or_sync_fn, make_async_decorator, AsyncDecorator
 import pickle
 
 
 def double_return_value(fun):
-    @async(pure=True)
+    @coroutine(pure=True)
     def wrapper_fn(*args, **kwargs):
         value = yield fun.async(*args, **kwargs)
         result(value * 2); return
@@ -27,13 +27,13 @@ def double_return_value(fun):
 
 
 @double_return_value
-@async()
+@coroutine()
 def square(x):
     return x * x
 
 
 class MyClass(object):
-    @async()
+    @coroutine()
     def method(self, number):
         assert type(self) is MyClass
         cls, one = self.get_cls_and_args(number)
@@ -56,7 +56,7 @@ class MyClass(object):
     def async_proxy_classmethod(cls, number):
         return cls.get_cls_and_args.async(number)
 
-    @async()
+    @coroutine()
     @classmethod
     def get_cls_and_args(cls, number):
         print('get_cls_and_args')
@@ -66,26 +66,26 @@ class MyClass(object):
         assert (yield cls.get_cls()) is cls
         result((cls, number)); return
 
-    @async()
+    @coroutine()
     @classmethod
     def get_cls_ac(cls):
         print('get_cls_ac')
         result(cls); return
 
-    @async(pure=True)
+    @coroutine(pure=True)
     @classmethod
     def get_cls(cls):
         print('get_cls')
         result(cls); return
 
-    @async()
+    @coroutine()
     @staticmethod
     def static_ac(number):
         print('static_ac')
         result(number); return
 
     @staticmethod
-    @async(pure=True)
+    @coroutine(pure=True)
     def static(number):
         print('static')
         result(number); return
@@ -94,7 +94,7 @@ class MyClass(object):
     def sync_staticmethod():
         return 'sync_staticmethod'
 
-    @async(sync_fn=sync_staticmethod)
+    @coroutine(sync_fn=sync_staticmethod)
     @staticmethod
     def async_staticmethod():
         return 'async_staticmethod'
@@ -103,7 +103,7 @@ class MyClass(object):
     def sync_classmethod(cls):
         return 'sync_classmethod'
 
-    @async(sync_fn=sync_classmethod)
+    @coroutine(sync_fn=sync_classmethod)
     @classmethod
     def async_classmethod(cls):
         return 'async_classmethod'
@@ -111,12 +111,12 @@ class MyClass(object):
     def sync_method(self):
         return 'sync_method'
 
-    @async(sync_fn=sync_method)
+    @coroutine(sync_fn=sync_method)
     def async_method(self):
         return 'async_method'
 
     @double_return_value
-    @async()
+    @coroutine()
     @classmethod
     def square(cls, x):
         return x * x
@@ -126,12 +126,12 @@ def sync_fn():
     return 'sync_fn'
 
 
-@async(sync_fn=sync_fn)
+@coroutine(sync_fn=sync_fn)
 def async_fn():
     return 'async_fn'
 
 
-@async(pure=True)
+@coroutine(pure=True)
 def pure_async_fn():
     return 'pure_async_fn'
 
@@ -235,11 +235,11 @@ def test_pickling():
 
 
 def test_async_call():
-    @async()
+    @coroutine()
     def f1(arg, kw=1):
         return arg, kw
 
-    @async(pure=True)
+    @coroutine(pure=True)
     def f2(arg, kw=1):
         return arg, kw
 

@@ -20,26 +20,26 @@ See the implementation of DecoratorBase.__get__ for how this works.
 
 """
 
-from asynq import async, result
+from asynq import coroutine, result
 
 
 called = {}
 
 
 class Parent1(object):
-    @async()
+    @coroutine()
     def method(self):
         called['Parent1'] = True
 
 
 class Parent2(object):
-    @async()
+    @coroutine()
     def method(self):
         called['Parent2'] = True
 
 
 class Child(Parent1, Parent2):
-    @async()
+    @coroutine()
     def method(self):
         yield super(Child, self).method.async()
         yield Parent2.method.async(self)
@@ -47,7 +47,7 @@ class Child(Parent1, Parent2):
 
 
 def test():
-    @async()
+    @coroutine()
     def inner():
         instance = Child()
         yield instance.method.async()

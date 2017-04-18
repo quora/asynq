@@ -20,7 +20,7 @@ Requires the python-memcached library to be installed.
 
 """
 
-from asynq import async, async_proxy, BatchBase, BatchItemBase, result
+from asynq import coroutine, async_proxy, BatchBase, BatchItemBase, result
 import core
 import itertools
 import memcache
@@ -43,7 +43,7 @@ class Client(object):
         def author_of_answer(aid):
             return database_query(...)
 
-        @async()
+        @coroutine()
         def all_author_names(aids):
             "Returns names of authors for all of the given aids."
             uids = yield [author_of_answer.async(aid) for aid in aids]
@@ -92,7 +92,7 @@ class Client(object):
 
         """
         def decorator(fn):
-            @async()
+            @coroutine()
             def wrapped(*args):
                 key = key_prefix + ':' + ':'.join(map(str, args))
                 value = yield self.get.async(key)

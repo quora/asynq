@@ -23,7 +23,7 @@ def test_value():
     assert_eq("<Value: 'value'>", repr(val))
 
 
-@async()
+@coroutine()
 def alen(seq):
     return len(seq)
 

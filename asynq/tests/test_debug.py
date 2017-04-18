@@ -23,7 +23,7 @@ from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
 from qcore import MarkerObject
 
 import asynq
-from asynq import async
+from asynq import coroutine
 
 
 def test_dump_error():
@@ -34,7 +34,7 @@ def test_dump_error():
     assert_eq('\nNo error', buf.getvalue())
 
 
-@async()
+@coroutine()
 def async_fn():
     pass
 
@@ -74,7 +74,7 @@ def test_dump_stack():
 
 
 def test_dump_asynq_stack():
-    @async()
+    @coroutine()
     def caller():
         yield
         asynq.debug.dump_asynq_stack()
@@ -111,13 +111,13 @@ def non_async_function_that_raises_an_error():
     raise ValueError
 
 
-@async()
+@coroutine()
 def async_function_that_raises_an_error():
     yield
     non_async_function_that_raises_an_error()
 
 
-@async()
+@coroutine()
 def async_function_whose_child_async_task_will_throw_an_error():
     yield async_function_that_raises_an_error.async()
 

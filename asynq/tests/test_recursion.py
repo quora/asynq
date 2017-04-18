@@ -15,7 +15,7 @@
 from qcore.asserts import AssertRaises
 from six.moves import xrange
 
-from asynq import async, debug, result
+from asynq import coroutine, debug, result
 from .helpers import Profiler
 
 
@@ -27,7 +27,7 @@ def test_recursion():
             print('... in sum(%s)' % i)
         return i + sum(i - 1, dump_progress)
 
-    @async()
+    @coroutine()
     def sum_async(i, dump_progress=False):
         if i == 0:
             result(0); return

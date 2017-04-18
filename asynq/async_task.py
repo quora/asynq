@@ -283,7 +283,7 @@ class AsyncTask(futures.FutureBase):
 
     def __str__(self):
         fn_str = core_inspection.get_function_call_str(self.fn, self.args, self.kwargs)
-        name = '@async %s' % fn_str
+        name = '@coroutine %s' % fn_str
 
         # we subtract one because by the time the stacktrace is printed
         # the iteration_index has already been incremented

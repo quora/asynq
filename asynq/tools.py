@@ -19,7 +19,7 @@ Helper functions for use with asynq (similar to itertools).
 """
 
 from .contexts import AsyncContext
-from .decorators import async, async_proxy, async_call, AsyncDecorator, AsyncDecoratorBinder
+from .decorators import coroutine, async_proxy, async_call, AsyncDecorator, AsyncDecoratorBinder
 from .futures import ConstFuture
 # we shouldn't use the return syntax in generators here so that asynq can be imported
 # under Python versions that lack our patch to allow returning from generators
@@ -37,7 +37,7 @@ import weakref
 import threading
 
 
-@async()
+@coroutine()
 def amap(function, sequence):
     """Equivalent of map() that takes an async map function.
 
@@ -47,7 +47,7 @@ def amap(function, sequence):
     result((yield [function.async(elt) for elt in sequence])); return
 
 
-@async()
+@coroutine()
 def afilter(function, sequence):
     """Equivalent of filter() that takes an async filter function.
 
@@ -60,7 +60,7 @@ def afilter(function, sequence):
     result(list(itertools.compress(sequence, should_include))); return
 
 
-@async()
+@coroutine()
 def afilterfalse(function, sequence):
     """Equivalent of itertools.ifilterfalse() that takes an async filter function.
 
@@ -72,7 +72,7 @@ def afilterfalse(function, sequence):
     result(list(itertools.compress(sequence, should_include))); return
 
 
-@async()
+@coroutine()
 def asorted(iterable, key=None, reverse=False):
     """Equivalent of sorted() that takes an async key function.
 
@@ -92,7 +92,7 @@ def asorted(iterable, key=None, reverse=False):
     result([p[1] for p in pairs]); return
 
 
-@async()
+@coroutine()
 def amax(*args, **kwargs):
     """Async equivalent of max()."""
     key_fn = kwargs.pop('key', None)
@@ -118,7 +118,7 @@ def amax(*args, **kwargs):
     result(max_pair[1]); return
 
 
-@async()
+@coroutine()
 def amin(*args, **kwargs):
     """Async equivalent of min()."""
     key_fn = kwargs.pop('key', None)
@@ -144,7 +144,7 @@ def amin(*args, **kwargs):
     result(max_pair[1]); return
 
 
-@async()
+@coroutine()
 def asift(pred, items):
     """Sifts a list of items into those that meet the predicate and those that don't."""
     yes = []
@@ -206,7 +206,7 @@ def acached_per_instance():
     return cache_fun
 
 
-@async()
+@coroutine()
 def call_with_context(context, fn, *args, **kwargs):
     """Calls fn in the given with context.
 
@@ -267,12 +267,12 @@ def deduplicate(keygetter=None):
 
     This is useful in situations like this:
 
-        @async()
+        @coroutine()
         def should_filter_object(oid, uid):
             data = yield get_data_for_user.async(uid)
             ...
 
-        @async()
+        @coroutine()
         def filter_objects(oids, uid):
             ... = yield [should_filter_object.async(oid, uid) for oid in oids]
 
@@ -314,7 +314,7 @@ class AsyncTimer(AsyncContext):
     until exiting the context.
 
     Usage example:
-        @async()
+        @coroutine()
         def potentially_slow_function(x):
 
             with AsyncTimer() as t:
@@ -347,11 +347,11 @@ class AsyncEventHook(EventHook):
 
     """
 
-    @async()
+    @coroutine()
     def trigger(self, *args):
         yield [async_call.async(handler, *args) for handler in self]
 
-    @async()
+    @coroutine()
     def safe_trigger(self, *args):
         wrapped_handlers = [self._create_safe_wrapper(handler) for handler in self]
         results = yield [wrapped_handler.async(*args) for wrapped_handler in wrapped_handlers]
@@ -360,7 +360,7 @@ class AsyncEventHook(EventHook):
 
     @staticmethod
     def _create_safe_wrapper(handler):
-        @async()
+        @coroutine()
         def wrapped(*args):
             error = None
             try:

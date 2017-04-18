@@ -43,7 +43,7 @@ except AttributeError:
     _get_target = mock.mock._get_target
 
 
-from .decorators import async
+from .decorators import coroutine
 from .futures import ConstFuture
 
 

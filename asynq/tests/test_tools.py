@@ -14,7 +14,7 @@
 
 import time
 
-from asynq import async, AsyncContext, result
+from asynq import coroutine, AsyncContext, result
 from asynq.tools import (
     amap,
     afilter,
@@ -32,18 +32,18 @@ from asynq.tools import (
 from qcore.asserts import assert_eq, assert_gt, assert_is, AssertRaises, assert_unordered_list_eq
 
 
-@async()
+@coroutine()
 def inner_fn(x):
     pass
 
 
-@async()
+@coroutine()
 def filter_fn(elt):
     yield inner_fn.async(elt)
     result(elt is not None); return
 
 
-@async()
+@coroutine()
 def alen(seq):
     return len(seq)
 
@@ -125,24 +125,24 @@ class AsyncObject(object):
         self.value = 0
 
     @acached_per_instance()
-    @async()
+    @coroutine()
     def get_value(self, index):
         self.value += 1
         return self.value
 
     @acached_per_instance()
-    @async()
+    @coroutine()
     def with_kwargs(self, x=1, y=2, z=3):
         self.value += (x + y + z)
         return self.value
 
     @deduplicate()
-    @async()
+    @coroutine()
     def increment_value_method(self, val=1):
         self.value += val
 
     @deduplicate()
-    @async()
+    @coroutine()
     @staticmethod
     def deduplicated_static_method(val=1):
         AsyncObject.cls_value += val
@@ -185,7 +185,7 @@ class Ctx(AsyncContext):
         Ctx.is_on = True
 
 
-@async()
+@coroutine()
 def assert_state(value):
     yield AsyncObject().get_value.async(value)
     assert_is(value, Ctx.is_on)
@@ -199,14 +199,14 @@ i = 0
 
 
 @deduplicate()
-@async()
+@coroutine()
 def increment_value(val=1):
     global i
     i += val
 
 
 @deduplicate()
-@async()
+@coroutine()
 def recursive_incrementer(n):
     if n == 0:
         result((yield increment_value.async(n))); return
@@ -214,7 +214,7 @@ def recursive_incrementer(n):
 
 
 @deduplicate()
-@async()
+@coroutine()
 def recursive_call_with_dirty():
     global i
     if i > 0:
@@ -228,7 +228,7 @@ def test_deduplicate():
     _check_deduplicate()
 
 
-@async()
+@coroutine()
 def _check_deduplicate():
     global i
     i = 0
@@ -257,7 +257,7 @@ def test_deduplicate_recursion():
     _check_deduplicate_recursion()
 
 
-@async()
+@coroutine()
 def _check_deduplicate_recursion():
     yield recursive_incrementer.async(20), increment_value.async(0)
 
@@ -266,14 +266,14 @@ def test_async_timer():
     _check_async_timer()
 
 
-@async()
+@coroutine()
 def _slow_task(t):
     yield None
     time.sleep(t)
     result(0); return
 
 
-@async()
+@coroutine()
 def _timed_slow_task(t):
     with AsyncTimer() as timer:
         yield None
@@ -281,7 +281,7 @@ def _timed_slow_task(t):
     result(timer.total_time); return
 
 
-@async()
+@coroutine()
 def _check_async_timer():
     with AsyncTimer() as t:
         results = yield [_slow_task.async(0.1), _timed_slow_task.async(0.1),
@@ -298,7 +298,7 @@ def _check_async_timer():
 
 def test_async_event_hook():
     calls = []
-    @async()
+    @coroutine()
     def handler1(*args):
         assert_gt(len(args), 0)
         calls.append('handler1%s' % str(args))
@@ -314,7 +314,7 @@ def test_async_event_hook():
     assert_unordered_list_eq(['handler1(1, 2, \'a\')', 'handler2(1, 2, \'a\')'], calls)
 
     calls = []
-    @async()
+    @coroutine()
     def async_trigger():
         yield hook.trigger.async(2,3)
 

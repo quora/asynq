@@ -19,9 +19,9 @@ from asynq.batching import DebugBatchItem
 v = AsyncScopedValue('a')
 
 
-@async()
+@coroutine()
 def async_scoped_value_helper(inner_val):
-    @async()
+    @coroutine()
     def nested():
         assert_eq(v.get(), inner_val)
         yield DebugBatchItem()
@@ -38,7 +38,7 @@ def async_scoped_value_helper(inner_val):
         result((yield nested.async())); return
 
 
-@async()
+@coroutine()
 def async_scoped_value_caller():
     yield async_scoped_value_helper.async('e'), async_scoped_value_helper.async('f')
 
@@ -57,7 +57,7 @@ def test_async_scoped_value():
 
 
 def test_exception():
-    @async()
+    @coroutine()
     def test_body():
         assert_eq(v(), 'a')
         yield
@@ -84,7 +84,7 @@ def test_override():
     o = TestObject()
     o.v = 'a'
 
-    @async()
+    @coroutine()
     def test_body():
         assert_eq(o.v, 'a')
         yield

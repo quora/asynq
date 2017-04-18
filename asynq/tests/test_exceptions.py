@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import async, result, AsyncContext
+from asynq import coroutine, result, AsyncContext
 from qcore.asserts import AssertRaises, assert_eq
 
 from .helpers import Profiler
@@ -23,7 +23,7 @@ counter = 0
 def test():
     global counter
 
-    @async(pure=True)
+    @coroutine(pure=True)
     def throw(expected_counter, must_throw):
         global counter
         print("  In throw, counter=%i (expected %i), must_throw=%s" % (counter, expected_counter, str(must_throw)))
@@ -33,7 +33,7 @@ def test():
         counter += 1
         result(counter); return
 
-    @async(pure=True)
+    @coroutine(pure=True)
     def test():
         global counter
         counter = 0
@@ -81,11 +81,11 @@ def test_async_context():
             global context_is_active
             context_is_active -= 1
 
-    @async()
+    @coroutine()
     def dependency():
         return 1
 
-    @async()
+    @coroutine()
     def throw(raise_in_pause, raise_in_resume):
         with SimpleContext():
             with ContextThatRaises(raise_in_pause, raise_in_resume):
