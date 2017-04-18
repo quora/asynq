@@ -18,6 +18,7 @@ from Cython.Build import cythonize
 
 import codecs
 import os
+import sys
 
 
 CYTHON_MODULES = [
@@ -51,6 +52,11 @@ if __name__ == '__main__':
     with codecs.open('./README.rst', encoding='utf-8') as f:
         long_description = f.read()
 
+    requirements = ['Cython', 'qcore', 'setuptools']
+    if sys.version_info < (3, 3):
+        # mock is in the standard library since Python 3.3
+        requirements.append('mock')
+
     setup(
         name='asynq',
         version=VERSION,
@@ -64,17 +70,17 @@ if __name__ == '__main__':
             'License :: OSI Approved :: Apache Software License',
 
             'Programming Language :: Python',
-            'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
         ],
         keywords='quora asynq common utility',
         packages=['asynq', 'asynq.tests'],
         package_data={'asynq': DATA_FILES},
         ext_modules=cythonize(EXTENSIONS),
-        install_requires=['qcore'],
+        install_requires=requirements,
     )
 
     os.system('rm -rf ./build ./asynq.egg-info')

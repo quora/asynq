@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 from .futures import FutureBase
 from . import async_task
-from . import scheduler
 from . import _debug
 
 

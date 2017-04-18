@@ -19,10 +19,8 @@ Helper functions for use with asynq (similar to itertools).
 """
 
 from .contexts import AsyncContext
-from .async_task import AsyncTask
-from .decorators import async, async_proxy, make_async_decorator, async_call, AsyncDecorator, AsyncDecoratorBinder
+from .decorators import async, async_proxy, async_call, AsyncDecorator, AsyncDecoratorBinder
 from .futures import ConstFuture
-from .scheduler import get_scheduler
 # we shouldn't use the return syntax in generators here so that asynq can be imported
 # under Python versions that lack our patch to allow returning from generators
 from .utils import result
