@@ -140,8 +140,7 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
         else:
             return self.decorator.future(self.instance, *args, **kwargs)
 
-    if sys.version_info < (3, 7):
-        locals()['async'] = future
+    async = future
 
 
 class AsyncDecorator(PureAsyncDecorator):
@@ -153,8 +152,7 @@ class AsyncDecorator(PureAsyncDecorator):
     def future(self, *args, **kwargs):
         return self._call_pure(args, kwargs)
 
-    if sys.version_info < (3, 7):
-        locals()['async'] = future
+    async = future
 
     def name(self):
         return '@coroutine()'
@@ -295,8 +293,7 @@ class AsyncWrapper(qcore.decorators.DecoratorBase):
     def future(self, *args, **kwargs):
         return self._call_async(args, kwargs)
 
-    if sys.version_info < (3, 7):
-        locals()['async'] = future
+    async = future
 
     def is_pure_async_fn(self):
         return False
