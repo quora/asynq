@@ -251,7 +251,7 @@ class DeduplicateDecorator(AsyncDecorator):
             task = self.fn.async(*args, **kwargs)
 
             def callback(task):
-                del self.tasks[cache_key]
+                self.tasks.pop(cache_key, None)
 
             self.tasks[cache_key] = task
             task.on_computed.subscribe(callback)
