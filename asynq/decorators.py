@@ -43,7 +43,7 @@ def lazy(fn):
 
 def has_async_fn(fn):
     """Returns true if fn can be called asynchronously."""
-    return hasattr(fn, 'async') or hasattr(fn, 'future')
+    return hasattr(fn, 'async') or hasattr(fn, 'asynq')
 
 
 def is_pure_async_fn(fn):
@@ -69,7 +69,7 @@ def is_pure_async_fn(fn):
 
 def is_async_fn(fn):
     """Returns true if fn is an @asynq([pure=True]) or @async_proxy(pure=True) function."""
-    return hasattr(fn, 'future') or hasattr(fn, 'async') or is_pure_async_fn(fn)
+    return hasattr(fn, 'asynq') or hasattr(fn, 'async') or is_pure_async_fn(fn)
 
 
 def get_async_fn(fn, wrap_if_none=False):
