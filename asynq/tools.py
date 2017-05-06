@@ -242,7 +242,7 @@ class DeduplicateDecorator(AsyncDecorator):
     def cache_key(self, args, kwargs):
         return self.keygetter(args, kwargs), threading.current_thread()
 
-    def async(self, *args, **kwargs):
+    def asynq(self, *args, **kwargs):
         cache_key = self.cache_key(args, kwargs)
 
         try:

@@ -25,7 +25,7 @@ class WrappedAsyncTask(AsyncTask):
 
 
 def wrapped_async(*args, **kwargs):
-    return async(*args, cls=WrappedAsyncTask, **kwargs)
+    return asynq(*args, cls=WrappedAsyncTask, **kwargs)
 
 
 # async = decorators.async_old
