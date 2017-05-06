@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import coroutine, result
+from asynq import asynq, result
 from .helpers import Profiler
 
 counter = 0
@@ -21,7 +21,7 @@ counter = 0
 def test():
     global counter
 
-    @coroutine(pure=True)
+    @asynq(pure=True)
     def incr():
         global counter
         counter += 1
@@ -35,7 +35,7 @@ def test():
         print("Counter: %i" % counter)
         return counter
 
-    @coroutine(pure=True)
+    @asynq(pure=True)
     def test_async():
         global counter
         try:

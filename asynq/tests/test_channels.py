@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from qcore import MarkerObject
-from asynq import coroutine, async_proxy, result, ConstFuture
+from asynq import asynq, async_proxy, result, ConstFuture
 from collections import deque
 
 
@@ -52,7 +52,7 @@ class Channel(object):
             if should_await else future_empty
 
 
-@coroutine(pure=True)
+@asynq(pure=True)
 def _push_async(channel, value):
     yield
     while True:
@@ -61,7 +61,7 @@ def _push_async(channel, value):
         yield
 
 
-@coroutine(pure=True)
+@asynq(pure=True)
 def _pull_async(channel):
     yield
     while True:

@@ -20,7 +20,7 @@ Async generators.
 import qcore
 import functools
 
-from .decorators import coroutine, async_proxy
+from .decorators import asynq, async_proxy
 from .futures import ConstFuture
 from .utils import result
 
@@ -35,12 +35,12 @@ def async_generator():
     capability. Inside of the generator, wrap any data (as opposed to async futures) you want to
     yield in a Value object. For example:
 
-    >>> @coroutine()
+    >>> @asynq()
     ... def async_function():
     ...     return 42
     >>> @async_generator()
     ... def gen():
-    ...     value = yield async_function.async()
+    ...     value = yield async_function.asynq()
     ...     yield Value(value)
     >>> list_of_generator(gen())
     >>> [42]
@@ -84,7 +84,7 @@ class Value(object):
         return '<Value: %r>' % self.value
 
 
-@coroutine()
+@asynq()
 def list_of_generator(generator):
     """Returns a list of all the values in the async generator."""
     data = []
@@ -96,7 +96,7 @@ def list_of_generator(generator):
     result(data); return
 
 
-@coroutine()
+@asynq()
 def take_first(generator, n):
     """Returns the first n values in the generator."""
     ret = []
@@ -121,7 +121,7 @@ class _AsyncGenerator(object):
 
     @async_proxy(pure=True)
     def next(self):
-        return self.send.async(None)
+        return self.send.asynq(None)
 
     __next__ = next  # Python 3
 
@@ -141,11 +141,11 @@ class _AsyncGenerator(object):
         first_value = self._get_one_value(value)
         if isinstance(first_value, Value):
             return ConstFuture(first_value.value)
-        task = self._send_inner.async(first_value)
+        task = self._send_inner.asynq(first_value)
         self.last_task = task
         return task
 
-    @coroutine()
+    @asynq()
     def _send_inner(self, first_task):
         # ensure previous item has been consumed
         yield_result = yield first_task

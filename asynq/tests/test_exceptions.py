@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import coroutine, result, AsyncContext
+from asynq import asynq, result, AsyncContext
 from qcore.asserts import AssertRaises, assert_eq
 
 from .helpers import Profiler
@@ -23,7 +23,7 @@ counter = 0
 def test():
     global counter
 
-    @coroutine(pure=True)
+    @asynq(pure=True)
     def throw(expected_counter, must_throw):
         global counter
         print("  In throw, counter=%i (expected %i), must_throw=%s" % (counter, expected_counter, str(must_throw)))
@@ -33,7 +33,7 @@ def test():
         counter += 1
         result(counter); return
 
-    @coroutine(pure=True)
+    @asynq(pure=True)
     def test():
         global counter
         counter = 0
@@ -81,18 +81,18 @@ def test_async_context():
             global context_is_active
             context_is_active -= 1
 
-    @coroutine()
+    @asynq()
     def dependency():
         return 1
 
-    @coroutine()
+    @asynq()
     def throw(raise_in_pause, raise_in_resume):
         with SimpleContext():
             with ContextThatRaises(raise_in_pause, raise_in_resume):
                 with SimpleContext():
                     # we need this to have a real dependency on an async task, otherwise
                     # it executes the whole function inline and the real problem is never tested
-                    val = yield dependency.async()
+                    val = yield dependency.asynq()
         result(val); return
 
     def check_contexts_released_properly(raise_in_pause, raise_in_resume):

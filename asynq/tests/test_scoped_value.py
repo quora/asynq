@@ -13,15 +13,15 @@
 # limitations under the License.
 
 from qcore.asserts import assert_eq
-from asynq import AsyncScopedValue, async, result, async_override
+from asynq import AsyncScopedValue, asynq, result, async_override
 from asynq.batching import DebugBatchItem
 
 v = AsyncScopedValue('a')
 
 
-@coroutine()
+@asynq()
 def async_scoped_value_helper(inner_val):
-    @coroutine()
+    @asynq()
     def nested():
         assert_eq(v.get(), inner_val)
         yield DebugBatchItem()
@@ -35,12 +35,12 @@ def async_scoped_value_helper(inner_val):
     with v.override(inner_val):
         yield DebugBatchItem()
         assert_eq(v.get(), inner_val)
-        result((yield nested.async())); return
+        result((yield nested.asynq())); return
 
 
-@coroutine()
+@asynq()
 def async_scoped_value_caller():
-    yield async_scoped_value_helper.async('e'), async_scoped_value_helper.async('f')
+    yield async_scoped_value_helper.asynq('e'), async_scoped_value_helper.asynq('f')
 
 
 def test_async_scoped_value():
@@ -57,7 +57,7 @@ def test_async_scoped_value():
 
 
 def test_exception():
-    @coroutine()
+    @asynq()
     def test_body():
         assert_eq(v(), 'a')
         yield
@@ -84,7 +84,7 @@ def test_override():
     o = TestObject()
     o.v = 'a'
 
-    @coroutine()
+    @asynq()
     def test_body():
         assert_eq(o.v, 'a')
         yield

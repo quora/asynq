@@ -19,7 +19,7 @@ Helper functions for use with asynq (similar to itertools).
 """
 
 from .contexts import AsyncContext
-from .decorators import coroutine, async_proxy, async_call, AsyncDecorator, AsyncDecoratorBinder
+from .decorators import asynq, async_proxy, async_call, AsyncDecorator, AsyncDecoratorBinder
 from .futures import ConstFuture
 # we shouldn't use the return syntax in generators here so that asynq can be imported
 # under Python versions that lack our patch to allow returning from generators
@@ -37,17 +37,17 @@ import weakref
 import threading
 
 
-@coroutine()
+@asynq()
 def amap(function, sequence):
     """Equivalent of map() that takes an async map function.
 
     Returns a list.
 
     """
-    result((yield [function.async(elt) for elt in sequence])); return
+    result((yield [function.asynq(elt) for elt in sequence])); return
 
 
-@coroutine()
+@asynq()
 def afilter(function, sequence):
     """Equivalent of filter() that takes an async filter function.
 
@@ -56,23 +56,23 @@ def afilter(function, sequence):
     """
     if function is None:
         result(filter(None, sequence)); return
-    should_include = yield [function.async(elt) for elt in sequence]
+    should_include = yield [function.asynq(elt) for elt in sequence]
     result(list(itertools.compress(sequence, should_include))); return
 
 
-@coroutine()
+@asynq()
 def afilterfalse(function, sequence):
     """Equivalent of itertools.ifilterfalse() that takes an async filter function.
 
     Returns a list.
 
     """
-    should_exclude = yield [function.async(elt) for elt in sequence]
+    should_exclude = yield [function.asynq(elt) for elt in sequence]
     should_include = [not res for res in should_exclude]
     result(list(itertools.compress(sequence, should_include))); return
 
 
-@coroutine()
+@asynq()
 def asorted(iterable, key=None, reverse=False):
     """Equivalent of sorted() that takes an async key function.
 
@@ -85,14 +85,14 @@ def asorted(iterable, key=None, reverse=False):
     if key is None:
         keys = values
     else:
-        keys = yield amap.async(key, values)
+        keys = yield amap.asynq(key, values)
     # we need to use key= here because otherwise we will compare the values when the key are
     # equal, which would be a behavior difference between sorted() and asorted()
     pairs = sorted(zip(keys, values), key=lambda p: p[0], reverse=reverse)
     result([p[1] for p in pairs]); return
 
 
-@coroutine()
+@asynq()
 def amax(*args, **kwargs):
     """Async equivalent of max()."""
     key_fn = kwargs.pop('key', None)
@@ -113,12 +113,12 @@ def amax(*args, **kwargs):
     if not isinstance(iterable, (list, tuple)):
         iterable = list(iterable)
 
-    keys = yield amap.async(key_fn, iterable)
+    keys = yield amap.asynq(key_fn, iterable)
     max_pair = max(enumerate(iterable), key=lambda pair: keys[pair[0]])
     result(max_pair[1]); return
 
 
-@coroutine()
+@asynq()
 def amin(*args, **kwargs):
     """Async equivalent of min()."""
     key_fn = kwargs.pop('key', None)
@@ -139,17 +139,17 @@ def amin(*args, **kwargs):
     if not isinstance(iterable, (list, tuple)):
         iterable = list(iterable)
 
-    keys = yield amap.async(key_fn, iterable)
+    keys = yield amap.asynq(key_fn, iterable)
     max_pair = min(enumerate(iterable), key=lambda pair: keys[pair[0]])
     result(max_pair[1]); return
 
 
-@coroutine()
+@asynq()
 def asift(pred, items):
     """Sifts a list of items into those that meet the predicate and those that don't."""
     yes = []
     no = []
-    results = yield [pred.async(item) for item in items]
+    results = yield [pred.asynq(item) for item in items]
     for item, yesno in zip(items, results):
         if yesno:
             yes.append(item)
@@ -170,7 +170,7 @@ def acached_per_instance():
     def cache_fun(fun):
         argspec = getargspec(get_original_fn(fun))
         arg_names = argspec.args[1:]  # remove self
-        async_fun = fun.async
+        async_fun = fun.asynq
         kwargs_defaults = get_kwargs_defaults(argspec)
         cache = {}
 
@@ -206,7 +206,7 @@ def acached_per_instance():
     return cache_fun
 
 
-@coroutine()
+@asynq()
 def call_with_context(context, fn, *args, **kwargs):
     """Calls fn in the given with context.
 
@@ -214,13 +214,13 @@ def call_with_context(context, fn, *args, **kwargs):
     context. For example:
 
         important, not_important = yield (
-            get_important.async(oid),
-            call_with_context.async(a.livenode.dep.IgnoreDependencies(), get_not_important, oid).
+            get_important.asynq(oid),
+            call_with_context.asynq(a.livenode.dep.IgnoreDependencies(), get_not_important, oid).
         )
 
     """
     with context:
-        result((yield fn.async(*args, **kwargs))); return
+        result((yield fn.asynq(*args, **kwargs))); return
 
 
 class DeduplicateDecoratorBinder(AsyncDecoratorBinder):
@@ -248,7 +248,7 @@ class DeduplicateDecorator(AsyncDecorator):
         try:
             return self.tasks[cache_key]
         except KeyError:
-            task = self.fn.async(*args, **kwargs)
+            task = self.fn.asynq(*args, **kwargs)
 
             def callback(task):
                 del self.tasks[cache_key]
@@ -267,14 +267,14 @@ def deduplicate(keygetter=None):
 
     This is useful in situations like this:
 
-        @coroutine()
+        @asynq()
         def should_filter_object(oid, uid):
-            data = yield get_data_for_user.async(uid)
+            data = yield get_data_for_user.asynq(uid)
             ...
 
-        @coroutine()
+        @asynq()
         def filter_objects(oids, uid):
-            ... = yield [should_filter_object.async(oid, uid) for oid in oids]
+            ... = yield [should_filter_object.asynq(oid, uid) for oid in oids]
 
     where get_data_for_user is cached (e.g. in memcache or l0cache). Without the deduplicate
     decorator, this may end up calling the body of the get_data_for_user function multiple times,
@@ -314,11 +314,11 @@ class AsyncTimer(AsyncContext):
     until exiting the context.
 
     Usage example:
-        @coroutine()
+        @asynq()
         def potentially_slow_function(x):
 
             with AsyncTimer() as t:
-                yield do_a_lot_of_work.async(x)
+                yield do_a_lot_of_work.asynq(x)
                 # don't use t.total_time here!
 
             report_time_for_x(x, t.total_time)
@@ -347,24 +347,24 @@ class AsyncEventHook(EventHook):
 
     """
 
-    @coroutine()
+    @asynq()
     def trigger(self, *args):
-        yield [async_call.async(handler, *args) for handler in self]
+        yield [async_call.asynq(handler, *args) for handler in self]
 
-    @coroutine()
+    @asynq()
     def safe_trigger(self, *args):
         wrapped_handlers = [self._create_safe_wrapper(handler) for handler in self]
-        results = yield [wrapped_handler.async(*args) for wrapped_handler in wrapped_handlers]
+        results = yield [wrapped_handler.asynq(*args) for wrapped_handler in wrapped_handlers]
         for error in filter(None, results):
             reraise(error)
 
     @staticmethod
     def _create_safe_wrapper(handler):
-        @coroutine()
+        @asynq()
         def wrapped(*args):
             error = None
             try:
-                yield async_call.async(handler, *args)
+                yield async_call.asynq(handler, *args)
             except BaseException as e:
                 prepare_for_reraise(e)
                 error = e

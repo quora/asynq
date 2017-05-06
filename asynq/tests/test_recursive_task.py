@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import coroutine, result
+from asynq import asynq, result
 from qcore.asserts import AssertRaises
 
 
-@coroutine()
+@asynq()
 def bad_function():
-    yield bad_function.async()
+    yield bad_function.asynq()
 
 
 def test_it():

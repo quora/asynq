@@ -20,7 +20,7 @@ Requires the python-memcached library to be installed.
 
 """
 
-from asynq import coroutine, async_proxy, BatchBase, BatchItemBase, result
+from asynq import asynq, async_proxy, BatchBase, BatchItemBase, result
 import core
 import itertools
 import memcache
@@ -43,11 +43,11 @@ class Client(object):
         def author_of_answer(aid):
             return database_query(...)
 
-        @coroutine()
+        @asynq()
         def all_author_names(aids):
             "Returns names of authors for all of the given aids."
-            uids = yield [author_of_answer.async(aid) for aid in aids]
-            names = yield [name_of_user.async(uid) for uid in uids]
+            uids = yield [author_of_answer.asynq(aid) for aid in aids]
+            names = yield [name_of_user.asynq(uid) for uid in uids]
             result(names); return
 
     """
@@ -88,20 +88,20 @@ class Client(object):
 
         In calling code:
 
-            value = yield cached_function.async(a, b)
+            value = yield cached_function.asynq(a, b)
 
         """
         def decorator(fn):
-            @coroutine()
+            @asynq()
             def wrapped(*args):
                 key = key_prefix + ':' + ':'.join(map(str, args))
-                value = yield self.get.async(key)
+                value = yield self.get.asynq(key)
                 if value is MISS:
                     # possible enhancement: make it possible for the inner function to be async
                     value = fn(*args)
                     # there is a race condition here since somebody else could have set the key
                     # while we were computing the value, but don't worry about that for now
-                    yield self.set.async(key, value)
+                    yield self.set.asynq(key, value)
                 result(value); return
             return wrapped
         return decorator

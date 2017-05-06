@@ -43,7 +43,7 @@ except AttributeError:
     _get_target = mock.mock._get_target
 
 
-from .decorators import coroutine
+from .decorators import asynq
 from .futures import ConstFuture
 
 
@@ -54,7 +54,7 @@ def patch(
 ):
     """Mocks an async function.
 
-    Should be a drop-in replacement for mock.patch that handles async automatically. The .async
+    Should be a drop-in replacement for mock.patch that handles async automatically. The .asynq
     attribute is automatically created and shouldn't be used when accessing data on
     the mock.
 
@@ -107,7 +107,7 @@ class _PatchAsync(_patch):
         # so we can also mock non-functions for compatibility
         if callable(mock_fn):
             async_fn = _AsyncWrapper(mock_fn)
-            mock_fn.async = async_fn
+            mock_fn.asynq = async_fn
         return mock_fn
 
     start = __enter__
@@ -133,7 +133,7 @@ class _PatchAsync(_patch):
 
 
 class _AsyncWrapper(object):
-    """Wrapper for the .async attribute of patch'ed functions.
+    """Wrapper for the .asynq attribute of patch'ed functions.
 
     Prevents people from setting and reading attributes on them.
 
@@ -147,13 +147,13 @@ class _AsyncWrapper(object):
 
     def __setattr__(self, attr, value):
         raise TypeError(
-            'You cannot set attributes directly on a .async function. Set them on the '
+            'You cannot set attributes directly on a .asynq function. Set them on the '
             'function itself instead.'
         )
 
     def __getattr__(self, attr):
         raise TypeError(
-            'You cannot read attributes directly on a .async function. Read them on the '
+            'You cannot read attributes directly on a .asynq function. Read them on the '
             'function itself instead.'
         )
 
@@ -171,7 +171,7 @@ def _maybe_wrap_new(new):
         return new
 
     if inspect.isfunction(new) or isinstance(new, (classmethod, staticmethod)):
-        return async(sync_fn=new)(new)
+        return asynq(sync_fn=new)(new)
     elif not callable(new):
         return new
 

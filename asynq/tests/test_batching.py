@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import coroutine, result
+from asynq import asynq, result
 from .debug_cache import reset_caches, mc
 from .caching import ExternalCacheBatchItem
 
 def test_chain():
-    @coroutine()
+    @asynq()
     def foo(num_yield):
         if num_yield == 0:
             result(0); return
 
         yield ExternalCacheBatchItem(mc._batch, 'get', 'test')
-        yield foo.async(num_yield - 1)
+        yield foo.asynq(num_yield - 1)
 
     reset_caches()
     foo(10)
@@ -31,11 +31,11 @@ def test_chain():
 
 
 def test_tree():
-    @coroutine()
+    @asynq()
     def foo(depth):
         if depth == 0:
             result((yield ExternalCacheBatchItem(mc._batch, 'get', 'test'))); return
-        yield foo.async(depth - 1), foo.async(depth - 1)
+        yield foo.asynq(depth - 1), foo.asynq(depth - 1)
 
     reset_caches()
     foo(5)

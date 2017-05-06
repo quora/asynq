@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import coroutine
+from asynq import asynq
 from asynq.futures import ConstFuture
 
 from qcore.asserts import assert_eq, assert_is, AssertRaises
@@ -20,7 +20,7 @@ from qcore.asserts import assert_eq, assert_is, AssertRaises
 
 def check_unwrap(expected, to_unwrap):
     # can't call unwrap() directly because it's hidden by cython
-    @coroutine()
+    @asynq()
     def caller():
         value = yield to_unwrap
         assert_eq(expected, value, extra='yielded {}'.format(to_unwrap))
