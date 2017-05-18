@@ -101,7 +101,7 @@ class AsyncTask(futures.FutureBase):
                 debug.write('@async: %s called synchronously from %s'
                     % (debug.str(self), debug.str(self.creator)))
         # Forwards the call to task scheduler
-        asynq.scheduler.get_scheduler().await(self)
+        asynq.scheduler.get_scheduler().wait_for(self)
         # No need to assign a value/error here, since
         # _continue method (called by TaskScheduler) does this.
 
@@ -283,7 +283,7 @@ class AsyncTask(futures.FutureBase):
 
     def __str__(self):
         fn_str = core_inspection.get_function_call_str(self.fn, self.args, self.kwargs)
-        name = '@async %s' % fn_str
+        name = '@asynq %s' % fn_str
 
         # we subtract one because by the time the stacktrace is printed
         # the iteration_index has already been incremented

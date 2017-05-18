@@ -209,6 +209,9 @@ Compatibility
 
 ``asynq`` runs on Python 2.7 and Python 3.
 
+To support Python 3.7, in which ``async`` will be a full keyword, the ``@async()`` decorator and
+``.async`` attribute are aliased to ``@asynq()`` and ``.asynq``.
+
 Contributors
 ------------
 

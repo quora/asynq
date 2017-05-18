@@ -14,7 +14,7 @@
 
 import gc
 
-from asynq import async, debug, result, AsyncTask
+from asynq import asynq, debug, result, AsyncTask
 from .helpers import Profiler
 
 values = {}
@@ -25,21 +25,21 @@ class WrappedAsyncTask(AsyncTask):
 
 
 def wrapped_async(*args, **kwargs):
-    return async(*args, cls=WrappedAsyncTask, **kwargs)
+    return asynq(*args, cls=WrappedAsyncTask, **kwargs)
 
 
 # async = decorators.async_old
 # async = wrapped_async
 
 
-@async(pure=True)
+@asynq(pure=True)
 def get(key):
     global values
     result(values.get(key)); return
     yield  # Must be a generator
 
 
-@async(pure=True)
+@asynq(pure=True)
 def set(key, value):
     global values
     values[key] = value
@@ -47,13 +47,13 @@ def set(key, value):
     yield  # Must be a generator
 
 
-@async(pure=True)
+@asynq(pure=True)
 def get_and_set(key_from, key_to):
     value = yield get(key_from)
     yield set(key_to, value)
 
 
-@async(pure=True)
+@asynq(pure=True)
 def performance_test(task_count):
     global values
     values = {}

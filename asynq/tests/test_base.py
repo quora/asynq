@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import async, Future, scheduler
+from asynq import asynq, Future, scheduler
 
 values = {}
 
 
-@async(pure=True)
+@asynq(pure=True)
 def get(key):
     global values
     value = values.get(key)
@@ -25,21 +25,21 @@ def get(key):
     return value
 
 
-@async(pure=True)
+@asynq(pure=True)
 def set(key, value):
     global values
     values[key] = value
     print('Set %s <- %s' % (str(key), str(value)))
 
 
-@async(pure=True)
+@asynq(pure=True)
 def get_and_set(key_from, key_to, depends_on):
     yield depends_on
     value = yield get(key_from)
     yield set(key_to, value)
 
 
-@async(pure=True)
+@asynq(pure=True)
 def order_test():
     global values
     values = {}
