@@ -108,6 +108,7 @@ class _PatchAsync(_patch):
         if callable(mock_fn):
             async_fn = _AsyncWrapper(mock_fn)
             mock_fn.asynq = async_fn
+            setattr(mock_fn, 'async', async_fn)
         return mock_fn
 
     start = __enter__
