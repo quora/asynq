@@ -14,7 +14,7 @@
 
 import time
 
-from asynq import async, AsyncContext, result
+from asynq import asynq, AsyncContext, result
 from asynq.tools import (
     amap,
     afilter,
@@ -32,42 +32,42 @@ from asynq.tools import (
 from qcore.asserts import assert_eq, assert_gt, assert_is, AssertRaises, assert_unordered_list_eq
 
 
-@async()
+@asynq()
 def inner_fn(x):
     pass
 
 
-@async()
+@asynq()
 def filter_fn(elt):
-    yield inner_fn.async(elt)
+    yield inner_fn.asynq(elt)
     result(elt is not None); return
 
 
-@async()
+@asynq()
 def alen(seq):
     return len(seq)
 
 
 def test_afilter():
-    assert_eq([], list(afilter.async(filter_fn, []).value()))
-    assert_eq([], list(afilter.async(filter_fn, [None]).value()))
+    assert_eq([], list(afilter.asynq(filter_fn, []).value()))
+    assert_eq([], list(afilter.asynq(filter_fn, [None]).value()))
     assert_eq([1], list(afilter(filter_fn, [None, 1, None])))
-    assert_eq([1], list(afilter.async(filter_fn, [None, 1, None]).value()))
+    assert_eq([1], list(afilter.asynq(filter_fn, [None, 1, None]).value()))
     assert_eq([1], list(afilter(None, [None, 1, None])))
 
 
 def test_afilterfalse():
-    assert_eq([], list(afilterfalse.async(filter_fn, []).value()))
-    assert_eq([None], list(afilterfalse.async(filter_fn, [None]).value()))
+    assert_eq([], list(afilterfalse.asynq(filter_fn, []).value()))
+    assert_eq([None], list(afilterfalse.asynq(filter_fn, [None]).value()))
     assert_eq([None, None], list(afilterfalse(filter_fn, [None, 1, None])))
-    assert_eq([None, None], list(afilterfalse.async(filter_fn, [None, 1, None]).value()))
+    assert_eq([None, None], list(afilterfalse.asynq(filter_fn, [None, 1, None]).value()))
 
 
 def test_asift():
-    assert_eq(([], []), asift.async(filter_fn, []).value())
-    assert_eq(([], [None]), asift.async(filter_fn, [None]).value())
+    assert_eq(([], []), asift.asynq(filter_fn, []).value())
+    assert_eq(([], [None]), asift.asynq(filter_fn, [None]).value())
     assert_eq(([1], [None, None]), asift(filter_fn, [None, 1, None]))
-    assert_eq(([1], [None, None]), asift.async(filter_fn, [None, 1, None]).value())
+    assert_eq(([1], [None, None]), asift.asynq(filter_fn, [None, 1, None]).value())
 
 
 def test_amap():
@@ -125,24 +125,24 @@ class AsyncObject(object):
         self.value = 0
 
     @acached_per_instance()
-    @async()
+    @asynq()
     def get_value(self, index):
         self.value += 1
         return self.value
 
     @acached_per_instance()
-    @async()
+    @asynq()
     def with_kwargs(self, x=1, y=2, z=3):
         self.value += (x + y + z)
         return self.value
 
     @deduplicate()
-    @async()
+    @asynq()
     def increment_value_method(self, val=1):
         self.value += val
 
     @deduplicate()
-    @async()
+    @asynq()
     @staticmethod
     def deduplicated_static_method(val=1):
         AsyncObject.cls_value += val
@@ -163,7 +163,7 @@ def test_acached_per_instance():
         assert_eq(2, obj.get_value(1))
         assert_eq(1, obj.get_value(0))
         assert_eq(1, obj.get_value(index=0))
-        assert_eq(1, obj.get_value.async(index=0).value())
+        assert_eq(1, obj.get_value.asynq(index=0).value())
 
         assert_eq(8, obj.with_kwargs())
         assert_eq(8, obj.with_kwargs(z=3))
@@ -185,9 +185,9 @@ class Ctx(AsyncContext):
         Ctx.is_on = True
 
 
-@async()
+@asynq()
 def assert_state(value):
-    yield AsyncObject().get_value.async(value)
+    yield AsyncObject().get_value.asynq(value)
     assert_is(value, Ctx.is_on)
 
 
@@ -199,63 +199,63 @@ i = 0
 
 
 @deduplicate()
-@async()
+@asynq()
 def increment_value(val=1):
     global i
     i += val
 
 
 @deduplicate()
-@async()
+@asynq()
 def recursive_incrementer(n):
     if n == 0:
-        result((yield increment_value.async(n))); return
+        result((yield increment_value.asynq(n))); return
     result(recursive_incrementer(n - 1)); return
 
 
 @deduplicate()
-@async()
+@asynq()
 def call_with_dirty():
     call_with_dirty.dirty()
 
 
 @deduplicate()
-@async()
+@asynq()
 def recursive_call_with_dirty():
     global i
     if i > 0:
         result(i); return
     i += 1
     recursive_call_with_dirty.dirty()
-    yield recursive_call_with_dirty.async()
+    yield recursive_call_with_dirty.asynq()
 
 
 def test_deduplicate():
     _check_deduplicate()
 
 
-@async()
+@asynq()
 def _check_deduplicate():
     global i
     i = 0
     AsyncObject.cls_value = 0
 
-    yield increment_value.async()
+    yield increment_value.asynq()
     assert_eq(1, i)
 
-    yield increment_value.async(), increment_value.async(1)
+    yield increment_value.asynq(), increment_value.asynq(1)
     assert_eq(2, i)
 
     obj = AsyncObject()
-    yield obj.increment_value_method.async(), obj.increment_value_method.async(1)
+    yield obj.increment_value_method.asynq(), obj.increment_value_method.asynq(1)
     assert_eq(1, obj.value)
 
-    yield AsyncObject.deduplicated_static_method.async(), \
-        AsyncObject.deduplicated_static_method.async(1)
+    yield AsyncObject.deduplicated_static_method.asynq(), \
+        AsyncObject.deduplicated_static_method.asynq(1)
     assert_eq(1, AsyncObject.cls_value)
 
     i = 0
-    yield recursive_call_with_dirty.async()
+    yield recursive_call_with_dirty.asynq()
 
     yield call_with_dirty.async()
 
@@ -265,23 +265,23 @@ def test_deduplicate_recursion():
     _check_deduplicate_recursion()
 
 
-@async()
+@asynq()
 def _check_deduplicate_recursion():
-    yield recursive_incrementer.async(20), increment_value.async(0)
+    yield recursive_incrementer.asynq(20), increment_value.asynq(0)
 
 
 def test_async_timer():
     _check_async_timer()
 
 
-@async()
+@asynq()
 def _slow_task(t):
     yield None
     time.sleep(t)
     result(0); return
 
 
-@async()
+@asynq()
 def _timed_slow_task(t):
     with AsyncTimer() as timer:
         yield None
@@ -289,11 +289,11 @@ def _timed_slow_task(t):
     result(timer.total_time); return
 
 
-@async()
+@asynq()
 def _check_async_timer():
     with AsyncTimer() as t:
-        results = yield [_slow_task.async(0.1), _timed_slow_task.async(0.1),
-                         _slow_task.async(0.1), _timed_slow_task.async(0.1)]
+        results = yield [_slow_task.asynq(0.1), _timed_slow_task.asynq(0.1),
+                         _slow_task.asynq(0.1), _timed_slow_task.asynq(0.1)]
         assert_eq(0, results[0])
         assert_eq(105000, results[1], tolerance=5000)
         assert_eq(0, results[0])
@@ -306,7 +306,7 @@ def _check_async_timer():
 
 def test_async_event_hook():
     calls = []
-    @async()
+    @asynq()
     def handler1(*args):
         assert_gt(len(args), 0)
         calls.append('handler1%s' % str(args))
@@ -322,9 +322,9 @@ def test_async_event_hook():
     assert_unordered_list_eq(['handler1(1, 2, \'a\')', 'handler2(1, 2, \'a\')'], calls)
 
     calls = []
-    @async()
+    @asynq()
     def async_trigger():
-        yield hook.trigger.async(2,3)
+        yield hook.trigger.asynq(2,3)
 
     async_trigger()
     assert_unordered_list_eq(['handler1(2, 3)', 'handler2(2, 3)'], calls)

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from qcore import MarkerObject
-from asynq import async, async_proxy, result, ConstFuture
+from asynq import asynq, async_proxy, result, ConstFuture
 from collections import deque
 
 
@@ -33,7 +33,7 @@ class Channel(object):
         self.futures = deque()
 
     @async_proxy(pure=True)
-    def push(self, value, await=True):
+    def push(self, value, should_await=True):
         if self.futures:
             future = self.futures.popleft()
             future.set_value(value)
@@ -42,17 +42,17 @@ class Channel(object):
             self.items.append(value)
             return future_true
         return _push_async(self, value) \
-            if await else future_false
+            if should_await else future_false
 
     @async_proxy(pure=True)
-    def pull(self, await=True):
+    def pull(self, should_await=True):
         if self.items:
             return ConstFuture(self.items.popleft())
         return _pull_async(self) \
-            if await else future_empty
+            if should_await else future_empty
 
 
-@async(pure=True)
+@asynq(pure=True)
 def _push_async(channel, value):
     yield
     while True:
@@ -61,7 +61,7 @@ def _push_async(channel, value):
         yield
 
 
-@async(pure=True)
+@asynq(pure=True)
 def _pull_async(channel):
     yield
     while True:

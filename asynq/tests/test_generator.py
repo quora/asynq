@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import AsyncTask, async
+from asynq import AsyncTask, asynq
 from asynq.generator import END_OF_GENERATOR, async_generator, list_of_generator, take_first, Value
 from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
 
@@ -23,7 +23,7 @@ def test_value():
     assert_eq("<Value: 'value'>", repr(val))
 
 
-@async()
+@asynq()
 def alen(seq):
     return len(seq)
 
@@ -31,7 +31,7 @@ def alen(seq):
 @async_generator()
 def generator():
     for value in ([], [1], [1, 2]):
-        length = yield alen.async(value)
+        length = yield alen.asynq(value)
         yield Value(length)
 
 
@@ -39,9 +39,9 @@ def generator():
 def generator_with_more_yields():
     for task in generator():
         value = yield task
-        value = yield alen.async([value] * value)
+        value = yield alen.asynq([value] * value)
         yield Value(value)
-    yield alen.async([1, 2])
+    yield alen.asynq([1, 2])
 
 
 @async_generator()

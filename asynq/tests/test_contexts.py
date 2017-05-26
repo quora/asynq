@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import AsyncContext, async, debug, result, NonAsyncContext
+from asynq import AsyncContext, asynq, debug, result, NonAsyncContext
 from .helpers import Profiler
 from qcore.asserts import assert_eq, assert_is, AssertRaises
 
@@ -59,7 +59,7 @@ class Context(AsyncContext):
 
 
 def test_parallel():
-    @async(pure=True)
+    @asynq(pure=True)
     def parallel(name, parent, level):
         with Context(name, parent) as ctx:
             if level >= 2:
@@ -71,7 +71,7 @@ def test_parallel():
                 )
 
     with Profiler('test_parallel()'):
-        @async()
+        @asynq()
         def together():
             yield parallel('taskA', None, 0), parallel('taskB', None, 0)
         together()
@@ -82,7 +82,7 @@ def test_adder():
     global change_amount
     change_amount = 0
 
-    @async(pure=True)
+    @asynq(pure=True)
     def async_add(a, b):
         yield debug.sync()
         z = a + b + change_amount
@@ -103,7 +103,7 @@ def test_adder():
     global expected_change_amount_base
     expected_change_amount_base = 0
 
-    @async(pure=True)
+    @asynq(pure=True)
     def add_twice(a, b):
         global change_amount
         global expected_change_amount_base
@@ -119,7 +119,7 @@ def test_adder():
         assert_eq(expected_change_amount_base + 0, change_amount)
         result((yield async_add(z, q))); return
 
-    @async(pure=True)
+    @asynq(pure=True)
     def useless():
         a, b, c = yield (add_twice(1, 1), add_twice(1, 1), async_add(1, 1))
         result((a, b, c)); return
@@ -143,7 +143,7 @@ class Ctx(NonAsyncContext):
 
 
 def test_non_async_context():
-    @async()
+    @asynq()
     def async_fn_with_yield(should_yield):
         with Ctx():
             if should_yield:
@@ -152,10 +152,10 @@ def test_non_async_context():
                 ret = 0
         result(ret); return
 
-    @async()
+    @asynq()
     def batch(should_yield=True):
-        ret1, ret2 = yield async_fn_with_yield.async(should_yield), \
-            async_fn_with_yield.async(should_yield)
+        ret1, ret2 = yield async_fn_with_yield.asynq(should_yield), \
+            async_fn_with_yield.asynq(should_yield)
         result((ret1, ret2)); return
 
     with AssertRaises(AssertionError):

@@ -23,7 +23,6 @@ from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
 from qcore import MarkerObject
 
 import asynq
-from asynq import async
 
 
 def test_dump_error():
@@ -34,7 +33,7 @@ def test_dump_error():
     assert_eq('\nNo error', buf.getvalue())
 
 
-@async()
+@asynq.asynq()
 def async_fn():
     pass
 
@@ -46,7 +45,7 @@ def test_format_error():
     expected = '\nRuntimeError\n'
     assert_eq(expected, asynq.debug.format_error(e))
 
-    e._task = async_fn.async()
+    e._task = async_fn.asynq()
     formatted = asynq.debug.format_error(e)
     assert_in(expected, formatted)
 
@@ -74,7 +73,7 @@ def test_dump_stack():
 
 
 def test_dump_asynq_stack():
-    @async()
+    @asynq.asynq()
     def caller():
         yield
         asynq.debug.dump_asynq_stack()
@@ -111,15 +110,15 @@ def non_async_function_that_raises_an_error():
     raise ValueError
 
 
-@async()
+@asynq.asynq()
 def async_function_that_raises_an_error():
     yield
     non_async_function_that_raises_an_error()
 
 
-@async()
+@asynq.asynq()
 def async_function_whose_child_async_task_will_throw_an_error():
-    yield async_function_that_raises_an_error.async()
+    yield async_function_that_raises_an_error.asynq()
 
 
 def test_asynq_traceback_gets_glued_at_each_task_level():
@@ -170,7 +169,7 @@ def test_extract_traceback():
         async_wrapper_level,
         __file__,
         'async_function_whose_child_async_task_will_throw_an_error',
-        'yield async_function_that_raises_an_error.async()')
+        'yield async_function_that_raises_an_error.asynq()')
 
     async_raiser_level = extracted_traceback_to_verify[-2]
     assert_eq_extracted_traceback_entry(

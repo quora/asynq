@@ -20,37 +20,37 @@ See the implementation of DecoratorBase.__get__ for how this works.
 
 """
 
-from asynq import async, result
+from asynq import asynq, result
 
 
 called = {}
 
 
 class Parent1(object):
-    @async()
+    @asynq()
     def method(self):
         called['Parent1'] = True
 
 
 class Parent2(object):
-    @async()
+    @asynq()
     def method(self):
         called['Parent2'] = True
 
 
 class Child(Parent1, Parent2):
-    @async()
+    @asynq()
     def method(self):
-        yield super(Child, self).method.async()
-        yield Parent2.method.async(self)
+        yield super(Child, self).method.asynq()
+        yield Parent2.method.asynq(self)
         called['Child'] = True
 
 
 def test():
-    @async()
+    @asynq()
     def inner():
         instance = Child()
-        yield instance.method.async()
+        yield instance.method.asynq()
         result(None); return
 
     inner()

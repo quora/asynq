@@ -20,14 +20,14 @@ from qcore.asserts import assert_eq, assert_is, assert_not_in, AssertRaises
 # ===================================================
 
 
-@asynq.async()
+@asynq.asynq()
 def fn():
     pass
 
 
-@asynq.async()
+@asynq.asynq()
 def async_caller():
-    ret = yield fn.async()
+    ret = yield fn.asynq()
     asynq.result((ret, fn())); return
 
 
@@ -36,7 +36,7 @@ def non_async_caller():
 
 
 class Cls(object):
-    @asynq.async()
+    @asynq.asynq()
     @classmethod
     def async_classmethod(cls):
         pass
@@ -44,16 +44,16 @@ class Cls(object):
     def non_async_method(self, foo):
         pass
 
-    @asynq.async()
+    @asynq.asynq()
     def async_method(self):
         return 'capybaras'
 
 instance = Cls()
 
 
-@asynq.async()
+@asynq.asynq()
 def class_method_async_caller():
-    ret = yield Cls.async_classmethod.async()
+    ret = yield Cls.async_classmethod.asynq()
     asynq.result((ret, Cls.async_classmethod())); return
 
 
@@ -61,10 +61,10 @@ def class_method_non_async_caller():
     return Cls.async_classmethod()
 
 
-@asynq.async()
+@asynq.asynq()
 def method_async_caller():
     obj = Cls()
-    ret = yield obj.async_method.async()
+    ret = yield obj.async_method.asynq()
     asynq.result((ret, obj.async_method())); return
 
 
@@ -223,4 +223,4 @@ def test_patch_class():
 def test_cant_set_attribute():
     with asynq.mock.patch('asynq.tests.test_mock.fn'):
         with AssertRaises(TypeError):
-            fn.async.cant_set_attribute = 'capybara'
+            fn.asynq.cant_set_attribute = 'capybara'
