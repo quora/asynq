@@ -16,6 +16,7 @@ from sys import stderr, stdout
 import time
 import threading
 
+from qcore import utime
 import qcore.events as core_events
 
 
@@ -169,7 +170,14 @@ class TaskScheduler(object):
 
         if _debug_options.DUMP_CONTINUE_TASK:
             debug.write('@async: -> continuing %s' % debug.str(task))
-        task._continue()
+        if _debug_options.COLLECT_PERF_STATS:
+            start = utime()
+            task._continue()
+            task._total_time += utime() - start
+            if task.is_computed() and isinstance(task, AsyncTask):
+                task.dump_perf_stats()
+        else:
+            task._continue()
         if _debug_options.DUMP_CONTINUE_TASK:
             debug.write('@async: <- continued %s' % debug.str(task))
 
@@ -287,4 +295,3 @@ def get_active_task():
     global _state
     s = _state.current
     return None if s is None else s.active_task
-

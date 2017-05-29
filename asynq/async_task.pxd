@@ -21,6 +21,7 @@ cimport qcore.inspection as core_inspection
 cimport futures
 cimport scheduler
 cimport _debug
+cimport profiler
 
 
 cdef _debug.DebugOptions _debug_options
@@ -33,21 +34,25 @@ cdef class AsyncTask(futures.FutureBase):
     cdef public object fn
     cdef public object args
     cdef public object kwargs
+    cdef public str _name
     cdef public AsyncTask caller
     cdef public AsyncTask creator
     cdef public object _generator
     cdef public object _last_value
     cdef public object _frame
+    cdef public object perf_stats
     cdef public list _dependencies
     cdef public list _contexts
     cdef public bint _contexts_active
     cdef public bint _dependencies_scheduled
+    cdef public int _total_time
 
     cdef bint is_blocked(self) except -1
     cdef bint can_continue(self) except -1
 
     cpdef _compute(self)
     cpdef _computed(self)
+    cpdef dump_perf_stats(self)
 
     cdef _continue(self)
     cdef inline object _continue_on_generator(self, value, error)

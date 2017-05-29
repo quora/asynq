@@ -28,6 +28,7 @@ CYTHON_MODULES = [
     '_debug',
     'decorators',
     'futures',
+    'profiler',
     'scheduler',
     'scoped_value',
     'utils',

@@ -22,6 +22,7 @@ import qcore.errors as core_errors
 
 from . import debug
 from . import futures
+from . import profiler
 from . import _debug
 
 import asynq
@@ -69,6 +70,9 @@ class AsyncTask(futures.FutureBase):
         self._contexts = []
         self._contexts_active = False
         self._dependencies_scheduled = False
+        self._total_time = 0
+        self._name = None
+        self.perf_stats = {}
         if _debug_options.DUMP_NEW_TASKS:
             self.creator = asynq.scheduler.get_active_task()
             debug.write('@async: new task: %s, created by %s' %
@@ -105,11 +109,40 @@ class AsyncTask(futures.FutureBase):
         # No need to assign a value/error here, since
         # _continue method (called by TaskScheduler) does this.
 
+    def dump_perf_stats(self):
+        self.perf_stats['time_taken'] = self._total_time
+        profiler.append(self.perf_stats)
+
+    def to_str(self):
+        if self._name is None:
+            try:
+                self._name = '%s%s(%r %r)' % (
+                    hex(id(self)),
+                    core_inspection.get_full_name(self.fn),
+                    self.args,
+                    self.kwargs
+                )
+            except RuntimeError:
+                self._name = str(hex(id(self))) + core_inspection.get_full_name(self.fn)
+        return self._name
+
+    def collect_perf_stats(self):
+        self.perf_stats = {
+            'name': self.to_str(),
+            'num_deps': len(self._dependencies),
+            'dependencies': [
+                (t.to_str(), t._total_time)
+                for t in self._dependencies if isinstance(t, AsyncTask)
+            ]
+        }
+
     def _computed(self):
         try:
             if self._generator is not None:
                 self._generator.close()
                 self._generator = None
+            if _debug_options.COLLECT_PERF_STATS is True:
+                self.collect_perf_stats()
         finally:
             # super() doesn't work in Cython-ed version here
             self._dependencies = []
@@ -444,4 +477,3 @@ def extract_futures(value, result):
         for item in six.itervalues(value):
             extract_futures(item, result)
     return result
-

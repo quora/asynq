@@ -31,6 +31,7 @@ from . import utils
 from . import contexts
 from . import scoped_value
 from . import tools
+from . import profiler
 from .futures import FutureBase, Future, FutureIsAlreadyComputed, none_future, ConstFuture, \
     ErrorFuture
 from .batching import BatchBase, BatchItemBase, BatchingError, BatchCancelledError
