@@ -1,6 +1,6 @@
 import cython
 
-cdef object _stats
+cdef object _state
 
 @cython.locals(out=list)
 cpdef flush()
