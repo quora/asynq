@@ -53,6 +53,8 @@ cdef class AsyncTask(futures.FutureBase):
     cpdef _compute(self)
     cpdef _computed(self)
     cpdef dump_perf_stats(self)
+    cpdef collect_perf_stats(self)
+    cpdef to_str(self)
 
     cdef _continue(self)
     cdef inline object _continue_on_generator(self, value, error)
