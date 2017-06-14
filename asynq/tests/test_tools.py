@@ -215,6 +215,12 @@ def recursive_incrementer(n):
 
 @deduplicate()
 @asynq()
+def call_with_dirty():
+    call_with_dirty.dirty()
+
+
+@deduplicate()
+@asynq()
 def recursive_call_with_dirty():
     global i
     if i > 0:
@@ -250,6 +256,8 @@ def _check_deduplicate():
 
     i = 0
     yield recursive_call_with_dirty.asynq()
+
+    yield call_with_dirty.async()
 
 
 
