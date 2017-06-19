@@ -18,9 +18,10 @@ import sys
 import traceback
 import logging
 
+import six
 from six import StringIO
 from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
-from qcore import MarkerObject
+from qcore import MarkerObject, prepare_for_reraise
 
 import asynq
 
@@ -57,6 +58,25 @@ def test_format_error():
     formatted = asynq.debug.format_error(e)
     assert_in(expected, formatted)
     assert_in('Traceback', formatted)
+
+
+def test_format_error_chaining():
+    if six.PY2:
+        return  # py2 doesn't have chaining
+
+    try:
+        try:
+            raise ValueError
+        except ValueError:
+            raise KeyError
+    except KeyError as e:
+        prepare_for_reraise(e)
+        exc = e
+
+    formatted = asynq.debug.format_error(exc)
+    assert_in('raise ValueError', formatted)
+    assert_in('raise KeyError', formatted)
+    assert_in('During handling of the', formatted)
 
 
 def test_dump_stack():
