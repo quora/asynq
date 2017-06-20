@@ -92,7 +92,7 @@ class TaskScheduler(object):
             if len(self._tasks) > _debug_options.MAX_TASK_STACK_SIZE:
                 self.reset()
                 debug.dump(self)
-                raise RuntimeError('maximum task stack size exceeded while calling an asynq task')
+                raise RuntimeError('Number of scheduled tasks exceeded maximum threshold.')
 
             # _tasks is a stack, so take the last one.
             task = self._tasks[-1]
