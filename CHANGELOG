@@ -6,6 +6,7 @@ changes to rarely used parts of the library.
 * Add @asynq and .asynq() as forward compatible aliases
 * Add a debug option to log synchronous calls
 * Enhancements to @asynq.tools.deduplicate()
+* Fixed batching when yielding dictionaries
 
 ## 0.1.4
 * Add an asynq stack trace formatter for loggers
