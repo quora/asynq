@@ -16,7 +16,6 @@ from __future__ import print_function
 import contextlib
 import sys
 import qcore
-import inspect
 import linecache
 import traceback
 import logging
@@ -78,8 +77,8 @@ def format_error(error, tb=None):
     result = ''
     if hasattr(error, '_traceback') or tb is not None:
         tb = tb or error._traceback
-        result += '\n\nTraceback:\n%s' % ''.join(format_tb(tb))
-    if isinstance(error, BaseException):
+        result += ''.join(traceback.format_exception(error.__class__, error, tb))
+    elif isinstance(error, BaseException):
         exc_text = ''.join(traceback.format_exception_only(error.__class__, error))
         if isinstance(exc_text, bytes):
             exc_text = exc_text.decode('utf-8', 'replace')
@@ -132,7 +131,7 @@ def extract_tb(tb, limit=None):
 
 
 def format_tb(tb):
-    """Formats a tracebacck but skips """
+    """Formats a traceback into a list of lines."""
     return traceback.format_list(extract_tb(tb))
 
 
