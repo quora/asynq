@@ -131,7 +131,7 @@ def extract_tb(tb, limit=None):
 
 
 def format_tb(tb):
-    """Formats a tracebacck but skips """
+    """Formats a traceback into a list of lines."""
     return traceback.format_list(extract_tb(tb))
 
 
