@@ -41,6 +41,7 @@ class DebugOptions(object):
         self.DUMP_STACK            = False  # When it's meaningful, e.g. on batch flush
         self.DUMP_SCHEDULER_STATE  = False
         self.DUMP_SYNC_CALLS       = False
+        self.COLLECT_PERF_STATS    = False
 
         self.SCHEDULER_STATE_DUMP_INTERVAL = 1     # In seconds
         self.DEBUG_STR_REPR_MAX_LENGTH     = 240   # In characters, 0 means infinity

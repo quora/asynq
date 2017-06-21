@@ -32,6 +32,7 @@ cdef class DebugOptions(object):
     cdef public bint DUMP_STACK
     cdef public bint DUMP_SCHEDULER_STATE
     cdef public bint DUMP_SYNC_CALLS
+    cdef public bint COLLECT_PERF_STATS
 
     cdef public float SCHEDULER_STATE_DUMP_INTERVAL
     cdef public int DEBUG_STR_REPR_MAX_LENGTH
