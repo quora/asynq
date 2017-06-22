@@ -1,3 +1,14 @@
+## 1.0
+asynq 1.0 includes major performance improvements, but includes some backwards-incompatible
+changes to rarely used parts of the library.
+
+* Performance improvements: apps using asynq may run up to 20% faster
+* Add @asynq and .asynq() as forward compatible aliases
+* Add a debug option to log synchronous calls
+* Enhancements to @asynq.tools.deduplicate()
+* Fixed batching when yielding dictionaries
+* Add a debug option to collect profiling stats
+
 ## 0.1.4
 * Add an asynq stack trace formatter for loggers
 * Enable using objects with a custom __reduce__ in @acached_per_instance()
