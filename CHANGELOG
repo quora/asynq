@@ -7,6 +7,7 @@ changes to rarely used parts of the library.
 * Add a debug option to log synchronous calls
 * Enhancements to @asynq.tools.deduplicate()
 * Fixed batching when yielding dictionaries
+* Add a debug option to collect profiling stats
 
 ## 0.1.4
 * Add an asynq stack trace formatter for loggers
