@@ -267,9 +267,12 @@ def async_call(fn, *args, **kwargs):
     """
     if is_pure_async_fn(fn):
         return fn(*args, **kwargs)
-    if is_async_fn(fn):
+    elif hasattr(fn, 'asynq'):
         return fn.asynq(*args, **kwargs)
-    return futures.ConstFuture(fn(*args, **kwargs))
+    elif hasattr(fn, 'async'):
+        return getattr(fn, 'async')(*args, **kwargs)
+    else:
+        return futures.ConstFuture(fn(*args, **kwargs))
 
 
 class AsyncWrapper(qcore.decorators.DecoratorBase):
