@@ -53,7 +53,7 @@ if __name__ == '__main__':
     with codecs.open('./README.rst', encoding='utf-8') as f:
         long_description = f.read()
 
-    requirements = ['Cython', 'qcore', 'setuptools']
+    requirements = ['Cython', 'qcore', 'setuptools', 'inspect2']
     if sys.version_info < (3, 3):
         # mock is in the standard library since Python 3.3
         requirements.append('mock')

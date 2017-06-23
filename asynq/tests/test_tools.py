@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 import time
 
 from asynq import asynq, AsyncContext, result
@@ -136,6 +137,14 @@ class AsyncObject(object):
         self.value += (x + y + z)
         return self.value
 
+    if sys.version_info >= (3, 0):
+        exec("""
+@acached_per_instance()
+@asynq()
+def with_kwonly_arg(self, *, arg=1):
+    return arg
+""")
+
     @deduplicate()
     @asynq()
     def increment_value_method(self, val=1):
@@ -170,6 +179,9 @@ def test_acached_per_instance():
         assert_eq(17, obj.with_kwargs(x=3, y=3))
 
         assert_eq(1, len(cache), extra=repr(cache))
+
+        if sys.version_info >= (3, 0):
+            assert_eq(1, obj.with_kwonly_arg(arg=1))
 
         del obj
         assert_eq(0, len(cache), extra=repr(cache))
@@ -230,6 +242,15 @@ def recursive_call_with_dirty():
     yield recursive_call_with_dirty.asynq()
 
 
+if sys.version_info >= (3, 0):
+    exec("""
+@deduplicate()
+@asynq()
+def call_with_kwonly_arg(*, arg):
+    return arg
+""")
+
+
 def test_deduplicate():
     _check_deduplicate()
 
@@ -259,6 +280,10 @@ def _check_deduplicate():
 
     yield call_with_dirty.async()
 
+    if sys.version_info >= (3, 0):
+        with AssertRaises(TypeError):
+            yield call_with_kwonly_arg.async(1)
+        assert_eq(1, (yield call_with_kwonly_arg.async(arg=1)))
 
 
 def test_deduplicate_recursion():
