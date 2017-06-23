@@ -8,6 +8,7 @@ changes to rarely used parts of the library.
 * Enhancements to @asynq.tools.deduplicate()
 * Fixed batching when yielding dictionaries
 * Add a debug option to collect profiling stats
+* Fix display of chained stack traces in Python 3
 
 ## 0.1.4
 * Add an asynq stack trace formatter for loggers
