@@ -27,11 +27,11 @@ from .utils import result
 
 from qcore import get_original_fn, utime
 from qcore.caching import get_args_tuple, get_kwargs_defaults
-from qcore.inspection import getargspec
 from qcore.events import EventHook
 from qcore.errors import reraise, prepare_for_reraise
 from qcore.decorators import decorate
 import functools
+import inspect2
 import itertools
 import weakref
 import threading
@@ -168,8 +168,8 @@ def acached_per_instance():
 
     """
     def cache_fun(fun):
-        argspec = getargspec(get_original_fn(fun))
-        arg_names = argspec.args[1:]  # remove self
+        argspec = inspect2.getfullargspec(get_original_fn(fun))
+        arg_names = argspec.args[1:] + argspec.kwonlyargs  # remove self
         async_fun = fun.asynq
         kwargs_defaults = get_kwargs_defaults(argspec)
         cache = {}
@@ -290,8 +290,8 @@ def deduplicate(keygetter=None):
         _keygetter = keygetter
         if _keygetter is None:
             original_fn = get_original_fn(fun)
-            argspec = getargspec(original_fn)
-            arg_names = argspec.args
+            argspec = inspect2.getfullargspec(original_fn)
+            arg_names = argspec.args + argspec.kwonlyargs
             kwargs_defaults = get_kwargs_defaults(argspec)
             _keygetter = lambda args, kwargs: get_args_tuple(args, kwargs, arg_names, kwargs_defaults)
 
