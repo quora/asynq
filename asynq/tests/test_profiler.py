@@ -12,7 +12,7 @@ from .caching import ExternalCacheBatchItem
 class ProfilerThread(threading.Thread):
     def __init__(self, stats_list):
         threading.Thread.__init__(self)
-        self.stats_list = stats_list
+        self.stats_list = stats_list[:]
 
     def run(self):
         profiler.reset()
@@ -55,7 +55,7 @@ def test_collect_perf_stats():
     def func(depth):
         if depth == 0:
             result((yield ExternalCacheBatchItem(mc._batch, 'get', 'test'))); return
-        time.sleep(sleep_time / SECOND)
+        time.sleep(float(sleep_time) / SECOND)
         yield func.asynq(depth - 1), func.asynq(depth - 1)
 
 
