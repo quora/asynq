@@ -6,3 +6,4 @@ cdef object _state
 cpdef flush()
 cpdef append(object stats)
 cpdef reset()
+cpdef incr_counter()
