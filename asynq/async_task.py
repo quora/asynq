@@ -79,6 +79,8 @@ class AsyncTask(futures.FutureBase):
                 (debug.str(self), debug.str(self.creator)))
         elif _debug_options.DUMP_SYNC_CALLS:
             self.creator = asynq.scheduler.get_active_task()
+        if _debug_options.COLLECT_PERF_STATS:
+            self._id = profiler.incr_counter()
 
     def can_continue(self):
         """Indicates whether this async task has more steps to execute.
@@ -116,14 +118,14 @@ class AsyncTask(futures.FutureBase):
     def to_str(self):
         if self._name is None:
             try:
-                self._name = '%s%s(%r %r)' % (
-                    hex(id(self)),
+                self._name = '%06d.%s(%r %r)' % (
+                    self._id,
                     core_inspection.get_full_name(self.fn),
                     self.args,
                     self.kwargs
                 )
             except RuntimeError:
-                self._name = str(hex(id(self))) + core_inspection.get_full_name(self.fn)
+                self._name = '%06d.%s' % (self._id, core_inspection.get_full_name(self.fn))
         return self._name
 
     def collect_perf_stats(self):

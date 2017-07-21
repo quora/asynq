@@ -46,6 +46,7 @@ cdef class AsyncTask(futures.FutureBase):
     cdef public bint _contexts_active
     cdef public bint _dependencies_scheduled
     cdef public int _total_time
+    cdef public int _id
 
     cdef bint is_blocked(self) except -1
     cdef bint can_continue(self) except -1
