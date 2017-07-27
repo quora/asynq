@@ -82,6 +82,7 @@ patch.object = _patch_object
 # duplicate mock.patch.dict for compatibility
 patch.dict = mock.patch.dict
 patch.TEST_PREFIX = mock.patch.TEST_PREFIX
+patch.stopall = mock.patch.stopall
 
 
 def _make_patch_async(getter, attribute, new, spec, create, mocksignature,
