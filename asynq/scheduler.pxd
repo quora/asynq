@@ -43,7 +43,7 @@ cdef class TaskScheduler(object):
     cdef int _flush_batch(self, batching.BatchBase batch) except -1
 
     cdef _handle_async_task(self, async_task.AsyncTask task)
-    cdef int _continue_with_task(self, async_task.AsyncTask task)
+    cdef int _continue_with_task(self, async_task.AsyncTask task) except -1
     cdef batching.BatchBase _continue_with_batch(self)
     cdef batching.BatchBase _select_batch_to_flush(self)
 
