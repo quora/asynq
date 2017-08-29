@@ -23,6 +23,7 @@ cdef _debug.DebugOptions _debug_options
 cdef core_helpers.MarkerObject _none
 
 
+@cython.auto_pickle(False)
 cdef class FutureBase(object):
     cdef public object _value
     cdef public object _error
@@ -45,13 +46,16 @@ cdef class FutureBase(object):
     cpdef dump(self, int indent=?)
 
 
+@cython.auto_pickle(False)
 cdef class Future(FutureBase):
     cdef public object _value_provider
     cpdef _compute(self)
 
 
+@cython.auto_pickle(False)
 cdef class ConstFuture(FutureBase):
     pass
 
+@cython.auto_pickle(False)
 cdef class ErrorFuture(FutureBase):
     pass

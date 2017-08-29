@@ -199,15 +199,8 @@ class ConstFuture(FutureBase):
         self.set_value(value)
         self._in_repr = False  # since we don't call super.__init__
 
-    def __getstate__(self):
-        return self.value()
-
-    def __setstate__(self, state):
-        self._value = _none
-        self._error = None
-        self.on_computed = core_events.sinking_event_hook
-        self.set_value(state)
-        self._in_repr = False
+    def __reduce__(self):
+        return (ConstFuture, (self._value,))
 
 none_future = ConstFuture(None)
 
@@ -220,5 +213,3 @@ class ErrorFuture(FutureBase):
         self.on_computed = core_events.sinking_event_hook  # Simple performance optimization
         self.set_error(error)
         self._in_repr = False  # since we don't call super.__init__
-
-
