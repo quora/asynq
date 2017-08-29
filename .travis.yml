@@ -8,6 +8,7 @@ python:
   - "3.6"
 
 install:
+  - pip install --upgrade setuptools  # work around https://github.com/pypa/setuptools/issues/1086
   - pip install -r requirements.txt
   - pip install qcore
   - make install
