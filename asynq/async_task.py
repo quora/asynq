@@ -161,7 +161,7 @@ class AsyncTask(futures.FutureBase):
             try:
                 value = unwrap(self._last_value)
                 error = None
-            except BaseException as e:
+            except Exception as e:
                 value = None
                 error = e
             try:
@@ -183,7 +183,7 @@ class AsyncTask(futures.FutureBase):
                     self._accept_error(error)
                 else:
                     self._queue_exit(None)
-            except BaseException as error:
+            except Exception as error:
                 self._accept_error(error)
 
             if self.is_computed():
@@ -381,7 +381,7 @@ class AsyncTask(futures.FutureBase):
         while i >= 0:
             try:
                 contexts[i].pause()
-            except BaseException as e:
+            except Exception as e:
                 error = e
                 core_errors.prepare_for_reraise(error)
             i -= 1
@@ -401,7 +401,7 @@ class AsyncTask(futures.FutureBase):
         while i < l:
             try:
                 contexts[i].resume()
-            except BaseException as e:
+            except Exception as e:
                 if error is None:
                     error = e
                     core_errors.prepare_for_reraise(error)
