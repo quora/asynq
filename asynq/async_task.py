@@ -62,7 +62,6 @@ class AsyncTask(futures.FutureBase):
         self.args = args
         self.kwargs = kwargs
         self.iteration_index = 0
-        self.caller = None
         self._generator = generator
         self._frame = None
         self._last_value = None
@@ -73,12 +72,10 @@ class AsyncTask(futures.FutureBase):
         self._total_time = 0
         self._name = None
         self.perf_stats = {}
+        self.creator = asynq.scheduler.get_active_task()
         if _debug_options.DUMP_NEW_TASKS:
-            self.creator = asynq.scheduler.get_active_task()
             debug.write('@async: new task: %s, created by %s' %
                 (debug.str(self), debug.str(self.creator)))
-        elif _debug_options.DUMP_SYNC_CALLS:
-            self.creator = asynq.scheduler.get_active_task()
         if _debug_options.COLLECT_PERF_STATS:
             self._id = profiler.incr_counter()
 
@@ -292,9 +289,9 @@ class AsyncTask(futures.FutureBase):
             # If _traceback_line failed for whatever reason (e.g. there is no correct frame),
             # fall back to __str__ so that we can still provide useful information for debugging
             self_str = core_helpers.safe_str(self)
-        if self.caller is None:
+        if self.creator is None:
             return [self_str]
-        result = self.caller.traceback()
+        result = self.creator.traceback()
         result.append(self_str)
         return result
 
