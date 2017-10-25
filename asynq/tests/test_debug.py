@@ -24,6 +24,7 @@ from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
 from qcore import MarkerObject, prepare_for_reraise
 
 import asynq
+from asynq import result
 
 
 def test_dump_error():
@@ -92,19 +93,30 @@ def test_dump_stack():
     assert_in('Stack trace:', printed)
 
 
-def test_dump_asynq_stack():
+def test_format_asynq_stack():
+    format_list = []
+
     @asynq.asynq()
-    def caller():
-        yield
-        asynq.debug.dump_asynq_stack()
+    def level1(arg):
+        if arg == 0:
+            format_list.append(asynq.debug.format_asynq_stack())
+        result(arg); return
 
-    buf = StringIO()
+    @asynq.asynq()
+    def level2(arg):
+        result((yield level1.asynq(arg))); return
 
-    with asynq.mock.patch('sys.stdout', buf):
-        caller()
+    @asynq.asynq()
+    def root():
+        vals = yield [level2.asynq(i) for i in range(5)]
+        result(vals); return
 
-    printed = buf.getvalue()
-    assert_in('caller', printed)
+    root()
+
+    traceback = '\n'.join(format_list[0])
+    assert_in('root', traceback)
+    assert_in('level1', traceback)
+    assert_in('level2', traceback)
 
 
 def _assert_write_result(text, indent, expected):

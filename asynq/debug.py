@@ -152,13 +152,28 @@ def dump_stack(skip=0, limit=None):
 
 def dump_asynq_stack():
     """Dumps the current asynq stack to stdout."""
+    format_list = format_asynq_stack()
+    if format_list is None:
+        print('dump_asynq_stack: no asynq task currently active')
+    else:
+        print('\n'.join(format_list))
+
+
+def format_asynq_stack():
+    """Returns a list of strings.
+
+    Each string corresponds to one item in the current asynq stack.
+
+    Returns None if there is no active asynq task.
+
+    """
     # Doing this in the global scope creates a circular dependency
     from .scheduler import get_scheduler
     active_task = get_scheduler().active_task
     if active_task is not None:
-        print('\n'.join(active_task.traceback()))
+        return active_task.traceback()
     else:
-        print('dump_asynq_stack: no asynq task currently active')
+        return None
 
 
 def dump(state):

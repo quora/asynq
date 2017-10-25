@@ -17,12 +17,7 @@ all: test
 install:
 	make clean
 	python setup.py sdist
-	pip install --upgrade dist/asynq*.gz
-
-install64:
-	make clean
-	python64 setup.py sdist
-	pip64 install --upgrade dist/asynq*.gz
+	pip install --upgrade --upgrade-strategy only-if-needed dist/asynq*.gz
 
 clean:
 	rm -rf dist/
