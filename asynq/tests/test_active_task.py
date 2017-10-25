@@ -27,14 +27,14 @@ def outer_async():
     """
     assert_is_not(None, scheduler.get_active_task())
     assert_is(outer_async.fn, scheduler.get_active_task().fn)
-    yield inner_async()
+    inner_async()
     assert_is_not(None, scheduler.get_active_task())
     assert_is(outer_async.fn, scheduler.get_active_task().fn)
 
 
 @async()
 def inner_async():
-    yield
+    pass
 
 
 def test_active_task():
