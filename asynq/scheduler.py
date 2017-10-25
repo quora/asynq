@@ -166,6 +166,7 @@ class TaskScheduler(object):
 
     def _continue_with_task(self, task):
         task._resume_contexts()
+        old_task = self.active_task
         self.active_task = task
 
         if _debug_options.DUMP_CONTINUE_TASK:
@@ -181,7 +182,7 @@ class TaskScheduler(object):
         if _debug_options.DUMP_CONTINUE_TASK:
             debug.write('@async: <- continued %s' % debug.str(task))
 
-        self.active_task = None
+        self.active_task = old_task
         # We get a new set of dependencies when we run _continue, so these haven't
         # been scheduled.
         task._dependencies_scheduled = False
