@@ -24,6 +24,7 @@ from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
 from qcore import MarkerObject, prepare_for_reraise
 
 import asynq
+from asynq import result
 
 
 def test_dump_error():
@@ -99,16 +100,16 @@ def test_format_asynq_stack():
     def level1(arg):
         if arg == 0:
             format_list.append(asynq.debug.format_asynq_stack())
-        return arg
+        result(arg); return
 
     @asynq.asynq()
     def level2(arg):
-        return (yield level1.asynq(arg))
+        result((yield level1.asynq(arg))); return
 
     @asynq.asynq()
     def root():
         vals = yield [level2.asynq(i) for i in range(5)]
-        return vals
+        result(vals); return
 
     root()
 
