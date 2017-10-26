@@ -13,23 +13,20 @@
 # limitations under the License.
 
 from asynq import async, scheduler
-from qcore.asserts import assert_is, assert_is_not
+from qcore.asserts import assert_is
 
 
 @async()
 def outer_async():
     """Test that we get the correct active task from the scheduler.
 
-    Previously, there was a bug such that when we called a task synchronously from an async
-    function, the scheduler would lose track of the outer function after executing the inner
-    function, causing this test to fail.
+    Even when the execution of one task gets interrupted by a synchonous call to another async
+    function, the scheduler retains the correct active task.
 
     """
-    assert_is_not(None, scheduler.get_active_task())
-    assert_is(outer_async.fn, scheduler.get_active_task().fn)
+    active_task = scheduler.get_active_task()
     inner_async()
-    assert_is_not(None, scheduler.get_active_task())
-    assert_is(outer_async.fn, scheduler.get_active_task().fn)
+    assert_is(active_task, scheduler.get_active_task())
 
 
 @async()
