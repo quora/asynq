@@ -170,7 +170,7 @@ def acached_per_instance():
     def cache_fun(fun):
         argspec = inspect2.getfullargspec(get_original_fn(fun))
         arg_names = argspec.args[1:] + argspec.kwonlyargs  # remove self
-        async_fun = fun.asynq
+        async_fun = fun.async
         kwargs_defaults = get_kwargs_defaults(argspec)
         cache = {}
 
@@ -180,7 +180,7 @@ def acached_per_instance():
         def clear_cache(instance_key, ref):
             del cache[instance_key]
 
-        @async_proxy()
+        @asynq()
         @functools.wraps(fun)
         def new_fun(self, *args, **kwargs):
             instance_key = id(self)
@@ -191,14 +191,11 @@ def acached_per_instance():
 
             k = cache_key(args, kwargs)
             try:
-                return ConstFuture(instance_cache[k])
+                return instance_cache[k]
             except KeyError:
-                def callback(task):
-                    instance_cache[k] = task.value()
-
-                task = async_fun(self, *args, **kwargs)
-                task.on_computed.subscribe(callback)
-                return task
+                value = yield async_fun(self, *args, **kwargs)
+                instance_cache[k] = value
+                return value
 
         # just so unit tests can check that this is cleaned up correctly
         new_fun.__acached_per_instance_cache__ = cache
