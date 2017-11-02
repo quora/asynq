@@ -170,7 +170,7 @@ def acached_per_instance():
     def cache_fun(fun):
         argspec = inspect2.getfullargspec(get_original_fn(fun))
         arg_names = argspec.args[1:] + argspec.kwonlyargs  # remove self
-        async_fun = fun.async
+        async_fun = fun.asynq
         kwargs_defaults = get_kwargs_defaults(argspec)
         cache = {}
 
