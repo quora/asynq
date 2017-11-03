@@ -195,7 +195,7 @@ def acached_per_instance():
             except KeyError:
                 value = yield async_fun(self, *args, **kwargs)
                 instance_cache[k] = value
-                return value
+                result(value); return
 
         # just so unit tests can check that this is cleaned up correctly
         new_fun.__acached_per_instance_cache__ = cache
