@@ -191,7 +191,7 @@ def acached_per_instance():
 
             k = cache_key(args, kwargs)
             try:
-                return instance_cache[k]
+                result(instance_cache[k]); return
             except KeyError:
                 value = yield async_fun(self, *args, **kwargs)
                 instance_cache[k] = value
