@@ -15,7 +15,7 @@
 import sys
 import time
 
-from asynq import asynq, AsyncContext, result
+from asynq import asynq, AsyncContext, result, scheduler
 from asynq.tools import (
     amap,
     afilter,
@@ -137,6 +137,11 @@ class AsyncObject(object):
         self.value += (x + y + z)
         return self.value
 
+    @acached_per_instance()
+    @asynq()
+    def raises_exception(self):
+        assert False
+
     if sys.version_info >= (3, 0):
         exec("""
 @acached_per_instance()
@@ -185,6 +190,16 @@ def test_acached_per_instance():
 
         del obj
         assert_eq(0, len(cache), extra=repr(cache))
+
+
+def test_acached_per_instance_exception_handling():
+    obj = AsyncObject()
+    try:
+        obj.raises_exception()
+    except AssertionError:
+        # the exception should not affect the internals of the scheduler, and the active task
+        # should get cleaned up
+        assert_is(None, scheduler.get_active_task())
 
 
 class Ctx(AsyncContext):
