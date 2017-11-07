@@ -159,7 +159,7 @@ def asift(pred, items):
 
 
 def acached_per_instance():
-    """Async equivalent of core.caching.cached_per_instance().
+    """Async equivalent of qcore.caching.cached_per_instance().
 
     Unlike l0cache, the cached value is stored in the instance so that it gets
     garbage collected together with the instance.
