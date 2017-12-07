@@ -12,7 +12,7 @@ def test_constfuture_pickling():
 
 
 def test_callback_exception_handling():
-    def raise_exception():
+    def raise_exception(task):
         raise ValueError
 
     fut = asynq.Future(lambda: 3)

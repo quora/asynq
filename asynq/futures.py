@@ -131,8 +131,8 @@ class FutureBase(object):
 
         # pass on any exception in the callback, since we don't expect the caller to know how to
         # deal with it
-        except BaseException:
-            pass
+        except Exception as e:
+            print('exception ignored in asynq on_computed callback: %s' % repr(e))
 
     def _compute(self):
         """Protected method invoked to acquire the value.
