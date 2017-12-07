@@ -126,7 +126,13 @@ class FutureBase(object):
         # the notification even in case one of them fails.
         # Otherwise lots of negative effects are possible - e.g.
         # some of them might be left in blocked state.
-        self.on_computed.safe_trigger(self)
+        try:
+            self.on_computed.safe_trigger(self)
+
+        # pass on any exception in the callback, since we don't expect the caller to know how to
+        # deal with it
+        except BaseException:
+            pass
 
     def _compute(self):
         """Protected method invoked to acquire the value.
