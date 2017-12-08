@@ -1,6 +1,6 @@
 import asynq
 import pickle
-from qcore.asserts import assert_eq
+from qcore.asserts import assert_eq, AssertRaises
 
 
 def test_constfuture_pickling():
@@ -15,17 +15,19 @@ def test_callback_exception_handling():
     def raise_exception(task):
         raise ValueError
 
-    def no_exception(task):
-        pass
+    def base_exception(task):
+        raise KeyboardInterrupt
 
     fut_exc = asynq.Future(lambda: 3)
     fut_exc.on_computed.subscribe(raise_exception)
 
-    fut_no_exc = asynq.Future(lambda: 4)
-    fut_no_exc.on_computed.subscribe(raise_exception)
+    fut_base_exc = asynq.Future(lambda: 4)
+    fut_base_exc.on_computed.subscribe(base_exception)
 
     # exception is passed on and value gets set correctly
     assert_eq(3, fut_exc.value())
 
-    # without an exception, the value also gets set correctly
-    assert_eq(4, fut_no_exc.value())
+    # since there's a base exception, we fail when we try to set the error to the future
+    # (because the Future class _compute method is wrappred with try/except on BaseException)
+    with AssertRaises(asynq.futures.FutureIsAlreadyComputed):
+        assert_eq(4, fut_base_exc.value())
