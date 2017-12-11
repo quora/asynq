@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import traceback
+
 import qcore.helpers as core_helpers
 import qcore.events as core_events
 import qcore.errors as core_errors
@@ -126,7 +128,16 @@ class FutureBase(object):
         # the notification even in case one of them fails.
         # Otherwise lots of negative effects are possible - e.g.
         # some of them might be left in blocked state.
-        self.on_computed.safe_trigger(self)
+        try:
+            self.on_computed.safe_trigger(self)
+
+        # pass on any exception in the callback, since we don't expect the caller to know how to
+        # deal with it; we don't pass on BaseExceptions (they should be very rare here, and we'd
+        # like to maintain their normal behavior), so these could still leave the scheduler in a
+        # bad state if the process continues to run afterwards
+        except Exception as e:
+            print('exception ignored in asynq on_computed callback: %s' % repr(e))
+            traceback.print_exc()
 
     def _compute(self):
         """Protected method invoked to acquire the value.
@@ -185,7 +196,7 @@ class Future(FutureBase):
     def _compute(self):
         try:
             self.set_value(self._value_provider())
-        except BaseException as error:
+        except Exception as error:
             self.set_error(error)
             raise
 
