@@ -196,7 +196,7 @@ class Future(FutureBase):
     def _compute(self):
         try:
             self.set_value(self._value_provider())
-        except BaseException as error:
+        except Exception as error:
             self.set_error(error)
             raise
 

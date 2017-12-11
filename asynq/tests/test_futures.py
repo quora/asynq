@@ -27,7 +27,6 @@ def test_callback_exception_handling():
     # exception is passed on and value gets set correctly
     assert_eq(3, fut_exc.value())
 
-    # since there's a base exception, we fail when we try to set the error to the future
-    # (because the Future class _compute method is wrappred with try/except on BaseException)
-    with AssertRaises(asynq.futures.FutureIsAlreadyComputed):
+    # since there's a base exception, we fail when we try to set the value to the future
+    with AssertRaises(KeyboardInterrupt):
         assert_eq(4, fut_base_exc.value())
