@@ -14,10 +14,8 @@
 
 from setuptools import setup
 from setuptools.extension import Extension
-from Cython.Build import cythonize
 
 import codecs
-import os
 import sys
 
 
@@ -38,12 +36,12 @@ CYTHON_MODULES = [
 DATA_FILES = ['%s.pxd' % module for module in CYTHON_MODULES]
 
 
-VERSION = '1.0'
+VERSION = '1.0.1'
 
 
 EXTENSIONS = [
     Extension(
-        'asynq/%s' % module,
+        'asynq.%s' % module,
         ['asynq/%s.py' % module]
     ) for module in CYTHON_MODULES
 ]
@@ -80,9 +78,13 @@ if __name__ == '__main__':
         keywords='quora asynq common utility',
         packages=['asynq', 'asynq.tests'],
         package_data={'asynq': DATA_FILES},
-        ext_modules=cythonize(EXTENSIONS),
-        install_requires=requirements,
+        ext_modules=EXTENSIONS,
+        setup_requires=['Cython'],
+        install_requires=[
+            'Cython',
+            'qcore',
+            'setuptools',
+            'inspect2',
+            'mock; python_version < "3.3"',
+        ],
     )
-
-    os.system('rm -rf ./build ./asynq.egg-info')
-    os.system('rm -f ./asynq/*.pyc ./asynq/*.c')
