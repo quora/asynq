@@ -51,11 +51,6 @@ if __name__ == '__main__':
     with codecs.open('./README.rst', encoding='utf-8') as f:
         long_description = f.read()
 
-    requirements = ['Cython', 'qcore', 'setuptools', 'inspect2']
-    if sys.version_info < (3, 3):
-        # mock is in the standard library since Python 3.3
-        requirements.append('mock')
-
     setup(
         name='asynq',
         version=VERSION,
@@ -79,11 +74,10 @@ if __name__ == '__main__':
         packages=['asynq', 'asynq.tests'],
         package_data={'asynq': DATA_FILES},
         ext_modules=EXTENSIONS,
-        setup_requires=['Cython', 'qcore'],
+        setup_requires=['Cython>=0.27.1', 'qcore', 'setuptools'],
         install_requires=[
-            'Cython',
+            'Cython>=0.27.1',
             'qcore',
-            'setuptools',
             'inspect2',
             'mock; python_version < "3.3"',
         ],
