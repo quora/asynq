@@ -79,7 +79,7 @@ if __name__ == '__main__':
         packages=['asynq', 'asynq.tests'],
         package_data={'asynq': DATA_FILES},
         ext_modules=EXTENSIONS,
-        setup_requires=['Cython'],
+        setup_requires=['Cython', 'qcore'],
         install_requires=[
             'Cython',
             'qcore',
