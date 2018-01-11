@@ -390,18 +390,18 @@ class DeduplicateClassWrapper:
     @deduplicate()
     @asynq()
     def return_three(self):
-        return 3
+        result(3); return
 
     @deduplicate()
     @asynq()
     def return_five(self):
-        return 5
+        result(5); return
 
     @asynq()
     def return_three_and_five(self):
-        return (yield (
+        result((yield (
             self.return_three.async(), self.return_five.async()
-        ))
+        ))); return
 
 
 def test_deduplicate_same_class():
