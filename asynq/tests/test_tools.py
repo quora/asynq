@@ -384,3 +384,28 @@ def test_async_event_hook():
     with AssertRaises(AssertionError):
         hook3.safe_trigger()
     assert_eq(['handler2()'], calls)
+
+
+class DeduplicateClassWrapper:
+    @deduplicate()
+    @asynq()
+    def return_three(self):
+        result(3); return
+
+    @deduplicate()
+    @asynq()
+    def return_five(self):
+        result(5); return
+
+    @asynq()
+    def return_three_and_five(self):
+        result((yield (
+            self.return_three.async(), self.return_five.async()
+        ))); return
+
+
+def test_deduplicate_same_class():
+    obj = DeduplicateClassWrapper()
+
+    # make sure the five method has a seperate key and therefore there was no cache mixup
+    assert_eq((3, 5), obj.return_three_and_five())
