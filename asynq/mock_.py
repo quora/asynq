@@ -26,10 +26,10 @@ This file is named mock_ instead of mock so that it can import the standard mock
 import inspect
 
 try:
-    import mock
+    from unittest import mock
 except ImportError:
     # py3
-    from unittest import mock
+    import mock
 
 try:
     _patch = mock._patch
