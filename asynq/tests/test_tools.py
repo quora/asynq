@@ -25,6 +25,7 @@ from asynq.tools import (
     asift,
     asorted,
     acached_per_instance,
+    alru_cache,
     call_with_context,
     deduplicate,
     AsyncTimer,
@@ -200,6 +201,21 @@ def test_acached_per_instance_exception_handling():
         # the exception should not affect the internals of the scheduler, and the active task
         # should get cleaned up
         assert_is(None, scheduler.get_active_task())
+
+
+def test_alru_cache():
+    @alru_cache(maxsize=1, key_fn=lambda args, kwargs: args[0] % 2 == 0)
+    @asynq()
+    def cube(n):
+        return n * n * n
+
+    assert_eq(1, cube(1))
+    # hit the cache
+    assert_eq(1, cube(3))
+    # cache miss
+    assert_eq(8, cube(2))
+    # now it's a cache miss
+    assert_eq(27, cube(3))
 
 
 class Ctx(AsyncContext):

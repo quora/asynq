@@ -26,7 +26,7 @@ from .futures import ConstFuture
 from .utils import result
 
 from qcore import get_original_fn, utime
-from qcore.caching import get_args_tuple, get_kwargs_defaults
+from qcore.caching import get_args_tuple, get_kwargs_defaults, LRUCache
 from qcore.events import EventHook
 from qcore.errors import reraise, prepare_for_reraise
 from qcore.decorators import decorate
@@ -201,6 +201,47 @@ def acached_per_instance():
         new_fun.__acached_per_instance_cache__ = cache
         return new_fun
     return cache_fun
+
+
+def alru_cache(maxsize=128, key_fn=None):
+    """Async equivalent of qcore.caching.lru_cache().
+
+    maxsize is the number of different keys cache can accomodate.
+    key_fn is the function that builds key from args. The default key function
+    creates a tuple out of args and kwargs. If you use the default it acts the same
+    as functools.lru_cache (except with async).
+
+    Possible use cases of key_fn:
+    - Your cache key is very large, so you don't want to keep the whole key in memory.
+    - The function takes some arguments that don't affect the result.
+
+    """
+
+    def decorator(fn):
+        cache = LRUCache(maxsize)
+        argspec = inspect2.getfullargspec(get_original_fn(fn))
+        arg_names = argspec.args[1:] + argspec.kwonlyargs  # remove self
+        async_fun = fn.asynq
+        kwargs_defaults = get_kwargs_defaults(argspec)
+
+        cache_key = key_fn
+        if cache_key is None:
+            def cache_key(args, kwargs):
+                return get_args_tuple(args, kwargs, arg_names, kwargs_defaults)
+
+        @asynq()
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            key = cache_key(args, kwargs)
+            try:
+                result(cache[key]); return
+            except KeyError:
+                value = yield async_fun(*args, **kwargs)
+                cache[key] = value
+                result(value); return
+
+        return wrapper
+    return decorator
 
 
 @asynq()
