@@ -204,18 +204,23 @@ def test_acached_per_instance_exception_handling():
 
 
 def test_alru_cache():
+    _check_alru_cache()
+
+
+@asynq()
+def _check_alru_cache():
     @alru_cache(maxsize=1, key_fn=lambda args, kwargs: args[0] % 2 == 0)
     @asynq()
     def cube(n):
         return n * n * n
 
-    assert_eq(1, cube(1))
+    assert_eq(1, (yield cube.async(1)))
     # hit the cache
-    assert_eq(1, cube(3))
+    assert_eq(1, (yield cube.async(3)))
     # cache miss
-    assert_eq(8, cube(2))
+    assert_eq(8, (yield cube.async(2)))
     # now it's a cache miss
-    assert_eq(27, cube(3))
+    assert_eq(27, (yield cube.async(3)))
 
 
 class Ctx(AsyncContext):
