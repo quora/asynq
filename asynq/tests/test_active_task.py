@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import async, scheduler
+from asynq import asynq, scheduler
 from qcore.asserts import assert_is
 
 
-@async()
+@asynq()
 def outer_async():
     """Test that we get the correct active task from the scheduler.
 
@@ -29,7 +29,7 @@ def outer_async():
     assert_is(active_task, scheduler.get_active_task())
 
 
-@async()
+@asynq()
 def inner_async():
     pass
 
