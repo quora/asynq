@@ -1,0 +1,3 @@
+from typing import NoReturn
+
+def result(value: object) -> NoReturn: ...
