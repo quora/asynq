@@ -48,7 +48,7 @@ class Ctx(AsyncContext):
         self.ctx_id = ctx_id
 
     def __eq__(self, other):
-        return True
+        return self.ctx_id == other.ctx_id
 
     def resume(self):
         pass
