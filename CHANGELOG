@@ -1,3 +1,10 @@
+## 1.0.1
+* Improve installation procedure
+* Expose asynq.mock.patch.stopall
+* Improvements to exception propagation
+* Bug fixes
+* Improve acached_per_instance implementation
+
 ## 1.0
 asynq 1.0 includes major performance improvements, but includes some backwards-incompatible
 changes to rarely used parts of the library.

@@ -25,6 +25,7 @@ from asynq.tools import (
     asift,
     asorted,
     acached_per_instance,
+    alru_cache,
     call_with_context,
     deduplicate,
     AsyncTimer,
@@ -202,6 +203,26 @@ def test_acached_per_instance_exception_handling():
         assert_is(None, scheduler.get_active_task())
 
 
+def test_alru_cache():
+    _check_alru_cache()
+
+
+@asynq()
+def _check_alru_cache():
+    @alru_cache(maxsize=1, key_fn=lambda args, kwargs: args[0] % 2 == 0)
+    @asynq()
+    def cube(n):
+        return n * n * n
+
+    assert_eq(1, (yield cube.asynq(1)))
+    # hit the cache
+    assert_eq(1, (yield cube.asynq(3)))
+    # cache miss
+    assert_eq(8, (yield cube.asynq(2)))
+    # now it's a cache miss
+    assert_eq(27, (yield cube.asynq(3)))
+
+
 class Ctx(AsyncContext):
     is_on = False
 
@@ -293,12 +314,12 @@ def _check_deduplicate():
     i = 0
     yield recursive_call_with_dirty.asynq()
 
-    yield call_with_dirty.async()
+    yield call_with_dirty.asynq()
 
     if sys.version_info >= (3, 0):
         with AssertRaises(TypeError):
-            yield call_with_kwonly_arg.async(1)
-        assert_eq(1, (yield call_with_kwonly_arg.async(arg=1)))
+            yield call_with_kwonly_arg.asynq(1)
+        assert_eq(1, (yield call_with_kwonly_arg.asynq(arg=1)))
 
 
 def test_deduplicate_recursion():
@@ -400,7 +421,7 @@ class DeduplicateClassWrapper:
     @asynq()
     def return_three_and_five(self):
         result((yield (
-            self.return_three.async(), self.return_five.async()
+            self.return_three.asynq(), self.return_five.asynq()
         ))); return
 
 
