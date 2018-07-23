@@ -48,7 +48,7 @@ class Ctx(AsyncContext):
         self.ctx_id = ctx_id
 
     def __eq__(self, other):
-        return self.ctx_id == other.ctx_id
+        return True
 
     def resume(self):
         pass
@@ -66,11 +66,14 @@ def test_context_nesting():
     @asynq()
     def fn():
         task = scheduler.get_active_task()
-        with Ctx(0):
-            with Ctx(1):
-                with Ctx(0):
-                    assert_eq([Ctx(0), Ctx(1), Ctx(0)], list(task._contexts.values()))
+        ctx0 = Ctx(0)
+        ctx1 = Ctx(1)
+        ctx2 = Ctx(0)
+        with ctx0:
+            with ctx1:
+                with ctx2:
+                    assert_eq([ctx0, ctx1, ctx2], list(task._contexts.values()))
 
-                assert_eq([Ctx(0), Ctx(1)], list(task._contexts.values()))
+                assert_eq([ctx0, ctx1], list(task._contexts.values()))
 
     fn()

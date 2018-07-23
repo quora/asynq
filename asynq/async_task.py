@@ -370,20 +370,17 @@ class AsyncTask(futures.FutureBase):
         if not self._contexts_active:
             return
         self._contexts_active = False
-        contexts = self._contexts.values()
-        i = len(contexts) - 1
         # execute each pause() in a try/except and if 1 or more of them
         # raise an exception, then save the last exception raised so that it
         # can be re-raised later. We re-raise the last exception to make the
         # behavior consistent with __exit__.
         error = None
-        while i >= 0:
+        for ctx in reversed(self._contexts.values()):
             try:
-                contexts[i].pause()
+                ctx.pause()
             except BaseException as e:
                 error = e
                 core_errors.prepare_for_reraise(error)
-            i -= 1
         if error is not None:
             self._accept_error(error)
 
@@ -391,20 +388,16 @@ class AsyncTask(futures.FutureBase):
         if self._contexts_active:
             return
         self._contexts_active = True
-        i = 0
-        contexts = self._contexts.values()
-        l = len(contexts)
         # same try/except deal as with _pause_contexts, but in this case
         # we re-raise the first exception raised.
         error = None
-        while i < l:
+        for ctx in self._contexts.values():
             try:
-                contexts[i].resume()
+                ctx.resume()
             except BaseException as e:
                 if error is None:
                     error = e
                     core_errors.prepare_for_reraise(error)
-            i += 1
         if error is not None:
             self._accept_error(error)
 
