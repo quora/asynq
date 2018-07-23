@@ -20,6 +20,8 @@ import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
 import qcore.errors as core_errors
 
+from collections import OrderedDict
+
 from . import debug
 from . import futures
 from . import profiler
@@ -66,7 +68,7 @@ class AsyncTask(futures.FutureBase):
         self._frame = None
         self._last_value = None
         self._dependencies = []
-        self._contexts = []
+        self._contexts = OrderedDict()
         self._contexts_active = False
         self._dependencies_scheduled = False
         self._total_time = 0
@@ -357,18 +359,18 @@ class AsyncTask(futures.FutureBase):
     def _enter_context(self, context):
         if _debug_options.DUMP_CONTEXTS:
             debug.write('@async: +context: %s' % debug.str(context))
-        self._contexts.append(context)
+        self._contexts[id(context)] = context
 
     def _leave_context(self, context):
         if _debug_options.DUMP_CONTEXTS:
             debug.write('@async: -context: %s' % debug.str(context))
-        self._contexts.remove(context)
+        del self._contexts[id(context)]
 
     def _pause_contexts(self):
         if not self._contexts_active:
             return
         self._contexts_active = False
-        contexts = self._contexts
+        contexts = self._contexts.values()
         i = len(contexts) - 1
         # execute each pause() in a try/except and if 1 or more of them
         # raise an exception, then save the last exception raised so that it
@@ -390,7 +392,7 @@ class AsyncTask(futures.FutureBase):
             return
         self._contexts_active = True
         i = 0
-        contexts = self._contexts
+        contexts = self._contexts.values()
         l = len(contexts)
         # same try/except deal as with _pause_contexts, but in this case
         # we re-raise the first exception raised.
