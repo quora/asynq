@@ -375,7 +375,7 @@ class AsyncTask(futures.FutureBase):
         # can be re-raised later. We re-raise the last exception to make the
         # behavior consistent with __exit__.
         error = None
-        for ctx in reversed(self._contexts.values()):
+        for ctx in reversed(list(self._contexts.values())):
             try:
                 ctx.pause()
             except BaseException as e:
