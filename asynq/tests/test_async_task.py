@@ -14,6 +14,8 @@
 
 from asynq import asynq
 from asynq.futures import ConstFuture
+from asynq.contexts import AsyncContext
+from asynq import scheduler
 
 from qcore.asserts import assert_eq, assert_is, AssertRaises
 
@@ -39,3 +41,39 @@ def test_unwrap():
 
     with AssertRaises(TypeError):
         check_unwrap(1)
+
+
+class Ctx(AsyncContext):
+    def __init__(self, ctx_id):
+        self.ctx_id = ctx_id
+
+    def __eq__(self, other):
+        return self.ctx_id == other.ctx_id
+
+    def resume(self):
+        pass
+
+    def pause(self):
+        pass
+
+
+def test_context_nesting():
+    """Make sure that context nesting ordering is preserved.
+
+    This should be true even when two contexts are __eq__ to one another.
+
+    """
+    @asynq()
+    def fn():
+        task = scheduler.get_active_task()
+        ctx0 = Ctx(0)
+        ctx1 = Ctx(1)
+        ctx2 = Ctx(0)
+        with ctx0:
+            with ctx1:
+                with ctx2:
+                    assert_eq([ctx0, ctx1, ctx2], list(task._contexts.values()))
+
+                assert_eq([ctx0, ctx1], list(task._contexts.values()))
+
+    fn()
