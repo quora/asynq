@@ -1,4 +1,4 @@
-## 1.2.0
+## 1.1.0
 * Start publishing manylinux wheels
 * Drop support for Python 3.3 and add 3.7
 * Fix bug when multiple AsynContexts compare equal
