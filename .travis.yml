@@ -16,6 +16,8 @@ matrix:
       env: PYVER=cp35-cp35m
     - python: "3.6"
       env: PYVER=cp36-cp36m
+    - python: "3.7-dev"
+      env: PYVER=cp37-cp37m
 
 install:
   - docker pull $DOCKER_IMAGE
