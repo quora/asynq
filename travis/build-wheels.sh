@@ -8,9 +8,6 @@ PYBIN=/opt/python/$PYVER/bin
 # Compile wheels
 "${PYBIN}/pip" install -r /io/requirements.txt
 
-# Install dependencies of asynq
-"${PYBIN}/pip" install -U Cython qcore tox
-
 "${PYBIN}/pip" wheel /io/ -w wheelhouse/
 
 # Bundle external shared libraries into the wheels
