@@ -25,3 +25,17 @@ install:
 script:
   - docker run --rm -e PYVER -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
   - ls wheelhouse/
+  # According to https://github.com/travis-ci/dpl/issues/496, copying files to dist/ is enough to get them uploaded
+  - mkdir -p dist/
+  - cp wheelhouse/asynq-*.whl dist/
+  - if [[ "$PYVER" = "cp37-cp37m" ]]; then python3.7 setup.py sdist; fi
+
+deploy:
+  provider: pypi
+  user: Quora
+  password:
+    secure: kk4CTEOz46m8ysrDkV9k5oAAEedlFhvOf4gdoFqB0Y5oSepal/hFPN3ocwBcYcYTsx2LtdW0AplB1iQexstv7ehBrS6GdEE8bVoCoQp8esQ6Y4Wx6Q3t453fjKQ+gs3Tm2N3slVNa19dpOkCY1kYdvgQae8oQcxRyXkP5gY+mbLs4fOwx/+kbE0Jk3ce6alyf3UvQDwRlivSiur+M50Trxh9CVnbPzdOutobL4WUkhya71kxf+7YFHF+FSXkZmmQyakUceksxziRzhdIikLvbhNp7wJgTej7AnmRtxKqrBcy/JOwgTn6MSUqZ8iiDl4br55bQmlTqZ4Oqlkk8dLT+7KhaSZwDDgmXpvrW035g13HaXPJI+8hXdAfdAt228h0MOxLA+uoLBxyvksr4SXttTsaT6DPXvi2a+JhfksX4r9fhqxciDa2zzW3sC4rCVZQpTsa33wP3C+sdDWv5u/tvRAOI1qJ32mueI4zQVJB8tyYTmcl/JXf6QMOhjKHQ26cVupsOwEgMQmHu3XygvkQu7zEm5VQ4KjtkjYTBYUGZ913437QiVLJ5GGf6k55nwGf2KnxzKyBhK2vpnCv7GzTWUXFSj5eLpqrpUfNOcu83OcMEm7n6htrzFOyzIXh76T9ZCbs3gkiKBo8vr+cW2Zo1+BdNR/+Pl/eADR14jGR14M=
+  on:
+    tags: true
+  skip_cleanup: true
+  distributions: build_py
