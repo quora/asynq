@@ -41,7 +41,7 @@ cdef class AsyncTask(futures.FutureBase):
     cdef public object _frame
     cdef public object perf_stats
     cdef public list _dependencies
-    cdef public list _contexts
+    cdef public object _contexts
     cdef public bint _contexts_active
     cdef public bint _dependencies_scheduled
     cdef public int _total_time
