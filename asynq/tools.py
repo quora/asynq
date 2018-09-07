@@ -244,6 +244,37 @@ def alru_cache(maxsize=128, key_fn=None):
     return decorator
 
 
+def alazy_constant(ttl=0):
+    """Async implementation of qcore.caching.lazy_constant.
+
+    If ttl is given, the cached value is automatically dirtied after that many
+    microseconds. If ttl is zero or not given, the cached value lasts for the
+    lifetime of the process, or until .dirty() is called.
+
+    """
+
+    def decorator(fn):
+        @asynq()
+        @functools.wraps(fn)
+        def wrapper():
+            if (wrapper.alazy_constant_refresh_time == 0) or (
+                    (ttl != 0) and
+                    (wrapper.alazy_constant_refresh_time < utime() - ttl)):
+                wrapper.alazy_constant_cached_value = yield fn.asynq()
+                wrapper.alazy_constant_refresh_time = utime()
+            return wrapper.alazy_constant_cached_value
+
+        def dirty():
+            wrapper.alazy_constant_refresh_time = 0
+
+        wrapper.dirty = dirty
+        wrapper.alazy_constant_refresh_time = 0
+        wrapper.alazy_constant_cached_value = None
+        return wrapper
+
+    return decorator
+
+
 @asynq()
 def call_with_context(context, fn, *args, **kwargs):
     """Calls fn in the given with context.

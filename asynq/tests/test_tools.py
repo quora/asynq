@@ -26,6 +26,7 @@ from asynq.tools import (
     asorted,
     acached_per_instance,
     alru_cache,
+    alazy_constant,
     call_with_context,
     deduplicate,
     AsyncTimer,
@@ -221,6 +222,63 @@ def _check_alru_cache():
     assert_eq(8, (yield cube.asynq(2)))
     # now it's a cache miss
     assert_eq(27, (yield cube.asynq(3)))
+
+
+def test_alazy_constant():
+    _check_alazy_constant_no_ttl()
+    _check_alazy_constant_ttl()
+
+
+@asynq()
+def _check_alazy_constant_no_ttl():
+    call_count = 0
+
+    @alazy_constant()
+    @asynq()
+    def constant():
+        nonlocal call_count
+        call_count += 1
+        return call_count
+
+    # multiple calls in a short time should only call it once
+    assert_eq(1, (yield constant.asynq()))
+    assert_eq(1, (yield constant.asynq()))
+    assert_eq(1, (yield constant.asynq()))
+
+    # but after a dirty, it should be called again
+    constant.dirty()
+    assert_eq(2, (yield constant.asynq()))
+    assert_eq(2, (yield constant.asynq()))
+    assert_eq(2, (yield constant.asynq()))
+
+
+@asynq()
+def _check_alazy_constant_ttl():
+    call_count = 0
+
+    @alazy_constant(ttl=100000)  # 100ms
+    @asynq()
+    def constant():
+        nonlocal call_count
+        call_count += 1
+        return call_count
+
+    # multiple calls in a short time should only call it once
+    assert_eq(1, (yield constant.asynq()))
+    assert_eq(1, (yield constant.asynq()))
+    assert_eq(1, (yield constant.asynq()))
+
+    # but after a long enough time, it should be called again
+    time.sleep(0.1)
+    assert_eq(2, (yield constant.asynq()))
+    assert_eq(2, (yield constant.asynq()))
+    assert_eq(2, (yield constant.asynq()))
+
+    # or after a dirty
+    constant.dirty()
+    assert_eq(3, (yield constant.asynq()))
+    assert_eq(3, (yield constant.asynq()))
+    assert_eq(3, (yield constant.asynq()))
 
 
 class Ctx(AsyncContext):
