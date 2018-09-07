@@ -262,7 +262,7 @@ def alazy_constant(ttl=0):
                     (wrapper.alazy_constant_refresh_time < utime() - ttl)):
                 wrapper.alazy_constant_cached_value = yield fn.asynq()
                 wrapper.alazy_constant_refresh_time = utime()
-            return wrapper.alazy_constant_cached_value
+            result(wrapper.alazy_constant_cached_value); return
 
         def dirty():
             wrapper.alazy_constant_refresh_time = 0

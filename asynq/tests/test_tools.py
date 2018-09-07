@@ -229,16 +229,20 @@ def test_alazy_constant():
     _check_alazy_constant_ttl()
 
 
+constant_call_count = 0
+
+
 @asynq()
 def _check_alazy_constant_no_ttl():
-    call_count = 0
+    global constant_call_count
+    constant_call_count = 0
 
     @alazy_constant()
     @asynq()
     def constant():
-        nonlocal call_count
-        call_count += 1
-        return call_count
+        global constant_call_count
+        constant_call_count += 1
+        return constant_call_count
 
     # multiple calls in a short time should only call it once
     assert_eq(1, (yield constant.asynq()))
@@ -254,14 +258,15 @@ def _check_alazy_constant_no_ttl():
 
 @asynq()
 def _check_alazy_constant_ttl():
-    call_count = 0
+    global constant_call_count
+    constant_call_count = 0
 
     @alazy_constant(ttl=100000)  # 100ms
     @asynq()
     def constant():
-        nonlocal call_count
-        call_count += 1
-        return call_count
+        global constant_call_count
+        constant_call_count += 1
+        return constant_call_count
 
     # multiple calls in a short time should only call it once
     assert_eq(1, (yield constant.asynq()))
