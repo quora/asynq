@@ -126,7 +126,12 @@ class TaskScheduler(object):
     def _flush_batch(self, batch):
         self.on_before_batch_flush(batch)
         try:
-            batch.flush()
+            if _debug_options.COLLECT_PERF_STATS:
+                start = utime()
+                batch.flush()
+                batch.dump_perf_stats(utime() - start)
+            else:
+                batch.flush()
         finally:
             self.on_after_batch_flush(batch)
         return 0
@@ -175,7 +180,7 @@ class TaskScheduler(object):
             start = utime()
             task._continue()
             task._total_time += utime() - start
-            if task.is_computed() and isinstance(task, AsyncTask):
+            if task.is_computed():
                 task.dump_perf_stats()
         else:
             task._continue()

@@ -19,6 +19,7 @@ import qcore.inspection as core_inspection
 from . import debug
 from . import futures
 from . import _debug
+from . import profiler
 
 
 __traceback_hide__ = True
@@ -178,6 +179,19 @@ class BatchBase(futures.FutureBase):
         else:
             debug.write('No items.', indent + 1)
 
+    def to_str(self):
+        return '%06d.%s' % (self._id, str(self))
+
+    def dump_perf_stats(self, time_taken):
+        self._total_time = time_taken
+        profiler.append({
+            'time_taken': time_taken,
+            'name': self.to_str(),
+            'dependencies': [
+                (i.to_str(), i._total_time) for i in self.items
+            ],
+        })
+
 
 class BatchItemBase(futures.FutureBase):
     """Abstract base class describing batch item.
@@ -191,6 +205,9 @@ class BatchItemBase(futures.FutureBase):
         self.batch = batch
         self.index = len(batch.items)
         batch.items.append(self)
+        self._total_time = 0
+        if _debug_options.COLLECT_PERF_STATS:
+            self._id = profiler.incr_counter()
 
     def _compute(self):
         """This method ensures the value is available
@@ -199,6 +216,9 @@ class BatchItemBase(futures.FutureBase):
         """
         if not self.batch.is_flushed():
             self.batch.flush()
+
+    def to_str(self):
+        return '%06d.%s' % (self._id, str(self))
 
 
 class DebugBatchItem(BatchItemBase):

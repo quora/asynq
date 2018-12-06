@@ -1,9 +1,10 @@
 import random
 import threading
 import time
+import collections
 
 from qcore import SECOND
-from qcore.asserts import assert_eq, assert_le, assert_ge
+from qcore.asserts import assert_eq, assert_le, assert_ge, assert_unordered_list_eq
 from asynq import asynq, debug, profiler, result
 from .debug_cache import reset_caches, mc
 from .caching import ExternalCacheBatchItem
@@ -65,24 +66,32 @@ def test_collect_perf_stats():
     depth = 3
     func(depth)
     profiled_result = profiler.flush()
-    assert_eq(2 ** (depth + 1) - 1, len(profiled_result))
-    for stats in profiled_result:
-        num_deps = stats['num_deps']
-        num_dependencies = len(stats['dependencies'])
-        time_taken = stats['time_taken']
 
-        # It has one ExternalCacheBatchItem, and no dependent AsyncTasks.
-        if num_deps == 1:
-            assert_eq(0, num_dependencies)
-            assert_ge(sleep_time, time_taken)
+    batches = 1
+    async_tasks = 2 ** (depth + 1) - 1
+    num_leaf_tasks = 2 ** depth
 
-        # It has two dependent AsyncTasks, and is sleeping for sleep_time (50ms).
-        elif num_deps == 2:
-            assert_eq(2, num_dependencies)
-            assert_le(sleep_time, time_taken)
-            assert_ge(sleep_time * 2, time_taken)
-        else:
-            assert False
+    assert_eq(async_tasks + batches, len(profiled_result))
+
+    deps_to_tasks = collections.defaultdict(list)
+    for task in profiled_result:
+        num_deps = len(task['dependencies'])
+        deps_to_tasks[num_deps].append(task)
+
+    assert_unordered_list_eq([1, 2, num_leaf_tasks], deps_to_tasks.keys())
+
+    # leaf tasks
+    assert_eq(num_leaf_tasks, len(deps_to_tasks[1]))
+    for task in deps_to_tasks[1]:
+        assert_ge(sleep_time, task['time_taken'])
+
+    # one batch (with all the batch items as dependencies)
+    assert_eq(1, len(deps_to_tasks[num_leaf_tasks]))
+
+    # non-leaf async tasks in the tree (1 + 2 + 3 = 7)
+    assert_eq(7, len(deps_to_tasks[2]))
+    for task in deps_to_tasks[2]:
+        assert_le(sleep_time, task['time_taken'])
 
     # When COLLET_PERF_STATS is False, we shouldn't profile anything.
     debug.options.COLLECT_PERF_STATS = False

@@ -18,6 +18,7 @@ from cpython.ref cimport PyObject
 cimport qcore.inspection as core_inspection
 cimport futures
 cimport _debug
+cimport profiler
 
 
 cdef _debug.DebugOptions _debug_options
@@ -25,6 +26,9 @@ cdef _debug.DebugOptions _debug_options
 
 cdef class BatchBase(futures.FutureBase):
     cdef public list items
+    cdef public int _total_time
+    cdef public int _id
+    cdef dump_perf_stats(self, int time_taken)
 
     cpdef bint is_flushed(self) except -1
     cpdef bint is_cancelled(self) except -1
@@ -33,6 +37,7 @@ cdef class BatchBase(futures.FutureBase):
 
     cpdef flush(self)
     cpdef cancel(self, object error=?)
+    cpdef to_str(self)
 
     cpdef _compute(self)
     cpdef _computed(self)
@@ -45,9 +50,11 @@ cdef class BatchBase(futures.FutureBase):
 cdef class BatchItemBase(futures.FutureBase):
     cdef public BatchBase batch
     cdef public long index
+    cdef public int _total_time
+    cdef public int _id
 
     cpdef _compute(self)
-
+    cpdef to_str(self)
 
 cdef class DebugBatchItem(BatchItemBase):
     cdef public object _result

@@ -22,6 +22,7 @@ cimport futures
 cimport scheduler
 cimport _debug
 cimport profiler
+cimport batching
 
 
 cdef _debug.DebugOptions _debug_options
@@ -49,11 +50,11 @@ cdef class AsyncTask(futures.FutureBase):
 
     cdef bint is_blocked(self) except -1
     cdef bint can_continue(self) except -1
+    cdef dump_perf_stats(self)
+    cdef collect_perf_stats(self)
 
     cpdef _compute(self)
     cpdef _computed(self)
-    cpdef dump_perf_stats(self)
-    cpdef collect_perf_stats(self)
     cpdef to_str(self)
 
     cdef _continue(self)
