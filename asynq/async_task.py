@@ -132,8 +132,7 @@ class AsyncTask(futures.FutureBase):
             'num_deps': len(self._dependencies),
             'dependencies': [
                 (t.to_str(), t._total_time)
-                for t in self._dependencies
-                if (isinstance(t, AsyncTask) or isinstance(t, batching.BatchItemBase))
+                for t in self._dependencies if isinstance(t, (AsyncTask, batching.BatchItemBase))
             ]
         }
 
