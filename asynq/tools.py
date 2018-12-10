@@ -292,7 +292,7 @@ def aretry(exception_cls, max_tries=10, sleep=0.05):
         def wrapper(*args, **kwargs):
             for i in range(max_tries):
                 try:
-                    ret = yield fn.asynq(*args, **kwargs) # noqlint
+                    ret = yield fn.asynq(*args, **kwargs)
                     result(ret); return
                 except exception_cls:
                     if i + 1 == max_tries:
