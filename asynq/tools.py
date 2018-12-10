@@ -284,7 +284,7 @@ def aretry(exception_cls, max_tries=10, sleep=0.05):
     sleep - number of seconds to sleep between function retries
 
     """
-    assert max_tries > 0, f"max_tries {max_tries!r} should be a positive integer"
+    assert max_tries > 0, "max_tries (%d) should be a positive integer" % max_tries
 
     def decorator(fn):
         @functools.wraps(fn)
