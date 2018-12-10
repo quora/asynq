@@ -333,80 +333,68 @@ class TestRetry(object):
             assert_is(retry_it, pickle.loads(pickled))
 
     def test_retry_passes_all_arguments(self):
-        any_expected_exception_type = AnyException
-
         function, fn_body = self.create_function(
-            any_expected_exception_type, max_tries=2
+            AnyException, max_tries=2
         )
-        list(function(1, 2, foo=3))
+        function(1, 2, foo=3)
         fn_body.assert_called_once_with(1, 2, foo=3)
 
     def test_retry_does_not_retry_on_no_exception(self):
-        any_expected_exception_type = AnyException
-
         function, fn_body = self.create_function(
-            any_expected_exception_type, max_tries=3
+            AnyException, max_tries=3
         )
-        list(function())
+        function()
         fn_body.assert_called_once_with()
 
     def test_retry_does_not_retry_on_unspecified_exception(self):
-        any_expected_exception_type = AnyException
-        any_unexpected_exception_type = AnyOtherException
-
         function, fn_body = self.create_function(
-            any_expected_exception_type, max_tries=3
+            AnyException, max_tries=3
         )
-        fn_body.side_effect = any_unexpected_exception_type
+        fn_body.side_effect = AnyOtherException
 
-        with AssertRaises(any_unexpected_exception_type):
-            list(function())
+        with AssertRaises(AnyOtherException):
+            function()
 
         fn_body.assert_called_once_with()
 
     def test_retry_retries_on_provided_exception(self):
         max_tries = 4
-        any_expected_exception_type = AnyException
-
         function, fn_body = self.create_function(
-            any_expected_exception_type, max_tries
+            AnyException, max_tries
         )
-        fn_body.side_effect = any_expected_exception_type
+        fn_body.side_effect = AnyException
 
-        with AssertRaises(any_expected_exception_type):
-            list(function())
+        with AssertRaises(AnyException):
+            function()
 
         assert_eq(max_tries, fn_body.call_count)
 
     def test_retry_requires_max_try_at_least_one(self):
-        any_expected_exception_type = AnyException
         with AssertRaises(Exception):
-            self.create_function(any_expected_exception_type, max_tries=0)
-        self.create_function(any_expected_exception_type, max_tries=1)
+            self.create_function(AnyException, max_tries=0)
+        self.create_function(AnyException, max_tries=1)
 
     def test_retry_can_take_multiple_exceptions(self):
         max_tries = 4
-        any_expected_exception_type = AnyException
-        any_other_expected_exception_type = AnyOtherException
 
         expected_exceptions = (
-            any_expected_exception_type,
-            any_other_expected_exception_type,
+            AnyException,
+            AnyOtherException
         )
 
         function, fn_body = self.create_function(expected_exceptions, max_tries)
-        fn_body.side_effect = any_expected_exception_type
+        fn_body.side_effect = AnyException
 
-        with AssertRaises(any_expected_exception_type):
-            list(function())
+        with AssertRaises(AnyException):
+            function()
 
         assert_eq(max_tries, fn_body.call_count)
         fn_body.reset_mock()
 
-        fn_body.side_effect = any_other_expected_exception_type
+        fn_body.side_effect = AnyOtherException
 
-        with AssertRaises(any_other_expected_exception_type):
-            list(function())
+        with AssertRaises(AnyOtherException):
+            function()
 
         assert_eq(max_tries, fn_body.call_count)
 
