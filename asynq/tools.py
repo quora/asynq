@@ -35,6 +35,7 @@ import inspect2
 import itertools
 import weakref
 import threading
+import time
 
 
 @asynq()
@@ -270,6 +271,36 @@ def alazy_constant(ttl=0):
         wrapper.dirty = dirty
         wrapper.alazy_constant_refresh_time = 0
         wrapper.alazy_constant_cached_value = None
+        return wrapper
+
+    return decorator
+
+
+def aretry(exception_cls, max_tries=10, sleep=0.05):
+    """Decorator for retrying an async function if it throws an exception.
+
+    exception_cls - an exception type or a parenthesized tuple of exception types
+    max_tries - maximum number of times this function can be executed
+    sleep - number of seconds to sleep between function retries
+
+    """
+    assert max_tries > 0, "max_tries (%d) should be a positive integer" % max_tries
+
+    def decorator(fn):
+        @functools.wraps(fn)
+        @asynq()
+        def wrapper(*args, **kwargs):
+            for i in range(max_tries):
+                try:
+                    ret = yield fn.asynq(*args, **kwargs)
+                    result(ret); return
+                except exception_cls:
+                    if i + 1 == max_tries:
+                        raise
+                    time.sleep(sleep)
+
+        # so that qcore.inspection.get_original_fn can retrieve the original function
+        wrapper.original_fn = fn
         return wrapper
 
     return decorator

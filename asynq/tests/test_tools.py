@@ -27,12 +27,27 @@ from asynq.tools import (
     acached_per_instance,
     alru_cache,
     alazy_constant,
+    aretry,
     call_with_context,
     deduplicate,
     AsyncTimer,
     AsyncEventHook,
 )
-from qcore.asserts import assert_eq, assert_gt, assert_is, AssertRaises, assert_unordered_list_eq
+from qcore.asserts import (
+    assert_eq,
+    assert_gt,
+    assert_is,
+    AssertRaises,
+    assert_unordered_list_eq,
+)
+from qcore import get_original_fn
+import inspect
+import pickle
+
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 
 
 @asynq()
@@ -284,6 +299,114 @@ def _check_alazy_constant_ttl():
     assert_eq(3, (yield constant.asynq()))
     assert_eq(3, (yield constant.asynq()))
     assert_eq(3, (yield constant.asynq()))
+
+
+class AnyException(Exception):
+    pass
+
+
+class AnyOtherException(Exception):
+    pass
+
+
+@aretry(Exception)
+@asynq()
+def retry_it():
+    pass
+
+
+class TestRetry(object):
+    def create_function(self, exception_type, max_tries):
+        fn_body = mock.Mock()
+        fn_body.return_value = []
+
+        @aretry(exception_type, max_tries=max_tries)
+        @asynq()
+        def function(*args, **kwargs):
+            return fn_body(*args, **kwargs)
+
+        return function, fn_body
+
+    def test_pickling(self):
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+            pickled = pickle.dumps(retry_it, protocol=protocol)
+            assert_is(retry_it, pickle.loads(pickled))
+
+    def test_retry_passes_all_arguments(self):
+        function, fn_body = self.create_function(
+            AnyException, max_tries=2
+        )
+        function(1, 2, foo=3)
+        fn_body.assert_called_once_with(1, 2, foo=3)
+
+    def test_retry_does_not_retry_on_no_exception(self):
+        function, fn_body = self.create_function(
+            AnyException, max_tries=3
+        )
+        function()
+        fn_body.assert_called_once_with()
+
+    def test_retry_does_not_retry_on_unspecified_exception(self):
+        function, fn_body = self.create_function(
+            AnyException, max_tries=3
+        )
+        fn_body.side_effect = AnyOtherException
+
+        with AssertRaises(AnyOtherException):
+            function()
+
+        fn_body.assert_called_once_with()
+
+    def test_retry_retries_on_provided_exception(self):
+        max_tries = 4
+        function, fn_body = self.create_function(
+            AnyException, max_tries
+        )
+        fn_body.side_effect = AnyException
+
+        with AssertRaises(AnyException):
+            function()
+
+        assert_eq(max_tries, fn_body.call_count)
+
+    def test_retry_requires_max_try_at_least_one(self):
+        with AssertRaises(Exception):
+            self.create_function(AnyException, max_tries=0)
+        self.create_function(AnyException, max_tries=1)
+
+    def test_retry_can_take_multiple_exceptions(self):
+        max_tries = 4
+
+        expected_exceptions = (
+            AnyException,
+            AnyOtherException
+        )
+
+        function, fn_body = self.create_function(expected_exceptions, max_tries)
+        fn_body.side_effect = AnyException
+
+        with AssertRaises(AnyException):
+            function()
+
+        assert_eq(max_tries, fn_body.call_count)
+        fn_body.reset_mock()
+
+        fn_body.side_effect = AnyOtherException
+
+        with AssertRaises(AnyOtherException):
+            function()
+
+        assert_eq(max_tries, fn_body.call_count)
+
+    def test_retry_preserves_argspec(self):
+        def fn(foo, bar, baz=None, **kwargs):
+            pass
+
+        decorated = aretry(Exception)(fn)
+
+        assert_eq(
+            inspect.getargspec(fn), inspect.getargspec(get_original_fn(decorated))
+        )
 
 
 class Ctx(AsyncContext):
