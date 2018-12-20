@@ -36,7 +36,7 @@ CYTHON_MODULES = [
 DATA_FILES = ['%s.pxd' % module for module in CYTHON_MODULES]
 
 
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 
 
 EXTENSIONS = [
@@ -74,9 +74,9 @@ if __name__ == '__main__':
         packages=['asynq', 'asynq.tests'],
         package_data={'asynq': DATA_FILES},
         ext_modules=EXTENSIONS,
-        setup_requires=['Cython>=0.27.1', 'qcore', 'setuptools'],
+        setup_requires=['Cython>=0.27.1,<0.29.0', 'qcore', 'setuptools'],
         install_requires=[
-            'Cython>=0.27.1',
+            'Cython>=0.27.1,<0.29.0',
             'qcore',
             'inspect2',
             'mock; python_version < "3.3"',
