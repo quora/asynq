@@ -287,8 +287,8 @@ def aretry(exception_cls, max_tries=10, sleep=0.05):
     assert max_tries > 0, "max_tries (%d) should be a positive integer" % max_tries
 
     def decorator(fn):
-        @functools.wraps(fn)
         @asynq()
+        @functools.wraps(fn)
         def wrapper(*args, **kwargs):
             for i in range(max_tries):
                 try:

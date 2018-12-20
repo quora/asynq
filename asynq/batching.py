@@ -180,7 +180,7 @@ class BatchBase(futures.FutureBase):
             debug.write('No items.', indent + 1)
 
     def to_str(self):
-        return '%06d.%s' % (self._id, str(self))
+        return str(self)
 
     def dump_perf_stats(self, time_taken):
         self._total_time = time_taken
@@ -208,6 +208,8 @@ class BatchItemBase(futures.FutureBase):
         self._total_time = 0
         if _debug_options.COLLECT_PERF_STATS:
             self._id = profiler.incr_counter()
+        else:
+            self._id = 0
 
     def _compute(self):
         """This method ensures the value is available
