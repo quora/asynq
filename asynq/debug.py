@@ -49,6 +49,7 @@ options.STACK_DUMP_LIMIT              = 10      # In frames, None means infinity
 options.MAX_TASK_STACK_SIZE           = 1000000 # Max number of concurrent futures + batch items
 
 options.ENABLE_COMPLEX_ASSERTIONS = True
+options.KEEP_DEPENDENCIES         = False  # don't clear dependencies between yields
 
 def DUMP_ALL(value=None):
     return options.DUMP_ALL(value)

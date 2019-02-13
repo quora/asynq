@@ -61,6 +61,7 @@ def test_collect_perf_stats():
 
 
     debug.options.COLLECT_PERF_STATS = True
+    debug.options.KEEP_DEPENDENCIES = True
     profiler.reset()
     reset_caches()
     depth = 3
