@@ -68,17 +68,14 @@ def test_collect_perf_stats():
     assert_eq(2 ** (depth + 1) - 1, len(profiled_result))
     for stats in profiled_result:
         num_deps = stats['num_deps']
-        num_dependencies = len(stats['dependencies'])
         time_taken = stats['time_taken']
 
         # It has one ExternalCacheBatchItem, and no dependent AsyncTasks.
         if num_deps == 1:
-            assert_eq(0, num_dependencies)
             assert_ge(sleep_time, time_taken)
 
         # It has two dependent AsyncTasks, and is sleeping for sleep_time (50ms).
         elif num_deps == 2:
-            assert_eq(2, num_dependencies)
             assert_le(sleep_time, time_taken)
             assert_ge(sleep_time * 2, time_taken)
         else:
