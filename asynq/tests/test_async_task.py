@@ -77,3 +77,19 @@ def test_context_nesting():
                 assert_eq([ctx0, ctx1], list(task._contexts.values()))
 
     fn()
+
+
+def test_clear_dependencies():
+    """Ensure that we the list of dependencies won't continue growing for a long-running task."""
+    @asynq()
+    def inner_fn():
+        return None
+
+    @asynq()
+    def fn():
+        task = scheduler.get_active_task()
+        assert_eq(0, len(task._dependencies))
+        yield [inner_fn.asynq() for _ in range(10)]
+        assert_eq(0, len(task._dependencies))
+
+    fn()
