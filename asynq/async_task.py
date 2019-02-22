@@ -200,10 +200,12 @@ class AsyncTask(futures.FutureBase):
                 raise error
 
             self.iteration_index += 1
+            self._last_value = None
+            if not _debug_options.KEEP_DEPENDENCIES:
+                self._dependencies = []  # get rid of dependencies to avoid OOM
             if error is None:
                 return self._generator.send(value)
             else:
-                self._last_value = None  # No need to keep it further
                 self._frame = debug.get_frame(self._generator)
                 if hasattr(error, '_task'):
                     return self._generator.throw(error._type_, error, error._traceback)

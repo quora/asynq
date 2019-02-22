@@ -40,6 +40,7 @@ cdef class DebugOptions(object):
     cdef public int MAX_TASK_STACK_SIZE
 
     cdef public object ENABLE_COMPLEX_ASSERTIONS
+    cdef public object KEEP_DEPENDENCIES
 
     cpdef DUMP_ALL(self, value=?)
 

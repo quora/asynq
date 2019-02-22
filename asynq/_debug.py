@@ -48,6 +48,7 @@ class DebugOptions(object):
         self.STACK_DUMP_LIMIT              = 0     # In frames, None means infinity
 
         self.ENABLE_COMPLEX_ASSERTIONS = True
+        self.KEEP_DEPENDENCIES         = False  # don't clear dependencies between yields
 
     def DUMP_ALL(self, value=None):
         if value is None:
