@@ -78,6 +78,7 @@ class AsyncContext(object):
     def __exit__(self, ty, value, tb):
         leave_context(self, self._active_task)
         self.pause()
+        del self._active_task
 
     def resume(self):
         raise NotImplementedError()
