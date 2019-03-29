@@ -37,6 +37,7 @@ cdef class AsyncTask(futures.FutureBase):
     cdef public object kwargs
     cdef public str _name
     cdef public AsyncTask creator
+    cdef public bint running
     cdef public object _generator
     cdef public object _last_value
     cdef public object _frame
