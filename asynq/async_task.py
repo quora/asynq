@@ -76,6 +76,7 @@ class AsyncTask(futures.FutureBase):
         self._name = None
         self.perf_stats = {}
         self.creator = asynq.scheduler.get_active_task()
+        self.running = False
         if _debug_options.DUMP_NEW_TASKS:
             debug.write('@async: new task: %s, created by %s' %
                 (debug.str(self), debug.str(self.creator)))
@@ -204,6 +205,7 @@ class AsyncTask(futures.FutureBase):
             if not _debug_options.KEEP_DEPENDENCIES:
                 self._dependencies = []  # get rid of dependencies to avoid OOM
             if error is None:
+                self.running = True
                 return self._generator.send(value)
             else:
                 self._frame = debug.get_frame(self._generator)
@@ -233,6 +235,8 @@ class AsyncTask(futures.FutureBase):
                 self._frame = tb.tb_frame
             self._generator = None
             raise
+        finally:
+            self.running = False
 
     def _accept_yield_result(self, result):
         if _debug_options.DUMP_YIELD_RESULTS:
