@@ -132,11 +132,10 @@ class BatchBase(futures.FutureBase):
         futures.FutureBase._computed(self)  # Cython doesn't support super(...)
 
     def _flush(self):
-        """A protected method that must be override to implement batch flush.
+        """A protected method that must be overridden to implement batch flush.
         Normally it should simply forward the call to appropriate service
-        (cache, DB, etc.), that must execute the batch (i.e. ensure each
-        batch item will be able to acquire its value on subsequent attempt)
-        and set its current batch to the newly created one.
+        (cache, DB, etc.), that must execute the batch and call set_value on
+        each batch item.
 
         """
         raise NotImplementedError()
