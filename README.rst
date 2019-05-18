@@ -30,7 +30,7 @@ Converted to use ``asynq``, this code would look like:
 
 .. code-block:: python
 
-    @async()
+    @asynq()
     def all_author_names(aids):
         uids = yield [author_of_answer.async(aid) for aid in aids]
         names = yield [name_of_user.async(uid) for uid in uids]
@@ -71,7 +71,7 @@ return a value from an asynchronous function; it is implemented by raising a cus
 that is caught by the scheduler. At Quora, we instead use a patched Python 2 binary that does
 support returning a value from a generator.
 
-The framework requires usage of the ``@async()`` decorator on all asynchronous functions. This
+The framework requires usage of the ``@asynq()`` decorator on all asynchronous functions. This
 decorator wraps the generator function so that it can be called like a normal, synchronous function.
 It also creates a ``.async`` attribute on the function that allows calling the function
 asynchronously. Calling this attribute will return an ``AsyncTask`` object corresponding to the
@@ -96,7 +96,7 @@ the function itself asynchronous, so that calling it returns an ``AsyncTask``. W
 this option only in special cases like decorators for asynchronous functions.
 
 ``asynq`` also provides an ``@async_proxy()`` decorator for functions that return a Future
-directly. Functions decorated with ``@async_proxy()`` look like ``@async()`` functions externally.
+directly. Functions decorated with ``@async_proxy()`` look like ``@asynq()`` functions externally.
 An example use case is a function that takes either an asynchronous or a synchronous function,
 and calls it accordingly:
 
@@ -137,16 +137,16 @@ can schedule tasks in arbitrary order. For example, consider the following code:
 
 .. code-block:: python
 
-    @async()
+    @asynq()
     def show_warning():
         yield do_something_that_creates_a_warning.async()
 
-    @async()
+    @asynq()
     def suppress_warning():
         with warnings.catch_warnings():
             yield show_warning.async()
 
-    @async()
+    @asynq()
     def caller():
         yield show_warning.async(), suppress_warning.async()
 
