@@ -144,7 +144,7 @@ def non_async_function_that_raises_an_error():
 
 @asynq.asynq()
 def async_function_that_raises_an_error():
-    yield
+    yield None
     non_async_function_that_raises_an_error()
 
 
