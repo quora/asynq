@@ -1,0 +1,29 @@
+import qcore
+import functools
+from typing import Any, Callable, Generic, List, TypeVar
+
+from .decorators import asynq, async_proxy
+from .futures import FutureBase
+from .utils import result
+
+END_OF_GENERATOR: qcore.MarkerObject
+
+_T = TypeVar("_T")
+
+def async_generator() -> Callable[[Callable[..., Any]], _AsyncGenerator[Any]]: ...
+
+class Value(Generic[_T]):
+    def __init__(self, value: _T) -> None: ...
+
+@asynq()
+def list_of_generator(generator: _AsyncGenerator[_T]) -> List[_T]: ...
+@asynq()
+def take_first(generator: _AsyncGenerator[_T], n: int) -> List[_T]: ...
+
+class _AsyncGenerator(Generic[_T]):
+    def __init__(self, generator: Any) -> None: ...
+    def __iter__(self) -> _AsyncGenerator[_T]: ...
+    def next(self) -> FutureBase[_T]: ...
+    def __next__(self) -> FutureBase[_T]: ...
+    @async_proxy()
+    def send(self, value: Any) -> FutureBase[_T]: ...

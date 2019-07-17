@@ -13,8 +13,9 @@
 # limitations under the License.
 
 from asynq import asynq, Future, scheduler
+from typing import Dict, Any
 
-values = {}
+values = {} # type: Dict[Any, Any]
 
 
 @asynq(pure=True)
@@ -55,7 +56,8 @@ def order_test():
     yield tasks
     assert len(values) == 11  # Done at this point
 
-    yield  # Nothing happens here
+    # Nothing happens here
+    yield  # type: ignore
     assert len(values) == 11  # Done at this point
 
 def test():
