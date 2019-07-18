@@ -15,10 +15,9 @@
 import gc
 
 from asynq import asynq, debug, result, AsyncTask
-from typing import Dict, Any
 from .helpers import Profiler
 
-values = {} # type: Dict[Any, Any]
+values = {} # type: ignore
 
 
 class WrappedAsyncTask(AsyncTask):

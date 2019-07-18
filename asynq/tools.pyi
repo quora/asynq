@@ -72,6 +72,6 @@ class AsyncTimer(AsyncContext):
 
 class AsyncEventHook(EventHook):
     @asynq()
-    def trigger(self, *args: Any) -> None: ...
+    def trigger(self, *args: Any) -> None: ... # type: ignore
     @asynq()
-    def safe_trigger(self, *args: Any) -> None: ...
+    def safe_trigger(self, *args: Any) -> None: ... # type: ignore
