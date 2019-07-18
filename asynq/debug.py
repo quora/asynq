@@ -59,8 +59,24 @@ def DUMP_ALL(value=None):
 
 original_hook = None
 is_attached = False
+_use_original_exc_handler = False
 _std_str = str
 _std_repr = repr
+
+
+def enable_original_exc_handler(enable):
+    """Enable/disable the original exception handler
+
+    This mainly controls how exceptions are printed when an exception is thrown.
+    Asynq overrides the exception handler to better display asynq stacktraces,
+    but in some circumstances you may want to original traces.
+
+    For example, in notebooks, the default exception handler displays
+    context on exception lines. Enable this function if you'd like that behavior.
+
+    """
+    global _use_original_exc_handler
+    _use_original_exc_handler = enable
 
 
 def dump_error(error, tb=None):
@@ -211,20 +227,22 @@ def repr(source, truncate=True):
 
 def async_exception_hook(type, error, tb):
     """Exception hook capable of printing async stack traces."""
-    global original_hook
+    global original_hook, _use_original_exc_handler
 
     stdout.flush()
     stderr.flush()
-    if original_hook is not None:
+    if _use_original_exc_handler and original_hook is not None:
         original_hook(type, error, tb)
     dump_error(error, tb=tb)
 
 
 def ipython_custom_exception_handler(self, etype, value, tb, tb_offset=None):
     """Override ipython's exception handler to print async traceback."""
+    global _use_original_exc_handler
     async_exception_hook(etype, value, tb)
     # below is the default exception handling behavior of ipython
-    self.showtraceback()
+    if _use_original_exc_handler:
+        self.showtraceback()
 
 
 def attach_exception_hook():
