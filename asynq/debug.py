@@ -69,7 +69,7 @@ def enable_original_exc_handler(enable):
 
     This mainly controls how exceptions are printed when an exception is thrown.
     Asynq overrides the exception handler to better display asynq stacktraces,
-    but in some circumstances you may want to original traces.
+    but in some circumstances you may want to show original traces.
 
     For example, in notebooks, the default exception handler displays
     context on exception lines. Enable this function if you'd like that behavior.
