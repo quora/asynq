@@ -15,6 +15,8 @@
 from setuptools import setup
 from setuptools.extension import Extension
 
+import glob
+import os.path
 import codecs
 import sys
 
@@ -33,10 +35,13 @@ CYTHON_MODULES = [
 ]
 
 
-DATA_FILES = ['%s.pxd' % module for module in CYTHON_MODULES]
+DATA_FILES = (
+    ['py.typed'] +
+    ['%s.pxd' % module for module in CYTHON_MODULES] +
+    [os.path.relpath(f, 'asynq/') for f in glob.glob('asynq/*.pyi')]
+)
 
-
-VERSION = '1.1.1'
+VERSION = '1.1.2'
 
 
 EXTENSIONS = [

@@ -17,7 +17,7 @@ import gc
 from asynq import asynq, debug, result, AsyncTask
 from .helpers import Profiler
 
-values = {}
+values = {} # type: ignore
 
 
 class WrappedAsyncTask(AsyncTask):

@@ -54,18 +54,18 @@ class Channel(object):
 
 @asynq(pure=True)
 def _push_async(channel, value):
-    yield
+    yield None
     while True:
         if channel.push(value, False) is future_true:
             result(future_true); return
-        yield
+        yield None
 
 
 @asynq(pure=True)
 def _pull_async(channel):
-    yield
+    yield None
     while True:
         item = channel.pull(False)
         if item is not future_empty:
             result(item); return
-        yield
+        yield None

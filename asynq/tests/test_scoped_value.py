@@ -60,17 +60,17 @@ def test_exception():
     @asynq()
     def test_body():
         assert_eq(v(), 'a')
-        yield
+        yield None
         try:
             with v.override('b'):
-                yield
+                yield None
                 assert_eq(v(), 'b')
-                yield
+                yield None
                 raise NotImplementedError()
         except NotImplementedError:
-            yield
+            yield None
             pass
-        yield
+        yield None
         assert_eq(v(), 'a')
 
     test_body()
@@ -87,19 +87,19 @@ def test_override():
     @asynq()
     def test_body():
         assert_eq(o.v, 'a')
-        yield
+        yield None
         with async_override(o, 'v', 'b'):
             assert_eq(o.v, 'b')
-            yield
+            yield None
             try:
                 with async_override(o, 'v', 'c'):
                     assert_eq(o.v, 'c')
-                    yield
+                    yield None
                     raise NotImplementedError()
             except NotImplementedError:
                 pass
             assert_eq(o.v, 'b')
-        yield
+        yield None
         assert_eq(o.v, 'a')
 
     test_body()

@@ -47,7 +47,7 @@ import pickle
 try:
     import mock
 except ImportError:
-    from unittest import mock
+    from unittest import mock # type: ignore
 
 
 @asynq()
@@ -180,7 +180,7 @@ def with_kwonly_arg(self, *, arg=1):
 
 
 class UnhashableAcached(AsyncObject):
-    __hash__ = None
+    __hash__ = None # type: ignore
 
 
 def test_acached_per_instance():

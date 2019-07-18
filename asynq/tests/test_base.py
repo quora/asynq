@@ -14,7 +14,7 @@
 
 from asynq import asynq, Future, scheduler
 
-values = {}
+values = {} # type: ignore
 
 
 @asynq(pure=True)
@@ -55,7 +55,8 @@ def order_test():
     yield tasks
     assert len(values) == 11  # Done at this point
 
-    yield  # Nothing happens here
+    # Nothing happens here
+    yield None
     assert len(values) == 11  # Done at this point
 
 def test():
