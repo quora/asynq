@@ -43,8 +43,10 @@ def async_fn():
 def test_format_error():
     assert_is(None, asynq.debug.format_error(None))
 
+    # Syntax highlighting adds color text between words
+    asynq.debug.enable_syntax_highlighting(False)
     e = RuntimeError()
-    expected = '\nRuntimeError\n'
+    expected = 'RuntimeError\n'
     assert_eq(expected, asynq.debug.format_error(e))
 
     e._task = async_fn.asynq()
@@ -56,6 +58,14 @@ def test_format_error():
     except RuntimeError:
         e._traceback = sys.exc_info()[2]
 
+    formatted = asynq.debug.format_error(e)
+    assert_in(expected, formatted)
+    assert_in('Traceback', formatted)
+
+    # Each single word, and unformatted text should be present
+    asynq.debug.enable_syntax_highlighting(True)
+
+    expected = 'RuntimeError'
     formatted = asynq.debug.format_error(e)
     assert_in(expected, formatted)
     assert_in('Traceback', formatted)
@@ -73,10 +83,18 @@ def test_format_error_chaining():
     except KeyError as e:
         prepare_for_reraise(e)
         exc = e
-
+    # Syntax highlighting adds color text between words
+    asynq.debug.enable_syntax_highlighting(False)
     formatted = asynq.debug.format_error(exc)
     assert_in('raise ValueError', formatted)
     assert_in('raise KeyError', formatted)
+    assert_in('During handling of the', formatted)
+
+    # Each single word, and unformatted text should be present
+    asynq.debug.enable_syntax_highlighting(True)
+    formatted = asynq.debug.format_error(exc)
+    assert_in('ValueError', formatted)
+    assert_in('KeyError', formatted)
     assert_in('During handling of the', formatted)
 
 
@@ -253,3 +271,75 @@ def test_asynq_stack_trace_formatter(mock_format_error):
     ty, val, tb = exc_info
     mock_format_error.assert_called_once_with(val, tb=tb)
     assert_eq(u'Test\nThis is some traceback.\n', stderr_string_io.getvalue())
+
+
+def test_filter_traceback():
+    test_replacements = """
+  File "asynq/decorators.py", line 161, in asynq.decorators.AsyncDecorator.__call__
+  File "asynq/futures.py", line 54, in asynq.futures.FutureBase.value
+  File "asynq/futures.py", line 63, in asynq.futures.FutureBase.value
+  File "asynq/futures.py", line 153, in asynq.futures.FutureBase.raise_if_error
+  File "<...>/python3.6/site-packages/qcore/errors.py", line 93, in reraise
+    six.reraise(type(error), error, error._traceback)
+  File "<...>/python3.6/site-packages/six.py", line 693, in reraise
+    raise value
+  File "asynq/async_task.py", line 169, in asynq.async_task.AsyncTask._continue
+  File "asynq/async_task.py", line 237, in asynq.async_task.AsyncTask._continue_on_generator
+  File "asynq/async_task.py", line 209, in asynq.async_task.AsyncTask._continue_on_generator
+  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
+  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+  File "asynq/decorators.py", line 204, in asynq.decorators.AsyncProxyDecorator._call_pure
+  File "asynq/decorators.py", line 275, in asynq.decorators.async_call
+  File "something.py", line 25 in hello_world
+    hello()
+"""
+
+    expected_replacements = [
+        "\n",
+        "  ___asynq_future_raise_if_error___\n",
+        "  ___asynq_continue___\n",
+        "  ___asynq_call_pure___\n",
+        "  File \"something.py\", line 25 in hello_world\n",
+        "    hello()\n"
+    ]
+
+    assert_eq(expected_replacements, asynq.debug.filter_traceback(
+        test_replacements.splitlines(True)))
+
+
+    assert_eq([], asynq.debug.filter_traceback([]))
+
+    test_no_replacement = """
+  File "something.py", line 25 in hello_world
+    hello()
+"""
+
+    expected_no_replacement = [
+        "\n",
+        "  File \"something.py\", line 25 in hello_world\n",
+        "    hello()\n"
+    ]
+    assert_eq(expected_no_replacement, asynq.debug.filter_traceback(
+        test_no_replacement.splitlines(True)))
+
+    test_partial_match = """
+  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
+  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+  File "something.py", line 25 in hello_world
+    hello()
+"""
+
+    # A full match should be required, this is a partial match
+    expected_partial_match = [
+        "\n",
+        "  File \"asynq/decorators.py\", line 153, in asynq.decorators.AsyncDecorator.asynq\n",
+        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
+        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
+        "  File \"something.py\", line 25 in hello_world\n",
+        "    hello()\n"
+    ]
+
+    assert_eq(expected_partial_match, asynq.debug.filter_traceback(
+        test_partial_match.splitlines(True)))
