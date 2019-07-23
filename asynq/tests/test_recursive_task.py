@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import asynq, result
+from asynq import asynq, result, scheduler
 from qcore.asserts import AssertRaises
 
 
@@ -22,5 +22,11 @@ def bad_function():
 
 
 def test_it():
-    with AssertRaises(RuntimeError):
-        bad_function()
+    # Adjust max stack size to make test take less memory and time
+    default_stack_limit = scheduler._debug_options.MAX_TASK_STACK_SIZE
+    try:
+        scheduler._debug_options.MAX_TASK_STACK_SIZE = 200
+        with AssertRaises(RuntimeError):
+            bad_function()
+    finally:
+        scheduler._debug_options.MAX_TASK_STACK_SIZE = default_stack_limit
