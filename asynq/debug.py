@@ -76,7 +76,7 @@ def enable_original_exc_handler(enable):
     Asynq overrides the exception handler to better display asynq stacktraces,
     but in some circumstances you may want to show original traces.
 
-    For example, in notebooks, the default exception handler displays
+    For example, in Jupyter notebooks, the default exception handler displays
     context on exception lines. Enable this function if you'd like that behavior.
 
     """
@@ -113,7 +113,6 @@ def dump_error(error, tb=None):
 
 def format_error(error, tb=None):
     """Formats errors w/async stack traces."""
-    global _should_filter_traceback
     if error is None:
         return None
     result = ''
@@ -264,7 +263,6 @@ def repr(source, truncate=True):
 
 def async_exception_hook(type, error, tb):
     """Exception hook capable of printing async stack traces."""
-    global original_hook, _use_original_exc_handler
 
     stdout.flush()
     stderr.flush()
@@ -275,7 +273,6 @@ def async_exception_hook(type, error, tb):
 
 def ipython_custom_exception_handler(self, etype, value, tb, tb_offset=None):
     """Override ipython's exception handler to print async traceback."""
-    global _use_original_exc_handler
     async_exception_hook(etype, value, tb)
     # below is the default exception handling behavior of ipython
     if _use_original_exc_handler:

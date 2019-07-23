@@ -85,5 +85,6 @@ if __name__ == '__main__':
             'qcore',
             'inspect2',
             'mock; python_version < "3.3"',
+            'pygments',
         ],
     )

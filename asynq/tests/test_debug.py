@@ -44,7 +44,7 @@ def test_format_error():
     assert_is(None, asynq.debug.format_error(None))
 
     # Syntax highlighting adds color text between words
-    asynq.debug.enable_syntax_highlighting(False)
+    asynq.debug.enable_traceback_syntax_highlight(False)
     e = RuntimeError()
     expected = 'RuntimeError\n'
     assert_eq(expected, asynq.debug.format_error(e))
@@ -63,7 +63,7 @@ def test_format_error():
     assert_in('Traceback', formatted)
 
     # Each single word, and unformatted text should be present
-    asynq.debug.enable_syntax_highlighting(True)
+    asynq.debug.enable_traceback_syntax_highlight(True)
 
     expected = 'RuntimeError'
     formatted = asynq.debug.format_error(e)
@@ -84,14 +84,14 @@ def test_format_error_chaining():
         prepare_for_reraise(e)
         exc = e
     # Syntax highlighting adds color text between words
-    asynq.debug.enable_syntax_highlighting(False)
+    asynq.debug.enable_traceback_syntax_highlight(False)
     formatted = asynq.debug.format_error(exc)
     assert_in('raise ValueError', formatted)
     assert_in('raise KeyError', formatted)
     assert_in('During handling of the', formatted)
 
     # Each single word, and unformatted text should be present
-    asynq.debug.enable_syntax_highlighting(True)
+    asynq.debug.enable_traceback_syntax_highlight(True)
     formatted = asynq.debug.format_error(exc)
     assert_in('ValueError', formatted)
     assert_in('KeyError', formatted)
