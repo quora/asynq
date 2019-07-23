@@ -4,3 +4,4 @@ mock; python_version < "3.3"
 Cython>=0.27.1,<0.29.0
 qcore
 inspect2
+pygments

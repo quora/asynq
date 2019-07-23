@@ -20,6 +20,9 @@ import linecache
 import traceback
 import logging
 from sys import stderr, stdout
+from pygments import highlight # pygments loading behavior requires this style import
+from pygments import lexers    # see: https://github.com/montylounge/django-sugar/issues/2
+from pygments import formatters
 
 from . import _debug
 
@@ -59,8 +62,44 @@ def DUMP_ALL(value=None):
 
 original_hook = None
 is_attached = False
+_use_original_exc_handler = False
+_should_filter_traceback = True
+_use_syntax_highlighting = True
 _std_str = str
 _std_repr = repr
+
+
+def enable_original_exc_handler(enable):
+    """Enable/disable the original exception handler
+
+    This mainly controls how exceptions are printed when an exception is thrown.
+    Asynq overrides the exception handler to better display asynq stacktraces,
+    but in some circumstances you may want to show original traces.
+
+    For example, in Jupyter notebooks, the default exception handler displays
+    context on exception lines. Enable this function if you'd like that behavior.
+
+    """
+    global _use_original_exc_handler
+    _use_original_exc_handler = enable
+
+
+def enable_filter_traceback(enable):
+    """Enable/disable replacing asynq boilerplate lines in stacktraces.
+
+    These lines are repeated many times in stacktraces of codebases using asynq.
+    By default we replace them so it's easier to read the stacktrace, but you can enable
+    if you're debugging an issue where it's useful to know the exact lines.
+
+    """
+    global _should_filter_traceback
+    _should_filter_traceback = enable
+
+
+def enable_traceback_syntax_highlight(enable):
+    """Enable/disable syntax highlighted stacktraces when using asynq's exception handler."""
+    global _use_syntax_highlighting
+    _use_syntax_highlighting = enable
 
 
 def dump_error(error, tb=None):
@@ -79,12 +118,25 @@ def format_error(error, tb=None):
     result = ''
     if hasattr(error, '_traceback') or tb is not None:
         tb = tb or error._traceback
-        result += ''.join(traceback.format_exception(error.__class__, error, tb))
+        tb_list = traceback.format_exception(error.__class__, error, tb)
     elif isinstance(error, BaseException):
-        exc_text = ''.join(traceback.format_exception_only(error.__class__, error))
-        if isinstance(exc_text, bytes):
-            exc_text = exc_text.decode('utf-8', 'replace')
-        result += '\n' + exc_text
+        tb_list = traceback.format_exception_only(error.__class__, error)
+    else:
+        tb_list = []
+
+    tb_text = ''.join(tb_list)
+
+    if isinstance(tb_text, bytes):
+        tb_text = tb_text.decode('utf-8', 'replace')
+
+    if _use_syntax_highlighting:
+        tb_text = syntax_highlight_tb(tb_text)
+
+    if _should_filter_traceback:
+        # need to do this after syntax highlighting, so we turn it back into a list
+        tb_text = ''.join(filter_traceback(tb_text.splitlines(True)))
+
+    result += tb_text
     return result
 
 
@@ -211,11 +263,10 @@ def repr(source, truncate=True):
 
 def async_exception_hook(type, error, tb):
     """Exception hook capable of printing async stack traces."""
-    global original_hook
 
     stdout.flush()
     stderr.flush()
-    if original_hook is not None:
+    if _use_original_exc_handler and original_hook is not None:
         original_hook(type, error, tb)
     dump_error(error, tb=tb)
 
@@ -224,7 +275,8 @@ def ipython_custom_exception_handler(self, etype, value, tb, tb_offset=None):
     """Override ipython's exception handler to print async traceback."""
     async_exception_hook(etype, value, tb)
     # below is the default exception handling behavior of ipython
-    self.showtraceback()
+    if _use_original_exc_handler:
+        self.showtraceback()
 
 
 def attach_exception_hook():
@@ -287,3 +339,96 @@ def get_frame(generator):
     if getattr(generator, 'gi_frame', None) is not None:
         return generator.gi_frame
     return None
+
+
+def filter_traceback(tb_list):
+    """Given a traceback as a list of strings, looks for common boilerplate and removes it."""
+
+    # List of boiler plate pattern to look for, with example before each
+    # The match pattern is just some string that the line needs to contain
+    """
+        File "asynq/async_task.py", line 169, in asynq.async_task.AsyncTask._continue
+        File "asynq/async_task.py", line 237, in asynq.async_task.AsyncTask._continue_on_generator
+        File "asynq/async_task.py", line 209, in asynq.async_task.AsyncTask._continue_on_generator
+    """
+    TASK_CONTINUE = (
+                     ["asynq.async_task.AsyncTask._continue",
+                      "asynq.async_task.AsyncTask._continue_on_generator",
+                      "asynq.async_task.AsyncTask._continue_on_generator"],
+                     "___asynq_continue___"
+                     )
+
+
+    """
+        File "asynq/decorators.py", line 161, in asynq.decorators.AsyncDecorator.__call__
+        File "asynq/futures.py", line 54, in asynq.futures.FutureBase.value
+        File "asynq/futures.py", line 63, in asynq.futures.FutureBase.value
+        File "asynq/futures.py", line 153, in asynq.futures.FutureBase.raise_if_error
+        File "<...>/python3.6/site-packages/qcore/errors.py", line 93, in reraise
+           six.reraise(type(error), error, error._traceback)
+        File "<...>/python3.6/site-packages/six.py", line 693, in reraise
+           raise value
+    """
+    FUTURE_BASE = (
+                   ["asynq.decorators.AsyncDecorator.__call__",
+                    "asynq.futures.FutureBase.value",
+                    "asynq.futures.FutureBase.value",
+                    "asynq.futures.FutureBase.raise_if_error",
+                    "reraise",
+                    "six.reraise",
+                    "reraise",
+                    "value"],
+                   "___asynq_future_raise_if_error___"
+                   )
+
+    """
+        File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
+        File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+        File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+        File "asynq/decorators.py", line 204, in asynq.decorators.AsyncProxyDecorator._call_pure
+        File "asynq/decorators.py", line 275, in asynq.decorators.async_call
+    """
+    CALL_PURE = (
+                 ["asynq.decorators.AsyncDecorator.asynq",
+                  "asynq.decorators.AsyncProxyDecorator._call_pure",
+                  "asynq.decorators.AsyncProxyDecorator._call_pure",
+                  "asynq.decorators.AsyncProxyDecorator._call_pure",
+                  "asynq.decorators.async_call"],
+                 "___asynq_call_pure___"
+                 )
+
+
+    REPLACEMENTS = [TASK_CONTINUE, FUTURE_BASE, CALL_PURE]
+
+    # iterate through the lines of the traceback and replace multiline
+    # segments that match one of the replacements
+    output = []
+    i = 0
+    while i < len(tb_list):
+        did_replacement = False
+        # for each replacement, try checking if all lines match
+        # if so, replace with the given replacement
+        for (text_to_match, replacement) in REPLACEMENTS:
+            matches = True
+            j = 0
+            while j < len(text_to_match) and (i + j) < len(tb_list):
+                if text_to_match[j] not in tb_list[i + j]:
+                    matches = False
+                    break
+                j += 1
+            if matches and j == len(text_to_match):
+                # formatted to match default indentation level.
+                output.append("  " + replacement + '\n')
+                i = i + j
+                did_replacement = True
+                break
+        if not did_replacement:
+            output.append(tb_list[i])
+            i += 1
+    return output
+
+
+def syntax_highlight_tb(tb_text):
+    """Syntax highlights the traceback so that's a little easier to parse."""
+    lexer = lexers.get_lexer_by_name("pytb", stripall=True)
+    return highlight(tb_text, lexer, formatters.TerminalFormatter())
