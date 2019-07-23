@@ -416,7 +416,7 @@ def filter_traceback(tb_list):
                     matches = False
                     break
                 j += 1
-            if matches:
+            if matches and j == len(text_to_match):
                 # formatted to match default indentation level.
                 output.append("  " + replacement + '\n')
                 i = i + j

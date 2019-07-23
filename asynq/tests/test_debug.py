@@ -343,3 +343,21 @@ def test_filter_traceback():
 
     assert_eq(expected_partial_match, asynq.debug.filter_traceback(
         test_partial_match.splitlines(True)))
+
+
+    test_partial_match_end = """
+  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
+  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure
+"""
+
+    # A full match should be required, this is a partial match
+    expected_partial_match_end = [
+        "\n",
+        "  File \"asynq/decorators.py\", line 153, in asynq.decorators.AsyncDecorator.asynq\n",
+        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
+        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
+    ]
+
+    assert_eq(expected_partial_match_end, asynq.debug.filter_traceback(
+        test_partial_match_end.splitlines(True)))
