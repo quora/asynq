@@ -7,7 +7,7 @@
 external services. It also provides seamless interoperability with synchronous code, support for
 asynchronous context managers, and tools to make writing and testing asynchronous code easier.
 ``asynq`` was developed at Quora and is a core component of Quora's architecture. See the original blog
-post `here <https://engineering.quora.com/Asynchronous-Programming-in-Python>`_.
+post `here <https://qr.ae/TWyoiN>`_.
 
 The most important use case for ``asynq`` is batching. For many storage services (e.g., memcache,
 redis) it is far faster to make a single request that fetches many keys at once than to make
