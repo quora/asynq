@@ -194,25 +194,35 @@ class AsyncTask(futures.FutureBase):
 
     def _continue_on_generator(self, value, error):
         try:
+            gen = self._generator
             if error is None:
-                if self._generator is None:
+                if gen is None:
                     raise StopIteration()
-            elif self._generator is None:
+            elif gen is None:
                 raise error
 
             self.iteration_index += 1
             self._last_value = None
             if not _debug_options.KEEP_DEPENDENCIES:
                 self._dependencies = []  # get rid of dependencies to avoid OOM
+            if gen.gi_running:
+                if error is None:
+                    raise RuntimeError(
+                        "attempt to send error %r to %r, which is already executing" % (error, gen)
+                    )
+                else:
+                    raise RuntimeError(
+                        "attempt to send value %r to %r, which is already executing" % (value, gen)
+                    )
             if error is None:
                 self.running = True
-                return self._generator.send(value)
+                return gen.send(value)
             else:
-                self._frame = debug.get_frame(self._generator)
+                self._frame = debug.get_frame(gen)
                 if hasattr(error, '_task'):
-                    return self._generator.throw(error._type_, error, error._traceback)
+                    return gen.throw(error._type_, error, error._traceback)
                 else:
-                    return self._generator.throw(type(error), error)
+                    return gen.throw(type(error), error)
         except (StopIteration, GeneratorExit):
             # Returning leads to a StopIteration exception, which is
             # handled here. In this case we shouldn't need to extract frame
