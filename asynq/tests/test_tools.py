@@ -464,6 +464,27 @@ def recursive_call_with_dirty():
     yield recursive_call_with_dirty.asynq()
 
 
+@asynq()
+def dummy():
+    pass
+
+
+@asynq()
+def deduplicate_caller():
+    yield deduplicated_recusive.asynq()
+
+
+@deduplicate()
+@asynq()
+def deduplicated_recusive():
+    global i
+    existing = i
+    i = 1
+    yield dummy.asynq()
+    if existing == 0:
+        deduplicate_caller()
+
+
 if sys.version_info >= (3, 0):
     exec("""
 @deduplicate()
@@ -506,6 +527,9 @@ def _check_deduplicate():
         with AssertRaises(TypeError):
             yield call_with_kwonly_arg.asynq(1)
         assert_eq(1, (yield call_with_kwonly_arg.asynq(arg=1)))
+
+    i = 0
+    deduplicate_caller()
 
 
 def test_deduplicate_recursion():
