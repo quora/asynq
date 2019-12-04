@@ -346,7 +346,7 @@ class DeduplicateDecorator(AsyncDecorator):
         cache_key = self.cache_key(args, kwargs)
 
         try:
-            return self.tasks[cache_key]
+            task = self.tasks[cache_key]
         except KeyError:
             task = self.fn.asynq(*args, **kwargs)
 
@@ -355,6 +355,13 @@ class DeduplicateDecorator(AsyncDecorator):
 
             self.tasks[cache_key] = task
             task.on_computed.subscribe(callback)
+            return task
+        else:
+            if task.running:
+                # If the task is currently executing, don't return it; asynq
+                # will try to send another value into the generator and fail
+                # with "ValueError: generator is already executing"
+                return self.fn.asynq(*args, **kwargs)
             return task
 
     locals()['async'] = asynq
@@ -386,6 +393,11 @@ def deduplicate(keygetter=None):
     You can also call dirty on a deduplicated function to remove a cached async task with the
     corresponding args and kwargs. This is useful if a deduplicating function ends up calling
     itself with the same args and kwargs, either directly or deeper in the call stack.
+
+    Multiple instances of a task may be created if the first instance of the task is running
+    while the function is invoked again. This can happen if the function synchronously invokes
+    asynq code that ends up calling the original function. See the test case in test_tools.py
+    involving the deduplicated_recursive() function for an example.
 
     """
     def decorator(fun):
