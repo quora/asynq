@@ -102,11 +102,12 @@ def async_proxy(
 def async_proxy(
     pure: bool, sync_fn: Optional[Callable[..., Any]] = ...
 ) -> _MkPureAsyncDecorator: ...
+@asynq()
 def async_call(
     fn: Union[Callable[..., _T], Callable[..., futures.FutureBase[_T]]],
     *args: Any,
     **kwargs: Any
-) -> futures.FutureBase[_T]: ...
+) -> _T: ...
 def make_async_decorator(
     fn: Callable[..., Any],
     wrapper_fn: Callable[..., futures.FutureBase[Any]],
