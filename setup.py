@@ -79,9 +79,9 @@ if __name__ == '__main__':
         packages=['asynq', 'asynq.tests'],
         package_data={'asynq': DATA_FILES},
         ext_modules=EXTENSIONS,
-        setup_requires=['Cython>=0.27.1,<0.29.0', 'qcore', 'setuptools'],
+        setup_requires=['Cython>=0.27.1', 'qcore', 'setuptools'],
         install_requires=[
-            'Cython>=0.27.1,<0.29.0',
+            'Cython>=0.27.1',
             'qcore',
             'inspect2',
             'mock; python_version < "3.3"',
