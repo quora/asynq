@@ -15,7 +15,6 @@
 import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
 import qcore.decorators
-import sys
 
 from . import futures
 from . import async_task
@@ -143,8 +142,6 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
         else:
             return self.decorator.asynq(self.instance, *args, **kwargs)
 
-    async = asynq
-
 
 class AsyncDecorator(PureAsyncDecorator):
     binder_cls = AsyncDecoratorBinder
@@ -154,8 +151,6 @@ class AsyncDecorator(PureAsyncDecorator):
 
     def asynq(self, *args, **kwargs):
         return self._call_pure(args, kwargs)
-
-    async = asynq
 
     def name(self):
         return "@asynq()"
@@ -193,7 +188,7 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
         if self.type in (staticmethod, classmethod):
             fn = self.type(fn)
         new_self = qcore.decorators.decorate(
-            AsyncAndSyncPairDecorator, self.task_cls, sync_fn, self.kwargs,
+            AsyncAndSyncPairDecorator, self.task_cls, sync_fn, self.kwargs
         )(fn)
         return AsyncDecorator.__get__(new_self, owner, cls)
 
@@ -241,10 +236,6 @@ def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
             )
 
     return decorate
-
-
-if sys.version_info <= (3, 7):
-    globals()["async"] = asynq
 
 
 def async_proxy(pure=False, sync_fn=None):
@@ -305,8 +296,6 @@ class AsyncWrapper(qcore.decorators.DecoratorBase):
     def asynq(self, *args, **kwargs):
         return self._call_async(args, kwargs)
 
-    async = asynq
-
     def is_pure_async_fn(self):
         return False
 
@@ -320,4 +309,4 @@ def make_async_decorator(fn, wrapper_fn, name):
     - name: name of the decorator (used for introspection)
 
     """
-    return qcore.decorators.decorate(AsyncWrapper, wrapper_fn, name,)(fn)
+    return qcore.decorators.decorate(AsyncWrapper, wrapper_fn, name)(fn)

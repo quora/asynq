@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 from qcore.debug import get_bool_by_mask, set_by_mask
 
 
 class DebugOptions(object):
     """
-    All async debug options are stored in this structure.
+    All asynq debug options are stored in this structure.
 
     The class itself is necessary mainly by performance reasons:
     we want to avoid dictionary lookups on checks of debug options.

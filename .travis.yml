@@ -23,7 +23,7 @@ install:
 - pip install -r requirements.txt
 - docker pull $DOCKER_IMAGE
 script:
-- if [[ "$PYVER" != "cp37-cp37m" && "$PYVER" != "cp38-cp38" ]]; then python -m nose asynq; fi  # tests don't work properly in 3.7 because we use "async" as a deprecated alias; TODO find a workaround
+- python -m nose asynq
 - if [[ "$PYVER" != "cp27-cp27m" ]]; then pip install mypy==0.770; fi # mypy requires python 3.5+
 - if [[ "$PYVER" != "cp27-cp27m" ]]; then mypy asynq; fi
 - if [[ "$PYVER" = "cp38-cp38" ]]; then pip install black==19.10b0; fi

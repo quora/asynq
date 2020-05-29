@@ -343,7 +343,7 @@ def disable_complex_assertions():
 def sync():
     assert (
         False
-    ), "'import asynq' seems broken: this function must be replaced with async.batching.sync."
+    ), "'import asynq' seems broken: this function must be replaced with asynq.batching.sync."
 
 
 def get_frame(generator):

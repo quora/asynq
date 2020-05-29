@@ -392,8 +392,6 @@ class DeduplicateDecorator(AsyncDecorator):
                 return self.fn.asynq(*args, **kwargs)
             return task
 
-    locals()["async"] = asynq
-
     def dirty(self, *args, **kwargs):
         cache_key = self.cache_key(args, kwargs)
         self.tasks.pop(cache_key, None)

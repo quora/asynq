@@ -55,8 +55,6 @@ from .decorators import (
     make_async_decorator,
 )
 
-if sys.version_info <= (3, 7):
-    exec("from .decorators import async")
 from .utils import result
 from .contexts import NonAsyncContext, AsyncContext
 from .scoped_value import AsyncScopedValue, async_override
