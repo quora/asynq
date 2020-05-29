@@ -4,7 +4,7 @@ services:
 - docker
 env:
   global:
-  - DOCKER_IMAGE=quay.io/pypa/manylinux2010_x86_64
+  - DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
 matrix:
   include:
   - python: '2.7'
@@ -16,7 +16,7 @@ matrix:
   - python: '3.7'
     env: PYVER=cp37-cp37m
   - python: '3.8'
-    env: PYVER=cp38-cp38m
+    env: PYVER=cp38-cp38
 install:
 - pip install --upgrade setuptools  # work around https://github.com/pypa/setuptools/issues/1086
 - pip install .
