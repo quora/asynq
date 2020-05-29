@@ -26,7 +26,8 @@ def test():
         global counter
         counter += 1
         print("Counter: %i" % counter)
-        result(counter); return
+        result(counter)
+        return
         yield
 
     def sync_incr():
@@ -39,21 +40,21 @@ def test():
     def test_async():
         global counter
         try:
-            print('In try block.')
+            print("In try block.")
             yield incr()
             result((yield incr()))  # ; return
             assert False, "Must not reach this point!"
         except BaseException as e:
-            print('In except block, e = ' + repr(e))
+            print("In except block, e = " + repr(e))
             assert sync_incr() == 3
             if isinstance(e, GeneratorExit):
                 raise
             assert False, "Must not reach this point!"
         finally:
-            print('In finally block.')
+            print("In finally block.")
             assert sync_incr() == 4
 
-    with Profiler('test_stop()'):
+    with Profiler("test_stop()"):
         r = test_async()()
         assert r == 2
         assert counter == 4

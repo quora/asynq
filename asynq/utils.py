@@ -19,9 +19,10 @@ from . import _debug
 
 _debug_options = _debug.options
 
+
 def result(value):
     """An async equivalent for return for async methods: result(x); return."""
-    assert not isinstance(value, FutureBase), \
-        "You probably forgot to yield this value before returning"
+    assert not isinstance(
+        value, FutureBase
+    ), "You probably forgot to yield this value before returning"
     raise async_task.AsyncTaskResult(value)
-

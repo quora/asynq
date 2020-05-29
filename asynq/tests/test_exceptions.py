@@ -26,12 +26,16 @@ def test():
     @asynq(pure=True)
     def throw(expected_counter, must_throw):
         global counter
-        print("  In throw, counter=%i (expected %i), must_throw=%s" % (counter, expected_counter, str(must_throw)))
+        print(
+            "  In throw, counter=%i (expected %i), must_throw=%s"
+            % (counter, expected_counter, str(must_throw))
+        )
         assert expected_counter == counter
         if must_throw:
             raise RuntimeError
         counter += 1
-        result(counter); return
+        result(counter)
+        return
 
     @asynq(pure=True)
     def test():
@@ -48,7 +52,7 @@ def test():
         assert tasks[1].error() is not None
         assert tasks[2].value() == 2
 
-    with Profiler('test_exceptions()'):
+    with Profiler("test_exceptions()"):
         test()()
 
 
@@ -93,7 +97,8 @@ def test_async_context():
                     # we need this to have a real dependency on an async task, otherwise
                     # it executes the whole function inline and the real problem is never tested
                     val = yield dependency.asynq()
-        result(val); return
+        result(val)
+        return
 
     def check_contexts_released_properly(raise_in_pause, raise_in_resume):
         with AssertRaises(KeyboardInterrupt):

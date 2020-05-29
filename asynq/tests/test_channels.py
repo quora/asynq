@@ -20,7 +20,7 @@ from collections import deque
 # TODO(alex): finish w/this test
 
 
-empty = MarkerObject(u'empty @ asynq.channels')
+empty = MarkerObject(u"empty @ asynq.channels")
 future_empty = ConstFuture(empty)
 future_false = ConstFuture(False)
 future_true = ConstFuture(True)
@@ -41,15 +41,13 @@ class Channel(object):
         if len(self.items) < self.capacity:
             self.items.append(value)
             return future_true
-        return _push_async(self, value) \
-            if should_await else future_false
+        return _push_async(self, value) if should_await else future_false
 
     @async_proxy(pure=True)
     def pull(self, should_await=True):
         if self.items:
             return ConstFuture(self.items.popleft())
-        return _pull_async(self) \
-            if should_await else future_empty
+        return _pull_async(self) if should_await else future_empty
 
 
 @asynq(pure=True)
@@ -57,7 +55,8 @@ def _push_async(channel, value):
     yield None
     while True:
         if channel.push(value, False) is future_true:
-            result(future_true); return
+            result(future_true)
+            return
         yield None
 
 
@@ -67,5 +66,6 @@ def _pull_async(channel):
     while True:
         item = channel.pull(False)
         if item is not future_empty:
-            result(item); return
+            result(item)
+            return
         yield None

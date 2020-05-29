@@ -32,22 +32,42 @@ from . import contexts
 from . import scoped_value
 from . import tools
 from . import profiler
-from .futures import FutureBase, Future, FutureIsAlreadyComputed, none_future, ConstFuture, \
-    ErrorFuture
+from .futures import (
+    FutureBase,
+    Future,
+    FutureIsAlreadyComputed,
+    none_future,
+    ConstFuture,
+    ErrorFuture,
+)
 from .batching import BatchBase, BatchItemBase, BatchingError, BatchCancelledError
 from .async_task import AsyncTask, AsyncTaskCancelledError, AsyncTaskResult
 from .scheduler import TaskScheduler, get_scheduler, get_active_task, AsyncTaskError
-from .decorators import asynq, async_proxy, has_async_fn, \
-    is_pure_async_fn, is_async_fn, get_async_fn, get_async_or_sync_fn, async_call, \
-    make_async_decorator
+from .decorators import (
+    asynq,
+    async_proxy,
+    has_async_fn,
+    is_pure_async_fn,
+    is_async_fn,
+    get_async_fn,
+    get_async_or_sync_fn,
+    async_call,
+    make_async_decorator,
+)
+
 if sys.version_info <= (3, 7):
-    exec('from .decorators import async')
+    exec("from .decorators import async")
 from .utils import result
 from .contexts import NonAsyncContext, AsyncContext
 from .scoped_value import AsyncScopedValue, async_override
 from . import mock_ as mock
-from .generator import END_OF_GENERATOR, async_generator, list_of_generator, take_first, Value
+from .generator import (
+    END_OF_GENERATOR,
+    async_generator,
+    list_of_generator,
+    take_first,
+    Value,
+)
 
 debug.sync = batching.sync
 debug.attach_exception_hook()
-

@@ -24,7 +24,7 @@ from .decorators import asynq, async_proxy
 from .futures import ConstFuture
 from .utils import result
 
-END_OF_GENERATOR = qcore.MarkerObject(u'end of generator')
+END_OF_GENERATOR = qcore.MarkerObject(u"end of generator")
 
 
 def async_generator():
@@ -66,22 +66,26 @@ def async_generator():
             # do stuff with value
 
     """
+
     def decorator(fun):
         @functools.wraps(fun)
         def wrapped(*args, **kwargs):
             gen = fun(*args, **kwargs)
             return _AsyncGenerator(gen)
+
         return wrapped
+
     return decorator
 
 
 class Value(object):
     """Represents a value yielded by an async generator."""
+
     def __init__(self, value):
         self.value = value
 
     def __repr__(self):
-        return '<Value: %r>' % self.value
+        return "<Value: %r>" % self.value
 
 
 @asynq()
@@ -93,7 +97,8 @@ def list_of_generator(generator):
         if value is END_OF_GENERATOR:
             continue
         data.append(value)
-    result(data); return
+    result(data)
+    return
 
 
 @asynq()
@@ -107,7 +112,8 @@ def take_first(generator, n):
         ret.append(value)
         if i == n - 1:
             break
-    result(ret); return
+    result(ret)
+    return
 
 
 class _AsyncGenerator(object):
@@ -131,7 +137,8 @@ class _AsyncGenerator(object):
         if self.last_task is not None:
             if not self.last_task.is_computed():
                 raise RuntimeError(
-                    'You must compute the previous task before advancing the generator')
+                    "You must compute the previous task before advancing the generator"
+                )
         if self.is_stopped:
             raise StopIteration
 
@@ -153,9 +160,11 @@ class _AsyncGenerator(object):
             try:
                 value = self._get_one_value(yield_result)
             except StopIteration:
-                result(END_OF_GENERATOR); return
+                result(END_OF_GENERATOR)
+                return
             if isinstance(value, Value):
-                result(value.value); return
+                result(value.value)
+                return
             else:
                 yield_result = yield value
 
@@ -167,4 +176,7 @@ class _AsyncGenerator(object):
             raise
 
     def __repr__(self):
-        return '<@async_generator() %s %s>' % (self.generator, 'stopped' if self.stopped else '')
+        return "<@async_generator() %s %s>" % (
+            self.generator,
+            "stopped" if self.stopped else "",
+        )

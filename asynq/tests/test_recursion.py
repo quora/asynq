@@ -24,16 +24,18 @@ def test_recursion():
         if i == 0:
             return 0
         if dump_progress and i % 100 == 0:
-            print('... in sum(%s)' % i)
+            print("... in sum(%s)" % i)
         return i + sum(i - 1, dump_progress)
 
     @asynq()
     def sum_async(i, dump_progress=False):
         if i == 0:
-            result(0); return
+            result(0)
+            return
         if dump_progress and i % 100 == 0:
-            print('... in sum_async(%s)' % i)
-        result(i + (yield sum_async.asynq(i - 1, dump_progress))); return
+            print("... in sum_async(%s)" % i)
+        result(i + (yield sum_async.asynq(i - 1, dump_progress)))
+        return
 
     with AssertRaises(RuntimeError):
         sum(2000, True)  # By default max stack depth is ~ 1000
@@ -52,16 +54,15 @@ def test_recursion():
         for i in xrange(0, 20):
             sum_async(500)
 
-    print('Slowdown: %s' % (p2.diff * 10.0 / p1.diff))
+    print("Slowdown: %s" % (p2.diff * 10.0 / p1.diff))
 
     p3 = Profiler("20 x sum_async(500)() (w/o assertions)")
     with debug.disable_complex_assertions(), p3:
         for i in xrange(0, 20):
             sum_async(500)
 
-    print('Slowdown: %s' % (p3.diff * 10.0 / p1.diff))
+    print("Slowdown: %s" % (p3.diff * 10.0 / p1.diff))
 
     p3 = Profiler("sum_async(10000)()")
     with p3:
         sum_async(10000)
-

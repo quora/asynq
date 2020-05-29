@@ -30,9 +30,9 @@ from asynq import result
 def test_dump_error():
     buf = StringIO()
 
-    with asynq.mock.patch('asynq.debug.stderr', buf):
+    with asynq.mock.patch("asynq.debug.stderr", buf):
         asynq.debug.dump_error(None)
-    assert_eq('\nNo error', buf.getvalue())
+    assert_eq("\nNo error", buf.getvalue())
 
 
 @asynq.asynq()
@@ -46,7 +46,7 @@ def test_format_error():
     # Syntax highlighting adds color text between words
     asynq.debug.enable_traceback_syntax_highlight(False)
     e = RuntimeError()
-    expected = 'RuntimeError\n'
+    expected = "RuntimeError\n"
     assert_eq(expected, asynq.debug.format_error(e))
 
     e._task = async_fn.asynq()
@@ -60,15 +60,15 @@ def test_format_error():
 
     formatted = asynq.debug.format_error(e)
     assert_in(expected, formatted)
-    assert_in('Traceback', formatted)
+    assert_in("Traceback", formatted)
 
     # Each single word, and unformatted text should be present
     asynq.debug.enable_traceback_syntax_highlight(True)
 
-    expected = 'RuntimeError'
+    expected = "RuntimeError"
     formatted = asynq.debug.format_error(e)
     assert_in(expected, formatted)
-    assert_in('Traceback', formatted)
+    assert_in("Traceback", formatted)
 
 
 def test_format_error_chaining():
@@ -86,29 +86,31 @@ def test_format_error_chaining():
     # Syntax highlighting adds color text between words
     asynq.debug.enable_traceback_syntax_highlight(False)
     formatted = asynq.debug.format_error(exc)
-    assert_in('raise ValueError', formatted)
-    assert_in('raise KeyError', formatted)
-    assert_in('During handling of the', formatted)
+    assert_in("raise ValueError", formatted)
+    assert_in("raise KeyError", formatted)
+    assert_in("During handling of the", formatted)
 
     # Each single word, and unformatted text should be present
     asynq.debug.enable_traceback_syntax_highlight(True)
     formatted = asynq.debug.format_error(exc)
-    assert_in('ValueError', formatted)
-    assert_in('KeyError', formatted)
-    assert_in('During handling of the', formatted)
+    assert_in("ValueError", formatted)
+    assert_in("KeyError", formatted)
+    assert_in("During handling of the", formatted)
 
 
 def test_dump_stack():
     buf = StringIO()
 
-    with asynq.mock.patch('sys.stdout', buf):
+    with asynq.mock.patch("sys.stdout", buf):
+
         def inner():
             asynq.debug.dump_stack()
+
         inner()
 
     printed = buf.getvalue()
-    assert_in('test_dump_stack', printed)
-    assert_in('Stack trace:', printed)
+    assert_in("test_dump_stack", printed)
+    assert_in("Stack trace:", printed)
 
 
 def test_format_asynq_stack():
@@ -118,42 +120,45 @@ def test_format_asynq_stack():
     def level1(arg):
         if arg == 0:
             format_list.append(asynq.debug.format_asynq_stack())
-        result(arg); return
+        result(arg)
+        return
 
     @asynq.asynq()
     def level2(arg):
-        result((yield level1.asynq(arg))); return
+        result((yield level1.asynq(arg)))
+        return
 
     @asynq.asynq()
     def root():
         vals = yield [level2.asynq(i) for i in range(5)]
-        result(vals); return
+        result(vals)
+        return
 
     root()
 
-    traceback = '\n'.join(format_list[0])
-    assert_in('root', traceback)
-    assert_in('level1', traceback)
-    assert_in('level2', traceback)
+    traceback = "\n".join(format_list[0])
+    assert_in("root", traceback)
+    assert_in("level1", traceback)
+    assert_in("level2", traceback)
 
 
 def _assert_write_result(text, indent, expected):
     buf = StringIO()
 
-    with asynq.mock.patch('asynq.debug.stdout', buf):
+    with asynq.mock.patch("asynq.debug.stdout", buf):
         asynq.debug.write(text, indent=indent)
 
     assert_eq(expected, buf.getvalue())
 
 
 def test_write():
-    _assert_write_result('capybara', 0, 'capybara\n')
-    _assert_write_result('capybara', 1, '  capybara\n')
-    _assert_write_result('capybara', 2, '    capybara\n')
-    _assert_write_result('nutria\ncapybara', 1, '  nutria\n  capybara\n')
-    _assert_write_result('', 1, '  \n')
-    _assert_write_result('\n', 1, '\n  \n')
-    _assert_write_result('\ncapybara', 1, '\n  capybara\n')
+    _assert_write_result("capybara", 0, "capybara\n")
+    _assert_write_result("capybara", 1, "  capybara\n")
+    _assert_write_result("capybara", 2, "    capybara\n")
+    _assert_write_result("nutria\ncapybara", 1, "  nutria\n  capybara\n")
+    _assert_write_result("", 1, "  \n")
+    _assert_write_result("\n", 1, "\n  \n")
+    _assert_write_result("\ncapybara", 1, "\n  capybara\n")
 
 
 def non_async_function_that_raises_an_error():
@@ -179,19 +184,18 @@ def test_asynq_traceback_gets_glued_at_each_task_level():
     except ValueError:
         traceback_to_verify = sys.exc_info()[2]
     assert_is_not(None, traceback_to_verify)
-    traceback_printed = '\n'.join(traceback.format_tb(traceback_to_verify))
+    traceback_printed = "\n".join(traceback.format_tb(traceback_to_verify))
     assert_in(non_async_function_that_raises_an_error.__name__, traceback_printed)
     assert_in(async_function_that_raises_an_error.__name__, traceback_printed)
-    assert_in(async_function_whose_child_async_task_will_throw_an_error.__name__, traceback_printed)
+    assert_in(
+        async_function_whose_child_async_task_will_throw_an_error.__name__,
+        traceback_printed,
+    )
 
 
-def assert_eq_extracted_traceback_entry(
-        entry,
-        filename,
-        fn_name,
-        line):
+def assert_eq_extracted_traceback_entry(entry, filename, fn_name, line):
     entry_filename, _, entry_fn_name, entry_line = entry
-    assert_in(filename.rstrip('c'), entry_filename)
+    assert_in(filename.rstrip("c"), entry_filename)
     assert_eq(fn_name, entry_fn_name)
     assert_eq(line, entry_line)
 
@@ -202,15 +206,15 @@ def test_extract_traceback():
         async_function_whose_child_async_task_will_throw_an_error()
     except ValueError:
         traceback_to_verify = sys.exc_info()[2]
-    extracted_traceback_to_verify = asynq.debug.extract_tb(
-            traceback_to_verify)
+    extracted_traceback_to_verify = asynq.debug.extract_tb(traceback_to_verify)
 
     this_level = extracted_traceback_to_verify[0]
     assert_eq_extracted_traceback_entry(
         this_level,
         __file__,
-        'test_extract_traceback',
-        'async_function_whose_child_async_task_will_throw_an_error()')
+        "test_extract_traceback",
+        "async_function_whose_child_async_task_will_throw_an_error()",
+    )
 
     # now check the last 3 frames. Between the 1st and the last 3 frames there may
     # or may not be a frame from six.reraise depending on the python version.
@@ -218,29 +222,32 @@ def test_extract_traceback():
     assert_eq_extracted_traceback_entry(
         async_wrapper_level,
         __file__,
-        'async_function_whose_child_async_task_will_throw_an_error',
-        'yield async_function_that_raises_an_error.asynq()')
+        "async_function_whose_child_async_task_will_throw_an_error",
+        "yield async_function_that_raises_an_error.asynq()",
+    )
 
     async_raiser_level = extracted_traceback_to_verify[-2]
     assert_eq_extracted_traceback_entry(
         async_raiser_level,
         __file__,
-        'async_function_that_raises_an_error',
-        'non_async_function_that_raises_an_error()')
+        "async_function_that_raises_an_error",
+        "non_async_function_that_raises_an_error()",
+    )
 
     normal_function_raising_exception_level = extracted_traceback_to_verify[-1]
     assert_eq_extracted_traceback_entry(
         normal_function_raising_exception_level,
         __file__,
-        'non_async_function_that_raises_an_error',
-        'raise ValueError')
+        "non_async_function_that_raises_an_error",
+        "raise ValueError",
+    )
 
 
-a_return_value = MarkerObject(u'A return value.')
+a_return_value = MarkerObject(u"A return value.")
 
 
-@asynq.mock.patch('asynq.debug.traceback.format_list')
-@asynq.mock.patch('asynq.debug.extract_tb')
+@asynq.mock.patch("asynq.debug.traceback.format_list")
+@asynq.mock.patch("asynq.debug.extract_tb")
 def test_format_tb(mock_extract_tb, mock_format_list):
     mock_extract_tb.return_value = a_return_value
     mock_format_list.side_effect = lambda arg: arg
@@ -254,23 +261,23 @@ def test_format_tb(mock_extract_tb, mock_format_list):
     mock_format_list.assert_called_once_with(a_return_value)
 
 
-@asynq.mock.patch('asynq.debug.format_error')
+@asynq.mock.patch("asynq.debug.format_error")
 def test_asynq_stack_trace_formatter(mock_format_error):
-    mock_format_error.return_value = u'This is some traceback.'
+    mock_format_error.return_value = u"This is some traceback."
     stderr_string_io = StringIO()
     handler = logging.StreamHandler(stream=stderr_string_io)
     handler.setFormatter(asynq.debug.AsynqStackTracebackFormatter())
-    logger = logging.getLogger('test_asynq')
+    logger = logging.getLogger("test_asynq")
     logger.addHandler(handler)
     exc_info = None
     try:
         async_function_whose_child_async_task_will_throw_an_error()
     except ValueError:
         exc_info = sys.exc_info()
-        logger.exception('Test')
+        logger.exception("Test")
     ty, val, tb = exc_info
     mock_format_error.assert_called_once_with(val, tb=tb)
-    assert_eq(u'Test\nThis is some traceback.\n', stderr_string_io.getvalue())
+    assert_eq(u"Test\nThis is some traceback.\n", stderr_string_io.getvalue())
 
 
 def test_filter_traceback():
@@ -300,13 +307,14 @@ def test_filter_traceback():
         "  ___asynq_future_raise_if_error___\n",
         "  ___asynq_continue___\n",
         "  ___asynq_call_pure___\n",
-        "  File \"something.py\", line 25 in hello_world\n",
-        "    hello()\n"
+        '  File "something.py", line 25 in hello_world\n',
+        "    hello()\n",
     ]
 
-    assert_eq(expected_replacements, asynq.debug.filter_traceback(
-        test_replacements.splitlines(True)))
-
+    assert_eq(
+        expected_replacements,
+        asynq.debug.filter_traceback(test_replacements.splitlines(True)),
+    )
 
     assert_eq([], asynq.debug.filter_traceback([]))
 
@@ -317,11 +325,13 @@ def test_filter_traceback():
 
     expected_no_replacement = [
         "\n",
-        "  File \"something.py\", line 25 in hello_world\n",
-        "    hello()\n"
+        '  File "something.py", line 25 in hello_world\n',
+        "    hello()\n",
     ]
-    assert_eq(expected_no_replacement, asynq.debug.filter_traceback(
-        test_no_replacement.splitlines(True)))
+    assert_eq(
+        expected_no_replacement,
+        asynq.debug.filter_traceback(test_no_replacement.splitlines(True)),
+    )
 
     test_partial_match = """
   File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
@@ -334,16 +344,17 @@ def test_filter_traceback():
     # A full match should be required, this is a partial match
     expected_partial_match = [
         "\n",
-        "  File \"asynq/decorators.py\", line 153, in asynq.decorators.AsyncDecorator.asynq\n",
-        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
-        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
-        "  File \"something.py\", line 25 in hello_world\n",
-        "    hello()\n"
+        '  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq\n',
+        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
+        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
+        '  File "something.py", line 25 in hello_world\n',
+        "    hello()\n",
     ]
 
-    assert_eq(expected_partial_match, asynq.debug.filter_traceback(
-        test_partial_match.splitlines(True)))
-
+    assert_eq(
+        expected_partial_match,
+        asynq.debug.filter_traceback(test_partial_match.splitlines(True)),
+    )
 
     test_partial_match_end = """
   File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
@@ -354,10 +365,12 @@ def test_filter_traceback():
     # A full match should be required, this is a partial match
     expected_partial_match_end = [
         "\n",
-        "  File \"asynq/decorators.py\", line 153, in asynq.decorators.AsyncDecorator.asynq\n",
-        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
-        "  File \"asynq/decorators.py\", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n",
+        '  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq\n',
+        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
+        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
     ]
 
-    assert_eq(expected_partial_match_end, asynq.debug.filter_traceback(
-        test_partial_match_end.splitlines(True)))
+    assert_eq(
+        expected_partial_match_end,
+        asynq.debug.filter_traceback(test_partial_match_end.splitlines(True)),
+    )

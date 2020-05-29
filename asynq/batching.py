@@ -37,6 +37,7 @@ class BatchCancelledError(BatchingError):
 
 class BatchBase(futures.FutureBase):
     """Abstract base class describing a batch of operations."""
+
     def __init__(self):
         futures.FutureBase.__init__(self)  # Cython doesn't support super(...)
         self.items = []
@@ -80,9 +81,9 @@ class BatchBase(futures.FutureBase):
 
         """
         if self.is_computed():
-            raise BatchingError('Batch is already flushed or cancelled.')
+            raise BatchingError("Batch is already flushed or cancelled.")
         if _debug_options.DUMP_FLUSH_BATCH:
-            debug.write('@async: -> batch flush:')
+            debug.write("@async: -> batch flush:")
             self.dump(4)
             if _debug_options.DUMP_STACK:
                 debug.dump_stack()
@@ -90,7 +91,7 @@ class BatchBase(futures.FutureBase):
             self.error()  # Makes future to compute w/o raising an error
         finally:
             if _debug_options.DUMP_FLUSH_BATCH:
-                debug.write('@async: <- batch flushed: %s' % debug.str(self))
+                debug.write("@async: <- batch flushed: %s" % debug.str(self))
 
     def cancel(self, error=None):
         """Cancels the batch.
@@ -127,8 +128,10 @@ class BatchBase(futures.FutureBase):
             if not item.is_computed():
                 # We must ensure all batch items are computed
                 item.set_error(
-                    error if cancelled
-                    else AssertionError("Value of this item wasn't set on batch flush."))
+                    error
+                    if cancelled
+                    else AssertionError("Value of this item wasn't set on batch flush.")
+                )
         futures.FutureBase._computed(self)  # Cython doesn't support super(...)
 
     def _flush(self):
@@ -162,34 +165,38 @@ class BatchBase(futures.FutureBase):
         raise NotImplementedError()
 
     def __str__(self):
-        return '%s (%s, %i items)' % (
+        return "%s (%s, %i items)" % (
             core_inspection.get_full_name(type(self)),
-            'cancelled' if self.is_cancelled() else
-                'flushed' if self.is_flushed() else 'pending',
-            len(self.items))
+            "cancelled"
+            if self.is_cancelled()
+            else "flushed"
+            if self.is_flushed()
+            else "pending",
+            len(self.items),
+        )
 
     def dump(self, indent=0):
         debug.write(debug.str(self), indent)
-        debug.write('Priority: %s' % debug.repr(self.get_priority()), indent + 1)
+        debug.write("Priority: %s" % debug.repr(self.get_priority()), indent + 1)
         if self.items:
-            debug.write('Items:', indent + 1)
+            debug.write("Items:", indent + 1)
             for item in self.items:
                 item.dump(indent + 2)
         else:
-            debug.write('No items.', indent + 1)
+            debug.write("No items.", indent + 1)
 
     def to_str(self):
         return str(self)
 
     def dump_perf_stats(self, time_taken):
         self._total_time = time_taken
-        profiler.append({
-            'time_taken': time_taken,
-            'name': self.to_str(),
-            'dependencies': [
-                (i.to_str(), i._total_time) for i in self.items
-            ],
-        })
+        profiler.append(
+            {
+                "time_taken": time_taken,
+                "name": self.to_str(),
+                "dependencies": [(i.to_str(), i._total_time) for i in self.items],
+            }
+        )
 
 
 class BatchItemBase(futures.FutureBase):
@@ -198,9 +205,12 @@ class BatchItemBase(futures.FutureBase):
     of a particular cache operation.
 
     """
+
     def __init__(self, batch):
         super(BatchItemBase, self).__init__()
-        assert not batch.is_flushed(), "can't add an item to the batch that is already flushed"
+        assert (
+            not batch.is_flushed()
+        ), "can't add an item to the batch that is already flushed"
         self.batch = batch
         self.index = len(batch.items)
         batch.items.append(self)
@@ -219,15 +229,17 @@ class BatchItemBase(futures.FutureBase):
             self.batch.flush()
 
     def to_str(self):
-        return '%06d.%s' % (self._id, str(self))
+        return "%06d.%s" % (self._id, str(self))
 
 
 class DebugBatchItem(BatchItemBase):
     """Debug batch item used to sync async execution."""
 
-    def __init__(self, batch_name='default', result=None):
+    def __init__(self, batch_name="default", result=None):
         global _debug_batch_state
-        batch = _debug_batch_state.batches.setdefault(batch_name, DebugBatch(batch_name))
+        batch = _debug_batch_state.batches.setdefault(
+            batch_name, DebugBatch(batch_name)
+        )
         super(DebugBatchItem, self).__init__(batch)
         self._result = result
 
@@ -235,26 +247,34 @@ class DebugBatchItem(BatchItemBase):
 class DebugBatch(BatchBase):
     """Debug batch used to sync async execution."""
 
-    def __init__(self, name='default', index=0):
+    def __init__(self, name="default", index=0):
         super(DebugBatch, self).__init__()
         self.name = name
         self.index = index
 
     def _try_switch_active_batch(self):
         if _debug_batch_state.batches.get(self.name, None) is self:
-            _debug_batch_state.batches[self.name] = DebugBatch(self.name, self.index + 1)
+            _debug_batch_state.batches[self.name] = DebugBatch(
+                self.name, self.index + 1
+            )
 
     def _flush(self):
         global _debug_batch_state
         if _debug_options.DUMP_SYNC:
-            debug.write("@async.debug.sync: flushing batch %s (%i)" % (debug.repr(self.name), self.index))
+            debug.write(
+                "@async.debug.sync: flushing batch %s (%i)"
+                % (debug.repr(self.name), self.index)
+            )
         for item in self.items:
             item.set_value(item._result)
 
     def _cancel(self):
         global _debug_batch_state
         if _debug_options.DUMP_SYNC:
-            debug.write("@async.debug.sync: cancelling batch %s (%i)" % (debug.repr(self.name), self.index))
+            debug.write(
+                "@async.debug.sync: cancelling batch %s (%i)"
+                % (debug.repr(self.name), self.index)
+            )
 
 
 class LocalDebugBatchState(threading.local):
@@ -262,10 +282,10 @@ class LocalDebugBatchState(threading.local):
         super(LocalDebugBatchState, self).__init__()
         self.batches = {}
 
+
 _debug_batch_state = LocalDebugBatchState()
-globals()['_debug_batch_state'] = _debug_batch_state
+globals()["_debug_batch_state"] = _debug_batch_state
 
 
-def sync(tag='default'):
-    return DebugBatchItem('sync-' + tag)
-
+def sync(tag="default"):
+    return DebugBatchItem("sync-" + tag)

@@ -51,10 +51,10 @@ class AsyncScopedValue(object):
         return self._value
 
     def __str__(self):
-        return 'AsyncScopedValue(%s)' % str(self._value)
+        return "AsyncScopedValue(%s)" % str(self._value)
 
     def __repr__(self):
-        return 'AsyncScopedValue(%s)' % repr(self._value)
+        return "AsyncScopedValue(%s)" % repr(self._value)
 
 
 class _AsyncScopedValueOverrideContext(contexts.AsyncContext):
@@ -71,7 +71,10 @@ class _AsyncScopedValueOverrideContext(contexts.AsyncContext):
         self._target._value = self._old_value
 
     def __repr__(self):
-        return '_AsyncScopedValueOverrideContext(target=%r, value=%r)' % (self._target, self._value)
+        return "_AsyncScopedValueOverrideContext(target=%r, value=%r)" % (
+            self._target,
+            self._value,
+        )
 
 
 class _AsyncPropertyOverrideContext(contexts.AsyncContext):
@@ -89,11 +92,11 @@ class _AsyncPropertyOverrideContext(contexts.AsyncContext):
         setattr(self._target, self._property_name, self._old_value)
 
     def __repr__(self):
-        return '_AsyncPropertyOverrideContext(target=%r, property_name=%r, value=%r)' % (
-            self._target,
-            self._property_name,
-            self._value
+        return (
+            "_AsyncPropertyOverrideContext(target=%r, property_name=%r, value=%r)"
+            % (self._target, self._property_name, self._value)
         )
 
+
 async_override = _AsyncPropertyOverrideContext
-globals()['async_override'] = async_override
+globals()["async_override"] = async_override

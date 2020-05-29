@@ -59,8 +59,9 @@ class AsyncTask(futures.FutureBase):
     def __init__(self, generator, fn, args, kwargs):
         super(AsyncTask, self).__init__()
         if _debug_options.ENABLE_COMPLEX_ASSERTIONS:
-            assert core_inspection.is_cython_or_generator(generator), \
-                'generator is expected, but %s is provided' % generator
+            assert core_inspection.is_cython_or_generator(generator), (
+                "generator is expected, but %s is provided" % generator
+            )
         self.fn = fn
         self.args = args
         self.kwargs = kwargs
@@ -78,8 +79,10 @@ class AsyncTask(futures.FutureBase):
         self.creator = asynq.scheduler.get_active_task()
         self.running = False
         if _debug_options.DUMP_NEW_TASKS:
-            debug.write('@async: new task: %s, created by %s' %
-                (debug.str(self), debug.str(self.creator)))
+            debug.write(
+                "@async: new task: %s, created by %s"
+                % (debug.str(self), debug.str(self.creator))
+            )
         if _debug_options.COLLECT_PERF_STATS:
             self._id = profiler.incr_counter()
 
@@ -105,38 +108,44 @@ class AsyncTask(futures.FutureBase):
     def _compute(self):
         if _debug_options.DUMP_SYNC_CALLS:
             if self.creator is not None:
-                debug.write('@async: %s called synchronously from %s'
-                    % (debug.str(self), debug.str(self.creator)))
+                debug.write(
+                    "@async: %s called synchronously from %s"
+                    % (debug.str(self), debug.str(self.creator))
+                )
         # Forwards the call to task scheduler
         asynq.scheduler.get_scheduler().wait_for(self)
         # No need to assign a value/error here, since
         # _continue method (called by TaskScheduler) does this.
 
     def dump_perf_stats(self):
-        self.perf_stats['time_taken'] = self._total_time
+        self.perf_stats["time_taken"] = self._total_time
         profiler.append(self.perf_stats)
 
     def to_str(self):
         if self._name is None:
             try:
-                self._name = '%06d.%s(%r %r)' % (
+                self._name = "%06d.%s(%r %r)" % (
                     self._id,
                     core_inspection.get_full_name(self.fn),
                     self.args,
-                    self.kwargs
+                    self.kwargs,
                 )
             except RuntimeError:
-                self._name = '%06d.%s' % (self._id, core_inspection.get_full_name(self.fn))
+                self._name = "%06d.%s" % (
+                    self._id,
+                    core_inspection.get_full_name(self.fn),
+                )
         return self._name
 
     def collect_perf_stats(self):
         self.perf_stats = {
-            'name': self.to_str(),
-            'num_deps': len(self._dependencies),
-            'dependencies': [
+            "name": self.to_str(),
+            "num_deps": len(self._dependencies),
+            "dependencies": [
                 (t.to_str(), t._total_time)
-                for t in self._dependencies if isinstance(t, (AsyncTask, batching.BatchItemBase))
-            ]
+                for t in self._dependencies
+                if isinstance(t, (AsyncTask, batching.BatchItemBase))
+            ],
         }
 
     def _computed(self):
@@ -209,7 +218,7 @@ class AsyncTask(futures.FutureBase):
                 return self._generator.send(value)
             else:
                 self._frame = debug.get_frame(self._generator)
-                if hasattr(error, '_task'):
+                if hasattr(error, "_task"):
                     return self._generator.throw(error._type_, error, error._traceback)
                 else:
                     return self._generator.throw(type(error), error)
@@ -240,7 +249,9 @@ class AsyncTask(futures.FutureBase):
 
     def _accept_yield_result(self, result):
         if _debug_options.DUMP_YIELD_RESULTS:
-            debug.write('@async: yield: %s -> %s' % (debug.str(self), debug.repr(result)))
+            debug.write(
+                "@async: yield: %s -> %s" % (debug.str(self), debug.repr(result))
+            )
         self._last_value = result
         extract_futures(result, self._dependencies)
 
@@ -251,7 +262,7 @@ class AsyncTask(futures.FutureBase):
         else:
             # when there is no _task it means that this is the bottommost level of the async
             # task. We must attach the traceback as soon as possible
-            if not hasattr(error, '_task'):
+            if not hasattr(error, "_task"):
                 error._task = self
                 core_errors.prepare_for_reraise(error)
             else:
@@ -281,14 +292,19 @@ class AsyncTask(futures.FutureBase):
             self._generator.close()
             self._generator = None
         if _debug_options.DUMP_QUEUED_RESULTS:
-            debug.write('@async: queuing exit: %s <- %s' % (debug.repr(result), debug.str(self)))
+            debug.write(
+                "@async: queuing exit: %s <- %s" % (debug.repr(result), debug.str(self))
+            )
         self.set_value(result)
 
     def _queue_throw_error(self, error):
         if self._value is not _futures_none:  # is_computed(), but faster
             raise futures.FutureIsAlreadyComputed(self)
         if _debug_options.DUMP_QUEUED_RESULTS:
-            debug.write('@async: queuing throw error: %s <-x- %s' % (debug.repr(error), debug.str(self)))
+            debug.write(
+                "@async: queuing throw error: %s <-x- %s"
+                % (debug.repr(error), debug.str(self))
+            )
         self.set_error(error)
 
     def traceback(self):
@@ -311,66 +327,66 @@ class AsyncTask(futures.FutureBase):
 
         if frame is not None:
             frame_info = inspect.getframeinfo(frame)
-            template = '''File "%(file)s", line %(lineno)s, in %(funcname)s
-    %(codeline)s'''
+            template = """File "%(file)s", line %(lineno)s, in %(funcname)s
+    %(codeline)s"""
             return template % {
-                'file': frame_info.filename,
-                'lineno': frame_info.lineno,
-                'funcname': frame_info.function,
-                'codeline': '\n'.join(frame_info.code_context).strip()
+                "file": frame_info.filename,
+                "lineno": frame_info.lineno,
+                "funcname": frame_info.function,
+                "codeline": "\n".join(frame_info.code_context).strip(),
             }
         else:
             return str(self)
 
     def __str__(self):
         fn_str = core_inspection.get_function_call_str(self.fn, self.args, self.kwargs)
-        name = '@asynq %s' % fn_str
+        name = "@asynq %s" % fn_str
 
         # we subtract one because by the time the stacktrace is printed
         # the iteration_index has already been incremented
         if self.iteration_index - 1 == 0:
-            step = 'before 1st yield'
+            step = "before 1st yield"
         else:
-            step = 'passed yield #%i' % (self.iteration_index - 1)
+            step = "passed yield #%i" % (self.iteration_index - 1)
 
         if self.is_computed():
-            status = 'computed, '
+            status = "computed, "
             if self.error() is None:
-                status += '= ' + repr(self.value())
+                status += "= " + repr(self.value())
             else:
-                status += 'error = ' + repr(self.error())
+                status += "error = " + repr(self.error())
         else:
             if self.is_blocked():
-                status = 'blocked x%i' % len(self._dependencies)
+                status = "blocked x%i" % len(self._dependencies)
             elif self.can_continue():
-                status = 'waiting'
+                status = "waiting"
             else:
-                status = 'almost finished (generator is closed)'
-        return '%s (%s, %s)' % (name, status, step)
+                status = "almost finished (generator is closed)"
+        return "%s (%s, %s)" % (name, status, step)
 
     def dump(self, indent=0):
         if indent > MAX_DUMP_INDENT:
-            debug.write('...', indent + 1)
+            debug.write("...", indent + 1)
             return
         debug.write(debug.str(self), indent)
         if self._dependencies:
-            debug.write('Dependencies:', indent + 1)
+            debug.write("Dependencies:", indent + 1)
             for dependency in self._dependencies:
                 dependency.dump(indent + 2)  # Recursive
                 # debug.write(debug.str(dependency), indent + 2)
         else:
-            debug.write('No dependencies.', indent + 1)
+            debug.write("No dependencies.", indent + 1)
 
     # Contexts support
 
     def _enter_context(self, context):
         if _debug_options.DUMP_CONTEXTS:
-            debug.write('@async: +context: %s' % debug.str(context))
+            debug.write("@async: +context: %s" % debug.str(context))
         self._contexts[id(context)] = context
 
     def _leave_context(self, context):
         if _debug_options.DUMP_CONTEXTS:
-            debug.write('@async: -context: %s' % debug.str(context))
+            debug.write("@async: -context: %s" % debug.str(context))
         del self._contexts[id(context)]
 
     def _pause_contexts(self):
@@ -450,8 +466,8 @@ def unwrap(value):
         return {key: unwrap(value) for key, value in six.iteritems(dct)}
     else:
         raise TypeError(
-            "Cannot unwrap an object of type '%s': only futures and None are allowed." %
-            type(value)
+            "Cannot unwrap an object of type '%s': only futures and None are allowed."
+            % type(value)
         )
 
 
@@ -459,8 +475,9 @@ def unwrap(value):
 
 _empty_tuple = tuple()
 _empty_dictionary = dict()
-globals()['_empty_tuple'] = _empty_tuple
-globals()['_empty_dictionary'] = _empty_dictionary
+globals()["_empty_tuple"] = _empty_tuple
+globals()["_empty_dictionary"] = _empty_dictionary
+
 
 def extract_futures(value, result):
     """Enumerates all the futures inside a particular value."""

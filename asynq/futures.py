@@ -27,7 +27,7 @@ __traceback_hide__ = True
 
 _debug_options = _debug.options
 _none = core_helpers.MarkerObject(u"none (futures)")
-globals()['_none'] = _none
+globals()["_none"] = _none
 
 
 class FutureIsAlreadyComputed(Exception):
@@ -45,6 +45,7 @@ class FutureBase(object):
     * ``future()`` does the same (just a shorter notation)
 
     """
+
     def __init__(self):
         self._value = _none
         self._error = None
@@ -123,7 +124,7 @@ class FutureBase(object):
 
         """
         if _debug_options.DUMP_COMPUTED:
-            debug.write('@async: computed %s' % debug.str(self))
+            debug.write("@async: computed %s" % debug.str(self))
         # Must be a safe call, since we want any subscriber to get
         # the notification even in case one of them fails.
         # Otherwise lots of negative effects are possible - e.g.
@@ -136,7 +137,7 @@ class FutureBase(object):
         # like to maintain their normal behavior), so these could still leave the scheduler in a
         # bad state if the process continues to run afterwards
         except Exception as e:
-            print('exception ignored in asynq on_computed callback: %s' % repr(e))
+            print("exception ignored in asynq on_computed callback: %s" % repr(e))
             traceback.print_exc()
 
     def _compute(self):
@@ -161,21 +162,21 @@ class FutureBase(object):
 
     def __repr__(self):
         if self._in_repr:
-            return '<recursion>'
+            return "<recursion>"
         try:
             self._in_repr = True
             if self.is_computed():
-                status = 'computed, '
+                status = "computed, "
                 if self.error() is None:
                     if self.value() is self:
-                        status += '= self'
+                        status += "= self"
                     else:
-                        status += '= ' + repr(self.value())
+                        status += "= " + repr(self.value())
                 else:
-                    status += 'error = ' + repr(self.error())
+                    status += "error = " + repr(self.error())
             else:
                 status = "isn't computed"
-            return '%s (%s)' % (type(self), status)
+            return "%s (%s)" % (type(self), status)
         finally:
             self._in_repr = False
 
@@ -189,6 +190,7 @@ class FutureBase(object):
 
 class Future(FutureBase):
     """Delegate-based future implementation."""
+
     def __init__(self, value_provider):
         super(Future, self).__init__()
         self._value_provider = value_provider
@@ -203,24 +205,31 @@ class Future(FutureBase):
 
 class ConstFuture(FutureBase):
     """Future wrapping the constant."""
+
     def __init__(self, value):
         self._value = _none
         self._error = None
-        self.on_computed = core_events.sinking_event_hook  # Simple performance optimization
+        self.on_computed = (
+            core_events.sinking_event_hook
+        )  # Simple performance optimization
         self.set_value(value)
         self._in_repr = False  # since we don't call super.__init__
 
     def __reduce__(self):
         return (ConstFuture, (self._value,))
 
+
 none_future = ConstFuture(None)
 
 
 class ErrorFuture(FutureBase):
     """Future that always raises the specified error."""
+
     def __init__(self, error):
         self._value = _none
         self._error = None
-        self.on_computed = core_events.sinking_event_hook  # Simple performance optimization
+        self.on_computed = (
+            core_events.sinking_event_hook
+        )  # Simple performance optimization
         self.set_error(error)
         self._in_repr = False  # since we don't call super.__init__

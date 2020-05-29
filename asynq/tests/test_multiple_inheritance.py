@@ -29,13 +29,13 @@ called = {}
 class Parent1(object):
     @asynq()
     def method(self):
-        called['Parent1'] = True
+        called["Parent1"] = True
 
 
 class Parent2(object):
     @asynq()
     def method(self):
-        called['Parent2'] = True
+        called["Parent2"] = True
 
 
 class Child(Parent1, Parent2):
@@ -43,7 +43,7 @@ class Child(Parent1, Parent2):
     def method(self):
         yield super(Child, self).method.asynq()
         yield Parent2.method.asynq(self)
-        called['Child'] = True
+        called["Child"] = True
 
 
 def test():
@@ -51,9 +51,10 @@ def test():
     def inner():
         instance = Child()
         yield instance.method.asynq()
-        result(None); return
+        result(None)
+        return
 
     inner()
-    assert called['Parent1']
-    assert called['Parent2']
-    assert called['Child']
+    assert called["Parent1"]
+    assert called["Parent2"]
+    assert called["Child"]

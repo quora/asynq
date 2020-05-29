@@ -16,13 +16,15 @@ from asynq import asynq, result
 from .debug_cache import reset_caches, mc
 from .caching import ExternalCacheBatchItem
 
+
 def test_chain():
     @asynq()
     def foo(num_yield):
         if num_yield == 0:
-            result(0); return
+            result(0)
+            return
 
-        yield ExternalCacheBatchItem(mc._batch, 'get', 'test')
+        yield ExternalCacheBatchItem(mc._batch, "get", "test")
         yield foo.asynq(num_yield - 1)
 
     reset_caches()
@@ -34,7 +36,8 @@ def test_tree():
     @asynq()
     def foo(depth):
         if depth == 0:
-            result((yield ExternalCacheBatchItem(mc._batch, 'get', 'test'))); return
+            result((yield ExternalCacheBatchItem(mc._batch, "get", "test")))
+            return
         yield foo.asynq(depth - 1), foo.asynq(depth - 1)
 
     reset_caches()

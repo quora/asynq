@@ -2,7 +2,17 @@ from builtins import str as _str
 import contextlib
 import logging
 from types import FrameType, GeneratorType, TracebackType
-from typing import Any, ContextManager, Iterator, List, Optional, Tuple, Type, overload, Union
+from typing import (
+    Any,
+    ContextManager,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    overload,
+    Union,
+)
 
 from ._debug import options as options
 @overload
@@ -17,7 +27,10 @@ def format_error(error: BaseException, tb: Optional[TracebackType] = ...) -> _st
 
 class AsynqStackTracebackFormatter(logging.Formatter):
     def formatException(
-        self, exc_info: Union[Tuple[type, BaseException, Optional[TracebackType]], Tuple[None, None, None]]
+        self,
+        exc_info: Union[
+            Tuple[type, BaseException, Optional[TracebackType]], Tuple[None, None, None]
+        ],
     ) -> _str: ...
 
 def extract_tb(
@@ -50,4 +63,3 @@ def sync() -> None: ...
 def get_frame(generator: GeneratorType) -> Optional[FrameType]: ...
 def filter_traceback(tb_list: List[_str]) -> List[_str]: ...
 def syntax_highlight_tb(_str) -> _str: ...
-

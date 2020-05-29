@@ -16,7 +16,7 @@ from qcore.asserts import assert_eq
 from asynq import AsyncScopedValue, asynq, result, async_override
 from asynq.batching import DebugBatchItem
 
-v = AsyncScopedValue('a')
+v = AsyncScopedValue("a")
 
 
 @asynq()
@@ -25,53 +25,54 @@ def async_scoped_value_helper(inner_val):
     def nested():
         assert_eq(v.get(), inner_val)
         yield DebugBatchItem()
-        with v.override('c'):
+        with v.override("c"):
             yield DebugBatchItem()  # just so other function gets scheduled
-            assert_eq(v.get(), 'c')
+            assert_eq(v.get(), "c")
             yield DebugBatchItem()
 
-    assert_eq(v.get(), 'a')
+    assert_eq(v.get(), "a")
     yield DebugBatchItem()
     with v.override(inner_val):
         yield DebugBatchItem()
         assert_eq(v.get(), inner_val)
-        result((yield nested.asynq())); return
+        result((yield nested.asynq()))
+        return
 
 
 @asynq()
 def async_scoped_value_caller():
-    yield async_scoped_value_helper.asynq('e'), async_scoped_value_helper.asynq('f')
+    yield async_scoped_value_helper.asynq("e"), async_scoped_value_helper.asynq("f")
 
 
 def test_async_scoped_value():
 
     async_scoped_value_caller()
 
-    val = AsyncScopedValue('capybara')
-    assert_eq('capybara', val.get())
-    val.set('nutria')
-    assert_eq('nutria', val.get())
+    val = AsyncScopedValue("capybara")
+    assert_eq("capybara", val.get())
+    val.set("nutria")
+    assert_eq("nutria", val.get())
 
-    assert_eq('AsyncScopedValue(nutria)', str(val))
+    assert_eq("AsyncScopedValue(nutria)", str(val))
     assert_eq("AsyncScopedValue('nutria')", repr(val))
 
 
 def test_exception():
     @asynq()
     def test_body():
-        assert_eq(v(), 'a')
+        assert_eq(v(), "a")
         yield None
         try:
-            with v.override('b'):
+            with v.override("b"):
                 yield None
-                assert_eq(v(), 'b')
+                assert_eq(v(), "b")
                 yield None
                 raise NotImplementedError()
         except NotImplementedError:
             yield None
             pass
         yield None
-        assert_eq(v(), 'a')
+        assert_eq(v(), "a")
 
     test_body()
 
@@ -82,24 +83,24 @@ def test_override():
             self.v = None
 
     o = TestObject()
-    o.v = 'a'
+    o.v = "a"
 
     @asynq()
     def test_body():
-        assert_eq(o.v, 'a')
+        assert_eq(o.v, "a")
         yield None
-        with async_override(o, 'v', 'b'):
-            assert_eq(o.v, 'b')
+        with async_override(o, "v", "b"):
+            assert_eq(o.v, "b")
             yield None
             try:
-                with async_override(o, 'v', 'c'):
-                    assert_eq(o.v, 'c')
+                with async_override(o, "v", "c"):
+                    assert_eq(o.v, "c")
                     yield None
                     raise NotImplementedError()
             except NotImplementedError:
                 pass
-            assert_eq(o.v, 'b')
+            assert_eq(o.v, "b")
         yield None
-        assert_eq(o.v, 'a')
+        assert_eq(o.v, "a")
 
     test_body()

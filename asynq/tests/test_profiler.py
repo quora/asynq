@@ -55,10 +55,10 @@ def test_collect_perf_stats():
     @asynq()
     def func(depth):
         if depth == 0:
-            result((yield ExternalCacheBatchItem(mc._batch, 'get', 'test'))); return
+            result((yield ExternalCacheBatchItem(mc._batch, "get", "test")))
+            return
         time.sleep(float(sleep_time) / SECOND)
         yield func.asynq(depth - 1), func.asynq(depth - 1)
-
 
     debug.options.COLLECT_PERF_STATS = True
     debug.options.KEEP_DEPENDENCIES = True
@@ -76,7 +76,7 @@ def test_collect_perf_stats():
 
     deps_to_tasks = collections.defaultdict(list)
     for task in profiled_result:
-        num_deps = len(task['dependencies'])
+        num_deps = len(task["dependencies"])
         deps_to_tasks[num_deps].append(task)
 
     assert_unordered_list_eq([1, 2, num_leaf_tasks], deps_to_tasks.keys())
@@ -84,7 +84,7 @@ def test_collect_perf_stats():
     # leaf tasks
     assert_eq(num_leaf_tasks, len(deps_to_tasks[1]))
     for task in deps_to_tasks[1]:
-        assert_ge(sleep_time, task['time_taken'])
+        assert_ge(sleep_time, task["time_taken"])
 
     # one batch (with all the batch items as dependencies)
     assert_eq(1, len(deps_to_tasks[num_leaf_tasks]))
@@ -92,7 +92,7 @@ def test_collect_perf_stats():
     # non-leaf async tasks in the tree (1 + 2 + 3 = 7)
     assert_eq(7, len(deps_to_tasks[2]))
     for task in deps_to_tasks[2]:
-        assert_le(sleep_time, task['time_taken'])
+        assert_le(sleep_time, task["time_taken"])
 
     # When COLLET_PERF_STATS is False, we shouldn't profile anything.
     debug.options.COLLECT_PERF_STATS = False

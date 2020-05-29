@@ -35,10 +35,16 @@ class NonAsyncContext(object):
         leave_context(self, self._active_task)
 
     def pause(self):
-        assert False, 'Task %s cannot yield while %s is active' % (self._active_task, self)
+        assert False, "Task %s cannot yield while %s is active" % (
+            self._active_task,
+            self,
+        )
 
     def resume(self):
-        assert False, 'Task %s cannot yield while %s is active' % (self._active_task, self)
+        assert False, "Task %s cannot yield while %s is active" % (
+            self._active_task,
+            self,
+        )
 
 
 def enter_context(context):

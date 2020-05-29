@@ -9,7 +9,7 @@ class LocalProfileState(threading.local):
 
 
 _state = LocalProfileState()
-globals()['_state'] = _state
+globals()["_state"] = _state
 
 
 def flush():

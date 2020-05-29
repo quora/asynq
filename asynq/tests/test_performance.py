@@ -17,7 +17,7 @@ import gc
 from asynq import asynq, debug, result, AsyncTask
 from .helpers import Profiler
 
-values = {} # type: ignore
+values = {}  # type: ignore
 
 
 class WrappedAsyncTask(AsyncTask):
@@ -35,7 +35,8 @@ def wrapped_async(*args, **kwargs):
 @asynq(pure=True)
 def get(key):
     global values
-    result(values.get(key)); return
+    result(values.get(key))
+    return
     yield  # Must be a generator
 
 
@@ -67,12 +68,13 @@ def performance_test(task_count):
 
 
 def test():
-    with Profiler('test_performance(100): warming up'):
+    with Profiler("test_performance(100): warming up"):
         performance_test(100).value()
     gc.collect()
-    with Profiler('test_performance(3000): actual test (w/assertions)'):
+    with Profiler("test_performance(3000): actual test (w/assertions)"):
         performance_test(3000).value()
     gc.collect()
-    with debug.disable_complex_assertions(), \
-         Profiler('test_performance(3000): actual test (w/o assertions)'):
+    with debug.disable_complex_assertions(), Profiler(
+        "test_performance(3000): actual test (w/o assertions)"
+    ):
         performance_test(3000).value()
