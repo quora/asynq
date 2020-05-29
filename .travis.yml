@@ -9,23 +9,23 @@ matrix:
   include:
   - python: '2.7'
     env: PYVER=cp27-cp27m
-  - python: '3.4'
-    env: PYVER=cp34-cp34m
   - python: '3.5'
     env: PYVER=cp35-cp35m
   - python: '3.6'
     env: PYVER=cp36-cp36m
   - python: '3.7'
     env: PYVER=cp37-cp37m
+  - python: '3.8'
+    env: PYVER=cp38-cp38
 install:
 - pip install --upgrade setuptools  # work around https://github.com/pypa/setuptools/issues/1086
 - pip install .
 - pip install -r requirements.txt
 - docker pull $DOCKER_IMAGE
 script:
-- if [[ "$PYVER" != "cp37-cp37m" ]]; then python -m nose asynq; fi  # tests don't work properly in 3.7 because we use "async" as a deprecated alias; TODO find a workaround
-- if [[ "$PYVER" != "cp27-cp27m" && "$PYVER" != "cp34-cp34m" ]]; then pip install mypy; fi # mypy requires python 3.5+
-- if [[ "$PYVER" != "cp27-cp27m" && "$PYVER" != "cp34-cp34m" ]]; then mypy asynq; fi
+- if [[ "$PYVER" != "cp37-cp37m" && "$PYVER" != "cp38-cp38" ]]; then python -m nose asynq; fi  # tests don't work properly in 3.7 because we use "async" as a deprecated alias; TODO find a workaround
+- if [[ "$PYVER" != "cp27-cp27m" ]]; then pip install mypy; fi # mypy requires python 3.5+
+- if [[ "$PYVER" != "cp27-cp27m" ]]; then mypy asynq; fi
 - docker run --rm -e PYVER -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
 - ls wheelhouse/
 - mkdir -p dist/
