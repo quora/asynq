@@ -44,18 +44,18 @@ class Context(AsyncContext):
     def resume(self):
         global current_context
         if self.assert_state_changes:
-            assert_eq('pause', self.state)
+            assert_eq("pause", self.state)
         self.state = "resume"
         current_context = self
-        print(self.name + ': resume')
+        print(self.name + ": resume")
 
     def pause(self):
         global current_context
         if self.assert_state_changes:
-            assert_eq('resume', self.state)
+            assert_eq("resume", self.state)
         self.state = "pause"
         current_context = self.parent
-        print(self.name + ': pause')
+        print(self.name + ": pause")
 
 
 def test_parallel():
@@ -66,14 +66,16 @@ def test_parallel():
                 yield debug.sync()
             else:
                 yield (
-                    parallel(name + '-1', ctx, level + 1),
-                    parallel(name + '-2', ctx, level + 1),
+                    parallel(name + "-1", ctx, level + 1),
+                    parallel(name + "-2", ctx, level + 1),
                 )
 
-    with Profiler('test_parallel()'):
+    with Profiler("test_parallel()"):
+
         @asynq()
         def together():
-            yield parallel('taskA', None, 0), parallel('taskB', None, 0)
+            yield parallel("taskA", None, 0), parallel("taskB", None, 0)
+
         together()
     print()
 
@@ -86,7 +88,8 @@ def test_adder():
     def async_add(a, b):
         yield debug.sync()
         z = a + b + change_amount
-        result(z); return
+        result(z)
+        return
 
     class AsyncAddChanger(AsyncContext):
         def __init__(self, diff):
@@ -117,12 +120,14 @@ def test_adder():
                 assert_eq(expected_change_amount_base + 2, change_amount)
             assert_eq(expected_change_amount_base + 1, change_amount)
         assert_eq(expected_change_amount_base + 0, change_amount)
-        result((yield async_add(z, q))); return
+        result((yield async_add(z, q)))
+        return
 
     @asynq(pure=True)
     def useless():
         a, b, c = yield (add_twice(1, 1), add_twice(1, 1), async_add(1, 1))
-        result((a, b, c)); return
+        result((a, b, c))
+        return
 
     assert_eq(2, async_add(1, 1)())
     assert_eq((7, 7, 2), useless()())
@@ -147,16 +152,20 @@ def test_non_async_context():
     def async_fn_with_yield(should_yield):
         with Ctx():
             if should_yield:
-                ret = yield ExternalCacheBatchItem(mc._batch, 'get', 'test')
+                ret = yield ExternalCacheBatchItem(mc._batch, "get", "test")
             else:
                 ret = 0
-        result(ret); return
+        result(ret)
+        return
 
     @asynq()
     def batch(should_yield=True):
-        ret1, ret2 = yield async_fn_with_yield.asynq(should_yield), \
-            async_fn_with_yield.asynq(should_yield)
-        result((ret1, ret2)); return
+        ret1, ret2 = (
+            yield async_fn_with_yield.asynq(should_yield),
+            async_fn_with_yield.asynq(should_yield),
+        )
+        result((ret1, ret2))
+        return
 
     with AssertRaises(AssertionError):
         batch()

@@ -20,42 +20,44 @@ import linecache
 import traceback
 import logging
 from sys import stderr, stdout
-from pygments import highlight # pygments loading behavior requires this style import
-from pygments import lexers    # see: https://github.com/montylounge/django-sugar/issues/2
+from pygments import highlight  # pygments loading behavior requires this style import
+from pygments import lexers  # see: https://github.com/montylounge/django-sugar/issues/2
 from pygments import formatters
 
 from . import _debug
 
 options = _debug.options  # Must be the same object
 
-options.DUMP_PRE_ERROR_STATE  = True
-options.DUMP_EXCEPTIONS       = False
-options.DUMP_SCHEDULE_TASK    = False
-options.DUMP_CONTINUE_TASK    = False
-options.DUMP_SCHEDULE_BATCH   = False
-options.DUMP_FLUSH_BATCH      = False
-options.DUMP_DEPENDENCIES     = False
-options.DUMP_COMPUTED         = False
-options.DUMP_NEW_TASKS        = False
-options.DUMP_YIELD_RESULTS    = False
-options.DUMP_QUEUED_RESULTS   = False
-options.DUMP_CONTEXTS         = False
-options.DUMP_SYNC             = False
-options.DUMP_STACK            = False  # When it's meaningful, e.g. on batch flush
-options.DUMP_SCHEDULER_STATE  = False
-options.DUMP_SYNC_CALLS       = False
-options.COLLECT_PERF_STATS    = False
+options.DUMP_PRE_ERROR_STATE = True
+options.DUMP_EXCEPTIONS = False
+options.DUMP_SCHEDULE_TASK = False
+options.DUMP_CONTINUE_TASK = False
+options.DUMP_SCHEDULE_BATCH = False
+options.DUMP_FLUSH_BATCH = False
+options.DUMP_DEPENDENCIES = False
+options.DUMP_COMPUTED = False
+options.DUMP_NEW_TASKS = False
+options.DUMP_YIELD_RESULTS = False
+options.DUMP_QUEUED_RESULTS = False
+options.DUMP_CONTEXTS = False
+options.DUMP_SYNC = False
+options.DUMP_STACK = False  # When it's meaningful, e.g. on batch flush
+options.DUMP_SCHEDULER_STATE = False
+options.DUMP_SYNC_CALLS = False
+options.COLLECT_PERF_STATS = False
 
-options.SCHEDULER_STATE_DUMP_INTERVAL = 1       # In seconds
-options.DEBUG_STR_REPR_MAX_LENGTH     = 240     # In characters, 0 means infinity
-options.STACK_DUMP_LIMIT              = 10      # In frames, None means infinity
-options.MAX_TASK_STACK_SIZE           = 1000000 # Max number of concurrent futures + batch items
+options.SCHEDULER_STATE_DUMP_INTERVAL = 1  # In seconds
+options.DEBUG_STR_REPR_MAX_LENGTH = 240  # In characters, 0 means infinity
+options.STACK_DUMP_LIMIT = 10  # In frames, None means infinity
+options.MAX_TASK_STACK_SIZE = 1000000  # Max number of concurrent futures + batch items
 
 options.ENABLE_COMPLEX_ASSERTIONS = True
-options.KEEP_DEPENDENCIES         = False  # don't clear dependencies between yields
+options.KEEP_DEPENDENCIES = False  # don't clear dependencies between yields
+
 
 def DUMP_ALL(value=None):
     return options.DUMP_ALL(value)
+
 
 # DUMP_ALL(True)
 
@@ -105,7 +107,7 @@ def enable_traceback_syntax_highlight(enable):
 def dump_error(error, tb=None):
     """Dumps errors w/async stack traces."""
     try:
-        stderr.write('\n' + (format_error(error, tb=tb) or 'No error'))
+        stderr.write("\n" + (format_error(error, tb=tb) or "No error"))
     finally:
         stdout.flush()
         stderr.flush()
@@ -115,8 +117,8 @@ def format_error(error, tb=None):
     """Formats errors w/async stack traces."""
     if error is None:
         return None
-    result = ''
-    if hasattr(error, '_traceback') or tb is not None:
+    result = ""
+    if hasattr(error, "_traceback") or tb is not None:
         tb = tb or error._traceback
         tb_list = traceback.format_exception(error.__class__, error, tb)
     elif isinstance(error, BaseException):
@@ -124,17 +126,17 @@ def format_error(error, tb=None):
     else:
         tb_list = []
 
-    tb_text = ''.join(tb_list)
+    tb_text = "".join(tb_list)
 
     if isinstance(tb_text, bytes):
-        tb_text = tb_text.decode('utf-8', 'replace')
+        tb_text = tb_text.decode("utf-8", "replace")
 
     if _use_syntax_highlighting:
         tb_text = syntax_highlight_tb(tb_text)
 
     if _should_filter_traceback:
         # need to do this after syntax highlighting, so we turn it back into a list
-        tb_text = ''.join(filter_traceback(tb_text.splitlines(True)))
+        tb_text = "".join(filter_traceback(tb_text.splitlines(True)))
 
     result += tb_text
     return result
@@ -142,6 +144,7 @@ def format_error(error, tb=None):
 
 class AsynqStackTracebackFormatter(logging.Formatter):
     """Prints traceback skipping asynq frames during logger.exception/error usages."""
+
     def formatException(self, exc_info):
         ty, val, tb = exc_info
         return format_error(val, tb=tb)
@@ -149,19 +152,21 @@ class AsynqStackTracebackFormatter(logging.Formatter):
 
 def _should_skip_frame(frame):
     if frame:
-        traceback_hide_directive_name = '__traceback_hide__'
-        return frame.f_locals.get(
-            traceback_hide_directive_name,
-            frame.f_globals.get(
+        traceback_hide_directive_name = "__traceback_hide__"
+        return (
+            frame.f_locals.get(
                 traceback_hide_directive_name,
-                False)) is True
+                frame.f_globals.get(traceback_hide_directive_name, False),
+            )
+            is True
+        )
     return False
 
 
 def extract_tb(tb, limit=None):
     """This implementation is stolen from traceback module but respects __traceback_hide__."""
     if limit is None:
-        if hasattr(sys, 'tracebacklimit'):
+        if hasattr(sys, "tracebacklimit"):
             limit = sys.tracebacklimit
     tb_list = []
     n = 0
@@ -194,12 +199,12 @@ def dump_stack(skip=0, limit=None):
     skip += 2  # To skip dump_stack and traceback.extract_stack
     if limit is None:
         limit = options.STACK_DUMP_LIMIT
-    print('--- Stack trace: -----------------------------------------------------')
+    print("--- Stack trace: -----------------------------------------------------")
     try:
         stack = traceback.extract_stack(limit=None if limit is None else limit + skip)
-        print(''.join(traceback.format_list(stack[:-skip])), end='')
+        print("".join(traceback.format_list(stack[:-skip])), end="")
     finally:
-        print('----------------------------------------------------------------------')
+        print("----------------------------------------------------------------------")
         stdout.flush()
 
 
@@ -207,9 +212,9 @@ def dump_asynq_stack():
     """Dumps the current asynq stack to stdout."""
     format_list = format_asynq_stack()
     if format_list is None:
-        print('dump_asynq_stack: no asynq task currently active')
+        print("dump_asynq_stack: no asynq task currently active")
     else:
-        print('\n'.join(format_list))
+        print("\n".join(format_list))
 
 
 def format_asynq_stack():
@@ -222,6 +227,7 @@ def format_asynq_stack():
     """
     # Doing this in the global scope creates a circular dependency
     from .scheduler import get_scheduler
+
     active_task = get_scheduler().active_task
     if active_task is not None:
         return active_task.traceback()
@@ -234,23 +240,27 @@ def dump(state):
         return
     stdout.flush()
     stderr.flush()
-    stdout.write('\n--- Pre-error state dump: --------------------------------------------\n')
+    stdout.write(
+        "\n--- Pre-error state dump: --------------------------------------------\n"
+    )
     try:
         state.dump()
     finally:
-        stdout.write('----------------------------------------------------------------------\n')
-        stderr.write('\n')
+        stdout.write(
+            "----------------------------------------------------------------------\n"
+        )
+        stderr.write("\n")
         stdout.flush()
         stderr.flush()
 
 
 def write(text, indent=0):
     if indent > 0:
-        indent_str = '  ' * indent
-        text = text.replace('\n', '\n' + indent_str)
-        if not text.startswith('\n'):
+        indent_str = "  " * indent
+        text = text.replace("\n", "\n" + indent_str)
+        if not text.startswith("\n"):
             text = indent_str + text
-    stdout.write(text + '\n')
+    stdout.write(text + "\n")
 
 
 def str(source, truncate=True):
@@ -331,12 +341,14 @@ def disable_complex_assertions():
 
 
 def sync():
-    assert False, "'import asynq' seems broken: this function must be replaced with async.batching.sync."
+    assert (
+        False
+    ), "'import asynq' seems broken: this function must be replaced with async.batching.sync."
 
 
 def get_frame(generator):
     """Given a generator, returns its current frame."""
-    if getattr(generator, 'gi_frame', None) is not None:
+    if getattr(generator, "gi_frame", None) is not None:
         return generator.gi_frame
     return None
 
@@ -352,12 +364,13 @@ def filter_traceback(tb_list):
         File "asynq/async_task.py", line 209, in asynq.async_task.AsyncTask._continue_on_generator
     """
     TASK_CONTINUE = (
-                     ["asynq.async_task.AsyncTask._continue",
-                      "asynq.async_task.AsyncTask._continue_on_generator",
-                      "asynq.async_task.AsyncTask._continue_on_generator"],
-                     "___asynq_continue___"
-                     )
-
+        [
+            "asynq.async_task.AsyncTask._continue",
+            "asynq.async_task.AsyncTask._continue_on_generator",
+            "asynq.async_task.AsyncTask._continue_on_generator",
+        ],
+        "___asynq_continue___",
+    )
 
     """
         File "asynq/decorators.py", line 161, in asynq.decorators.AsyncDecorator.__call__
@@ -370,16 +383,18 @@ def filter_traceback(tb_list):
            raise value
     """
     FUTURE_BASE = (
-                   ["asynq.decorators.AsyncDecorator.__call__",
-                    "asynq.futures.FutureBase.value",
-                    "asynq.futures.FutureBase.value",
-                    "asynq.futures.FutureBase.raise_if_error",
-                    "reraise",
-                    "six.reraise",
-                    "reraise",
-                    "value"],
-                   "___asynq_future_raise_if_error___"
-                   )
+        [
+            "asynq.decorators.AsyncDecorator.__call__",
+            "asynq.futures.FutureBase.value",
+            "asynq.futures.FutureBase.value",
+            "asynq.futures.FutureBase.raise_if_error",
+            "reraise",
+            "six.reraise",
+            "reraise",
+            "value",
+        ],
+        "___asynq_future_raise_if_error___",
+    )
 
     """
         File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq
@@ -389,14 +404,15 @@ def filter_traceback(tb_list):
         File "asynq/decorators.py", line 275, in asynq.decorators.async_call
     """
     CALL_PURE = (
-                 ["asynq.decorators.AsyncDecorator.asynq",
-                  "asynq.decorators.AsyncProxyDecorator._call_pure",
-                  "asynq.decorators.AsyncProxyDecorator._call_pure",
-                  "asynq.decorators.AsyncProxyDecorator._call_pure",
-                  "asynq.decorators.async_call"],
-                 "___asynq_call_pure___"
-                 )
-
+        [
+            "asynq.decorators.AsyncDecorator.asynq",
+            "asynq.decorators.AsyncProxyDecorator._call_pure",
+            "asynq.decorators.AsyncProxyDecorator._call_pure",
+            "asynq.decorators.AsyncProxyDecorator._call_pure",
+            "asynq.decorators.async_call",
+        ],
+        "___asynq_call_pure___",
+    )
 
     REPLACEMENTS = [TASK_CONTINUE, FUTURE_BASE, CALL_PURE]
 
@@ -418,7 +434,7 @@ def filter_traceback(tb_list):
                 j += 1
             if matches and j == len(text_to_match):
                 # formatted to match default indentation level.
-                output.append("  " + replacement + '\n')
+                output.append("  " + replacement + "\n")
                 i = i + j
                 did_replacement = True
                 break

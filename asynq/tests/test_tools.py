@@ -47,7 +47,7 @@ import pickle
 try:
     import mock
 except ImportError:
-    from unittest import mock # type: ignore
+    from unittest import mock  # type: ignore
 
 
 @asynq()
@@ -58,7 +58,8 @@ def inner_fn(x):
 @asynq()
 def filter_fn(elt):
     yield inner_fn.asynq(elt)
-    result(elt is not None); return
+    result(elt is not None)
+    return
 
 
 @asynq()
@@ -78,7 +79,9 @@ def test_afilterfalse():
     assert_eq([], list(afilterfalse.asynq(filter_fn, []).value()))
     assert_eq([None], list(afilterfalse.asynq(filter_fn, [None]).value()))
     assert_eq([None, None], list(afilterfalse(filter_fn, [None, 1, None])))
-    assert_eq([None, None], list(afilterfalse.asynq(filter_fn, [None, 1, None]).value()))
+    assert_eq(
+        [None, None], list(afilterfalse.asynq(filter_fn, [None, 1, None]).value())
+    )
 
 
 def test_asift():
@@ -92,7 +95,7 @@ def test_amap():
     assert_eq([False], list(amap(filter_fn, [None])))
     assert_eq([True], list(amap(filter_fn, [4])))
     assert_eq([], list(amap(filter_fn, [])))
-    assert_eq([False, True, False], list(amap(filter_fn, [None, '', None])))
+    assert_eq([False, True, False], list(amap(filter_fn, [None, "", None])))
 
 
 def test_asorted():
@@ -116,7 +119,7 @@ def test_amax():
     with AssertRaises(ValueError):
         amax([], key=filter_fn)
     with AssertRaises(TypeError):
-        amax([], key=filter_fn, random_keyword_argument='raising a TypeError')
+        amax([], key=filter_fn, random_keyword_argument="raising a TypeError")
 
 
 def test_amin():
@@ -133,7 +136,7 @@ def test_amin():
     with AssertRaises(ValueError):
         amin([], key=filter_fn)
     with AssertRaises(TypeError):
-        amin([], key=filter_fn, random_keyword_argument='raising a TypeError')
+        amin([], key=filter_fn, random_keyword_argument="raising a TypeError")
 
 
 class AsyncObject(object):
@@ -151,7 +154,7 @@ class AsyncObject(object):
     @acached_per_instance()
     @asynq()
     def with_kwargs(self, x=1, y=2, z=3):
-        self.value += (x + y + z)
+        self.value += x + y + z
         return self.value
 
     @acached_per_instance()
@@ -160,12 +163,14 @@ class AsyncObject(object):
         assert False
 
     if sys.version_info >= (3, 0):
-        exec("""
+        exec(
+            """
 @acached_per_instance()
 @asynq()
 def with_kwonly_arg(self, *, arg=1):
     return arg
-""")
+"""
+        )
 
     @deduplicate()
     @asynq()
@@ -180,7 +185,7 @@ def with_kwonly_arg(self, *, arg=1):
 
 
 class UnhashableAcached(AsyncObject):
-    __hash__ = None # type: ignore
+    __hash__ = None  # type: ignore
 
 
 def test_acached_per_instance():
@@ -333,23 +338,17 @@ class TestRetry(object):
             assert_is(retry_it, pickle.loads(pickled))
 
     def test_retry_passes_all_arguments(self):
-        function, fn_body = self.create_function(
-            AnyException, max_tries=2
-        )
+        function, fn_body = self.create_function(AnyException, max_tries=2)
         function(1, 2, foo=3)
         fn_body.assert_called_once_with(1, 2, foo=3)
 
     def test_retry_does_not_retry_on_no_exception(self):
-        function, fn_body = self.create_function(
-            AnyException, max_tries=3
-        )
+        function, fn_body = self.create_function(AnyException, max_tries=3)
         function()
         fn_body.assert_called_once_with()
 
     def test_retry_does_not_retry_on_unspecified_exception(self):
-        function, fn_body = self.create_function(
-            AnyException, max_tries=3
-        )
+        function, fn_body = self.create_function(AnyException, max_tries=3)
         fn_body.side_effect = AnyOtherException
 
         with AssertRaises(AnyOtherException):
@@ -359,9 +358,7 @@ class TestRetry(object):
 
     def test_retry_retries_on_provided_exception(self):
         max_tries = 4
-        function, fn_body = self.create_function(
-            AnyException, max_tries
-        )
+        function, fn_body = self.create_function(AnyException, max_tries)
         fn_body.side_effect = AnyException
 
         with AssertRaises(AnyException):
@@ -377,10 +374,7 @@ class TestRetry(object):
     def test_retry_can_take_multiple_exceptions(self):
         max_tries = 4
 
-        expected_exceptions = (
-            AnyException,
-            AnyOtherException
-        )
+        expected_exceptions = (AnyException, AnyOtherException)
 
         function, fn_body = self.create_function(expected_exceptions, max_tries)
         fn_body.side_effect = AnyException
@@ -429,6 +423,7 @@ def test_call_with_context():
     assert_state(False)
     call_with_context(Ctx(), assert_state, True)
 
+
 i = 0
 
 
@@ -443,8 +438,10 @@ def increment_value(val=1):
 @asynq()
 def recursive_incrementer(n):
     if n == 0:
-        result((yield increment_value.asynq(n))); return
-    result(recursive_incrementer(n - 1)); return
+        result((yield increment_value.asynq(n)))
+        return
+    result(recursive_incrementer(n - 1))
+    return
 
 
 @deduplicate()
@@ -458,7 +455,8 @@ def call_with_dirty():
 def recursive_call_with_dirty():
     global i
     if i > 0:
-        result(i); return
+        result(i)
+        return
     i += 1
     recursive_call_with_dirty.dirty()
     yield recursive_call_with_dirty.asynq()
@@ -486,12 +484,14 @@ def deduplicated_recusive():
 
 
 if sys.version_info >= (3, 0):
-    exec("""
+    exec(
+        """
 @deduplicate()
 @asynq()
 def call_with_kwonly_arg(*, arg):
     return arg
-""")
+"""
+    )
 
 
 def test_deduplicate():
@@ -514,8 +514,9 @@ def _check_deduplicate():
     yield obj.increment_value_method.asynq(), obj.increment_value_method.asynq(1)
     assert_eq(1, obj.value)
 
-    yield AsyncObject.deduplicated_static_method.asynq(), \
-        AsyncObject.deduplicated_static_method.asynq(1)
+    yield AsyncObject.deduplicated_static_method.asynq(), AsyncObject.deduplicated_static_method.asynq(
+        1
+    )
     assert_eq(1, AsyncObject.cls_value)
 
     i = 0
@@ -549,7 +550,8 @@ def test_async_timer():
 def _slow_task(t):
     yield None
     time.sleep(t)
-    result(0); return
+    result(0)
+    return
 
 
 @asynq()
@@ -557,14 +559,19 @@ def _timed_slow_task(t):
     with AsyncTimer() as timer:
         yield None
         time.sleep(t)
-    result(timer.total_time); return
+    result(timer.total_time)
+    return
 
 
 @asynq()
 def _check_async_timer():
     with AsyncTimer() as t:
-        results = yield [_slow_task.asynq(0.1), _timed_slow_task.asynq(0.1),
-                         _slow_task.asynq(0.1), _timed_slow_task.asynq(0.1)]
+        results = yield [
+            _slow_task.asynq(0.1),
+            _timed_slow_task.asynq(0.1),
+            _slow_task.asynq(0.1),
+            _timed_slow_task.asynq(0.1),
+        ]
         assert_eq(0, results[0])
         assert_eq(105000, results[1], tolerance=5000)
         assert_eq(0, results[0])
@@ -577,28 +584,30 @@ def _check_async_timer():
 
 def test_async_event_hook():
     calls = []
+
     @asynq()
     def handler1(*args):
         assert_gt(len(args), 0)
-        calls.append('handler1%s' % str(args))
+        calls.append("handler1%s" % str(args))
 
     def handler2(*args):
-        calls.append('handler2%s' % str(args))
+        calls.append("handler2%s" % str(args))
 
     hook = AsyncEventHook([handler1])
     hook.subscribe(handler2)
 
     # trigger
-    hook.trigger(1, 2, 'a')
-    assert_unordered_list_eq(['handler1(1, 2, \'a\')', 'handler2(1, 2, \'a\')'], calls)
+    hook.trigger(1, 2, "a")
+    assert_unordered_list_eq(["handler1(1, 2, 'a')", "handler2(1, 2, 'a')"], calls)
 
     calls = []
+
     @asynq()
     def async_trigger():
-        yield hook.trigger.asynq(2,3)
+        yield hook.trigger.asynq(2, 3)
 
     async_trigger()
-    assert_unordered_list_eq(['handler1(2, 3)', 'handler2(2, 3)'], calls)
+    assert_unordered_list_eq(["handler1(2, 3)", "handler2(2, 3)"], calls)
 
     # safe_trigger
     calls = []
@@ -606,7 +615,7 @@ def test_async_event_hook():
     # calling it with no args will raise AssertionError in handler1
     with AssertRaises(AssertionError):
         hook2.safe_trigger()
-    assert_eq(['handler2()'], calls)
+    assert_eq(["handler2()"], calls)
 
     # make sure that the order doesn't matter
     calls = []
@@ -614,25 +623,26 @@ def test_async_event_hook():
     # calling it with no args will raise AssertionError in handler1
     with AssertRaises(AssertionError):
         hook3.safe_trigger()
-    assert_eq(['handler2()'], calls)
+    assert_eq(["handler2()"], calls)
 
 
 class DeduplicateClassWrapper:
     @deduplicate()
     @asynq()
     def return_three(self):
-        result(3); return
+        result(3)
+        return
 
     @deduplicate()
     @asynq()
     def return_five(self):
-        result(5); return
+        result(5)
+        return
 
     @asynq()
     def return_three_and_five(self):
-        result((yield (
-            self.return_three.asynq(), self.return_five.asynq()
-        ))); return
+        result((yield (self.return_three.asynq(), self.return_five.asynq())))
+        return
 
 
 def test_deduplicate_same_class():

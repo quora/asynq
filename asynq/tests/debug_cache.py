@@ -19,6 +19,7 @@ from .caching import ExternalCacheBase, LocalCache
 
 # Caches
 
+
 class DebugExternalCache(ExternalCacheBase):
     def __init__(self, name):
         super(DebugExternalCache, self).__init__()
@@ -27,14 +28,14 @@ class DebugExternalCache(ExternalCacheBase):
         self.run_scheduler_before_flush = False
 
     def _flush(self, batch):
-        print('%s batch %i:' % (self.name, batch.index))
+        print("%s batch %i:" % (self.name, batch.index))
         for item in batch.items:
-            print('  %s' % str(item))
+            print("  %s" % str(item))
             if item.is_computed():
                 # Item can be computed due to task cancellation
                 continue
             try:
-                method = self.__getattribute__('_flush_' + item.operation)
+                method = self.__getattribute__("_flush_" + item.operation)
                 item.set_value(method(item, *item.args))
             except BaseException as e:
                 item.set_error(e)
@@ -42,7 +43,7 @@ class DebugExternalCache(ExternalCacheBase):
                 # see it by accessing the value
 
     def _cancel_flush(self, batch):
-        print('%s batch %i is cancelled.' % (self.name, batch.index))
+        print("%s batch %i is cancelled." % (self.name, batch.index))
 
     def _flush_get(self, item, key):
         value = self._remote.get(key)
@@ -59,17 +60,17 @@ class DebugExternalCache(ExternalCacheBase):
         return
 
 
-mc = DebugExternalCache('MC')
+mc = DebugExternalCache("MC")
 
 
 def reset_caches():
-    print('Cache reset:')
+    print("Cache reset:")
     mc.cancel_flush()
     mc.clear()
     flush_caches()
     reset_cache_batch_indexes()
-    print('Caches are clear.')
-    print('')
+    print("Caches are clear.")
+    print("")
 
 
 def reset_cache_batch_indexes():

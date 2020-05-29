@@ -48,9 +48,15 @@ from .futures import ConstFuture
 
 
 def patch(
-        target, new=mock.DEFAULT, spec=None, create=False,
-        mocksignature=False, spec_set=None, autospec=False,
-        new_callable=None, **kwargs
+    target,
+    new=mock.DEFAULT,
+    spec=None,
+    create=False,
+    mocksignature=False,
+    spec_set=None,
+    autospec=False,
+    new_callable=None,
+    **kwargs
 ):
     """Mocks an async function.
 
@@ -61,20 +67,43 @@ def patch(
     """
     getter, attribute = _get_target(target)
     return _make_patch_async(
-        getter, attribute, new, spec, create, mocksignature, spec_set, autospec, new_callable,
-        kwargs
+        getter,
+        attribute,
+        new,
+        spec,
+        create,
+        mocksignature,
+        spec_set,
+        autospec,
+        new_callable,
+        kwargs,
     )
 
 
 def _patch_object(
-        target, attribute, new=mock.DEFAULT, spec=None,
-        create=False, mocksignature=False, spec_set=None, autospec=False,
-        new_callable=None, **kwargs
+    target,
+    attribute,
+    new=mock.DEFAULT,
+    spec=None,
+    create=False,
+    mocksignature=False,
+    spec_set=None,
+    autospec=False,
+    new_callable=None,
+    **kwargs
 ):
     getter = lambda: target
     return _make_patch_async(
-        getter, attribute, new, spec, create, mocksignature, spec_set, autospec, new_callable,
-        kwargs
+        getter,
+        attribute,
+        new,
+        spec,
+        create,
+        mocksignature,
+        spec_set,
+        autospec,
+        new_callable,
+        kwargs,
     )
 
 
@@ -85,19 +114,45 @@ patch.TEST_PREFIX = mock.patch.TEST_PREFIX
 patch.stopall = mock.patch.stopall
 
 
-def _make_patch_async(getter, attribute, new, spec, create, mocksignature,
-                      spec_set, autospec, new_callable, kwargs):
+def _make_patch_async(
+    getter,
+    attribute,
+    new,
+    spec,
+    create,
+    mocksignature,
+    spec_set,
+    autospec,
+    new_callable,
+    kwargs,
+):
     new = _maybe_wrap_new(new)
 
     try:
         patch = _PatchAsync(
-            getter, attribute, new, spec, create, mocksignature,
-            spec_set, autospec, new_callable, kwargs
+            getter,
+            attribute,
+            new,
+            spec,
+            create,
+            mocksignature,
+            spec_set,
+            autospec,
+            new_callable,
+            kwargs,
         )
     except TypeError:
         # Python 3 doesn't have mocksignature
         patch = _PatchAsync(
-            getter, attribute, new, spec, create, spec_set, autospec, new_callable, kwargs
+            getter,
+            attribute,
+            new,
+            spec,
+            create,
+            spec_set,
+            autospec,
+            new_callable,
+            kwargs,
         )
     return patch
 
@@ -109,28 +164,40 @@ class _PatchAsync(_patch):
         if callable(mock_fn):
             async_fn = _AsyncWrapper(mock_fn)
             mock_fn.asynq = async_fn
-            setattr(mock_fn, 'async', async_fn)
+            setattr(mock_fn, "async", async_fn)
         return mock_fn
 
     start = __enter__
 
     def copy(self):
         """Identical to the superclass except that a _PatchAsync object is created."""
-        if hasattr(self, 'mocksignature'):  # Python 2
+        if hasattr(self, "mocksignature"):  # Python 2
             patcher = _PatchAsync(
-                self.getter, self.attribute, self.new, self.spec,
-                self.create, self.mocksignature, self.spec_set,
-                self.autospec, self.new_callable, self.kwargs
+                self.getter,
+                self.attribute,
+                self.new,
+                self.spec,
+                self.create,
+                self.mocksignature,
+                self.spec_set,
+                self.autospec,
+                self.new_callable,
+                self.kwargs,
             )
         else:
             patcher = _PatchAsync(
-                self.getter, self.attribute, self.new, self.spec,
-                self.create, self.spec_set, self.autospec, self.new_callable, self.kwargs
+                self.getter,
+                self.attribute,
+                self.new,
+                self.spec,
+                self.create,
+                self.spec_set,
+                self.autospec,
+                self.new_callable,
+                self.kwargs,
             )
         patcher.attribute_name = self.attribute_name
-        patcher.additional_patchers = [
-            p.copy() for p in self.additional_patchers
-        ]
+        patcher.additional_patchers = [p.copy() for p in self.additional_patchers]
         return patcher
 
 
@@ -142,21 +209,21 @@ class _AsyncWrapper(object):
     """
 
     def __init__(self, mock_fn):
-        object.__setattr__(self, '_mock_fn', mock_fn)
+        object.__setattr__(self, "_mock_fn", mock_fn)
 
     def __call__(self, *args, **kwargs):
         return ConstFuture(self._mock_fn(*args, **kwargs))
 
     def __setattr__(self, attr, value):
         raise TypeError(
-            'You cannot set attributes directly on a .asynq function. Set them on the '
-            'function itself instead.'
+            "You cannot set attributes directly on a .asynq function. Set them on the "
+            "function itself instead."
         )
 
     def __getattr__(self, attr):
         raise TypeError(
-            'You cannot read attributes directly on a .asynq function. Read them on the '
-            'function itself instead.'
+            "You cannot read attributes directly on a .asynq function. Read them on the "
+            "function itself instead."
         )
 
 
@@ -193,6 +260,7 @@ def _maybe_wrap_new(new):
         class Wrapper(object):
             def __call__(self, *args, **kwargs):
                 return new(*args, **kwargs)
+
         return Wrapper()
     else:
         return new

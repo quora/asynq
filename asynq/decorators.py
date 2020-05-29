@@ -32,6 +32,7 @@ def lazy(fn):
     arguments, that can be evaluated on demand later
 
     """
+
     @core_inspection.wraps(fn)
     def new_fn(*args, **kwargs):
         value_provider = lambda: fn(*args, **kwargs)
@@ -43,12 +44,12 @@ def lazy(fn):
 
 def has_async_fn(fn):
     """Returns true if fn can be called asynchronously."""
-    return hasattr(fn, 'async') or hasattr(fn, 'asynq')
+    return hasattr(fn, "async") or hasattr(fn, "asynq")
 
 
 def is_pure_async_fn(fn):
     """Returns true if fn is an @asynq(pure=True) or @async_proxy(pure=True) function."""
-    if hasattr(fn, 'is_pure_async_fn'):
+    if hasattr(fn, "is_pure_async_fn"):
         try:
             return fn.is_pure_async_fn()
         except (IndexError, TypeError):
@@ -56,7 +57,7 @@ def is_pure_async_fn(fn):
             # expected exception in this case, but with some versions of Cython IndexError is thrown
             # instead.
             return False
-    if hasattr(fn, 'fn'):
+    if hasattr(fn, "fn"):
         result = is_pure_async_fn(fn.fn)
         result_fn = core_helpers.true_fn if result else core_helpers.false_fn
         try:
@@ -69,18 +70,19 @@ def is_pure_async_fn(fn):
 
 def is_async_fn(fn):
     """Returns true if fn is an @asynq([pure=True]) or @async_proxy(pure=True) function."""
-    return hasattr(fn, 'asynq') or hasattr(fn, 'async') or is_pure_async_fn(fn)
+    return hasattr(fn, "asynq") or hasattr(fn, "async") or is_pure_async_fn(fn)
 
 
 def get_async_fn(fn, wrap_if_none=False):
     """Returns an async function for the specified source function."""
-    if hasattr(fn, 'asynq'):
+    if hasattr(fn, "asynq"):
         return fn.asynq
-    if hasattr(fn, 'async'):
-        return getattr(fn, 'async')
+    if hasattr(fn, "async"):
+        return getattr(fn, "async")
     if is_pure_async_fn(fn):
         return fn
     if wrap_if_none:
+
         def sync_to_async_fn_wrapper(*args, **kwargs):
             return futures.ConstFuture(fn(*args, **kwargs))
 
@@ -91,10 +93,10 @@ def get_async_fn(fn, wrap_if_none=False):
 
 def get_async_or_sync_fn(fn):
     """Returns an async function for the specified fn, if it exists; otherwise returns source."""
-    if hasattr(fn, 'asynq'):
+    if hasattr(fn, "asynq"):
         return fn.asynq
-    if hasattr(fn, 'async'):
-        return getattr(fn, 'async')
+    if hasattr(fn, "async"):
+        return getattr(fn, "async")
     return fn
 
 
@@ -113,13 +115,14 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase):
         self.kwargs = kwargs
 
     def name(self):
-        return '@asynq(pure=True)'
+        return "@asynq(pure=True)"
 
     def is_pure_async_fn(self):
         return True
 
     def _fn_wrapper(self, args, kwargs):
-        raise async_task.AsyncTaskResult(self.fn(*args, **kwargs)); return
+        raise async_task.AsyncTaskResult(self.fn(*args, **kwargs))
+        return
         yield
 
     def __call__(self, *args, **kwargs):
@@ -155,7 +158,7 @@ class AsyncDecorator(PureAsyncDecorator):
     async = asynq
 
     def name(self):
-        return '@asynq()'
+        return "@asynq()"
 
     def __call__(self, *args, **kwargs):
         return self._call_pure(args, kwargs).value()
@@ -225,20 +228,23 @@ def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
         assert sync_fn is None, "sync_fn is not supported for pure async functions"
 
     def decorate(fn):
-        assert not (is_pure_async_fn(fn) or has_async_fn(fn)), \
-            "@asynq() decorator can be applied just once"
+        assert not (
+            is_pure_async_fn(fn) or has_async_fn(fn)
+        ), "@asynq() decorator can be applied just once"
         if pure:
             return qcore.decorators.decorate(PureAsyncDecorator, cls, kwargs)(fn)
         elif sync_fn is None:
             return qcore.decorators.decorate(AsyncDecorator, cls)(fn)
         else:
-            return qcore.decorators.decorate(AsyncAndSyncPairDecorator, cls, sync_fn)(fn)
+            return qcore.decorators.decorate(AsyncAndSyncPairDecorator, cls, sync_fn)(
+                fn
+            )
 
     return decorate
 
 
 if sys.version_info <= (3, 7):
-    globals()['async'] = asynq
+    globals()["async"] = asynq
 
 
 def async_proxy(pure=False, sync_fn=None):
@@ -251,7 +257,9 @@ def async_proxy(pure=False, sync_fn=None):
         if sync_fn is None:
             return qcore.decorators.decorate(AsyncProxyDecorator)(fn)
         else:
-            return qcore.decorators.decorate(AsyncAndSyncPairProxyDecorator, sync_fn)(fn)
+            return qcore.decorators.decorate(AsyncAndSyncPairProxyDecorator, sync_fn)(
+                fn
+            )
 
     return decorate
 
@@ -267,16 +275,17 @@ def async_call(fn, *args, **kwargs):
     """
     if is_pure_async_fn(fn):
         return fn(*args, **kwargs)
-    elif hasattr(fn, 'asynq'):
+    elif hasattr(fn, "asynq"):
         return fn.asynq(*args, **kwargs)
-    elif hasattr(fn, 'async'):
-        return getattr(fn, 'async')(*args, **kwargs)
+    elif hasattr(fn, "async"):
+        return getattr(fn, "async")(*args, **kwargs)
     else:
         return futures.ConstFuture(fn(*args, **kwargs))
 
 
 class AsyncWrapper(qcore.decorators.DecoratorBase):
     """Implements make_async_decorator."""
+
     binder_cls = AsyncDecoratorBinder
 
     def __init__(self, fn, wrapper_fn, name):
@@ -285,7 +294,7 @@ class AsyncWrapper(qcore.decorators.DecoratorBase):
         self.function_name = name
 
     def name(self):
-        return '@%s()' % self.function_name
+        return "@%s()" % self.function_name
 
     def _call_async(self, args, kwargs):
         return self.wrapper_fn(*args, **kwargs)
@@ -311,9 +320,4 @@ def make_async_decorator(fn, wrapper_fn, name):
     - name: name of the decorator (used for introspection)
 
     """
-    return qcore.decorators.decorate(
-        AsyncWrapper,
-        wrapper_fn,
-        name,
-    )(fn)
-
+    return qcore.decorators.decorate(AsyncWrapper, wrapper_fn, name,)(fn)

@@ -37,23 +37,25 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T]):
     ) -> None: ...
     def name(self) -> str: ...
     def is_pure_async_fn(self) -> bool: ...
-    def __call__(self, *args: Any, **kwargs: Any) -> Union[_T, futures.FutureBase[_T]]: ...
-    def __get__(self, owner: Any, cls: Any) -> PureAsyncDecorator[_T]: ... # type: ignore
+    def __call__(
+        self, *args: Any, **kwargs: Any
+    ) -> Union[_T, futures.FutureBase[_T]]: ...
+    def __get__(self, owner: Any, cls: Any) -> PureAsyncDecorator[_T]: ...  # type: ignore
 
 class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder, Generic[_T]):
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
 
 class AsyncDecorator(PureAsyncDecorator[_T]):
-    binder_cls = AsyncDecoratorBinder # type: ignore
+    binder_cls = AsyncDecoratorBinder  # type: ignore
     def is_pure_async_fn(self) -> bool: ...
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
-    def __get__(self, owner: Any, cls: Any) -> AsyncDecorator[_T]: ... # type: ignore
+    def __get__(self, owner: Any, cls: Any) -> AsyncDecorator[_T]: ...  # type: ignore
 
 class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder[_T]): ...
 
 class AsyncAndSyncPairDecorator(AsyncDecorator[_T]):
-    binder_cls = AsyncAndSyncPairDecoratorBinder # type: ignore
+    binder_cls = AsyncAndSyncPairDecoratorBinder  # type: ignore
     def __init__(
         self,
         fn: Callable[..., futures.FutureBase[_T]],
@@ -81,7 +83,7 @@ class _MkPureAsyncDecorator:
 
 # In reality these two can return other Decorator subclasses, but that doesn't matter for callers.
 @overload
-def asynq( # type: ignore
+def asynq(  # type: ignore
     *,
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
@@ -93,7 +95,7 @@ def asynq(
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
     **kwargs: Any
-) -> _MkPureAsyncDecorator: ... # type: ignore
+) -> _MkPureAsyncDecorator: ...  # type: ignore
 @overload
 def async_proxy(
     *, sync_fn: Optional[Callable[..., Any]] = ...

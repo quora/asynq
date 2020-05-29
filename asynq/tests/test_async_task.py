@@ -25,7 +25,8 @@ def check_unwrap(expected, to_unwrap):
     @asynq()
     def caller():
         value = yield to_unwrap
-        assert_eq(expected, value, extra='yielded {}'.format(to_unwrap))
+        assert_eq(expected, value, extra="yielded {}".format(to_unwrap))
+
     caller()
 
 
@@ -37,7 +38,9 @@ def test_unwrap():
         check_unwrap(typ(), typ())
         check_unwrap(typ([1]), typ([ConstFuture(1)]))
         check_unwrap(typ([1, 2]), typ([ConstFuture(1), ConstFuture(2)]))
-        check_unwrap(typ([1, 2, 3]), typ([ConstFuture(1), ConstFuture(2), ConstFuture(3)]))
+        check_unwrap(
+            typ([1, 2, 3]), typ([ConstFuture(1), ConstFuture(2), ConstFuture(3)])
+        )
 
     with AssertRaises(TypeError):
         check_unwrap(1)
@@ -63,6 +66,7 @@ def test_context_nesting():
     This should be true even when two contexts are __eq__ to one another.
 
     """
+
     @asynq()
     def fn():
         task = scheduler.get_active_task()
@@ -81,6 +85,7 @@ def test_context_nesting():
 
 def test_clear_dependencies():
     """Ensure that we the list of dependencies won't continue growing for a long-running task."""
+
     @asynq()
     def inner_fn():
         return None

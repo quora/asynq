@@ -58,7 +58,9 @@ def alru_cache(
     maxsize: int = ..., key_fn: Optional[Callable[..., Any]] = ...
 ) -> _AsyncWrapper: ...
 def alazy_constant(ttl: int = ...) -> Callable[..., Any]: ...
-def aretry(exception_cls: type, max_tries: int = ..., sleep: float = ...) -> Callable[..., Any] : ...
+def aretry(
+    exception_cls: type, max_tries: int = ..., sleep: float = ...
+) -> Callable[..., Any]: ...
 @asynq()
 def call_with_context(
     context: ContextManager[Any], fn: Callable[..., _T], *args: Any, **kwargs: Any
@@ -72,6 +74,6 @@ class AsyncTimer(AsyncContext):
 
 class AsyncEventHook(EventHook):
     @asynq()
-    def trigger(self, *args: Any) -> None: ... # type: ignore
+    def trigger(self, *args: Any) -> None: ...  # type: ignore
     @asynq()
-    def safe_trigger(self, *args: Any) -> None: ... # type: ignore
+    def safe_trigger(self, *args: Any) -> None: ...  # type: ignore

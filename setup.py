@@ -22,69 +22,66 @@ import sys
 
 
 CYTHON_MODULES = [
-    'async_task',
-    'batching',
-    'contexts',
-    '_debug',
-    'decorators',
-    'futures',
-    'profiler',
-    'scheduler',
-    'scoped_value',
-    'utils',
+    "async_task",
+    "batching",
+    "contexts",
+    "_debug",
+    "decorators",
+    "futures",
+    "profiler",
+    "scheduler",
+    "scoped_value",
+    "utils",
 ]
 
 
 DATA_FILES = (
-    ['py.typed'] +
-    ['%s.pxd' % module for module in CYTHON_MODULES] +
-    [os.path.relpath(f, 'asynq/') for f in glob.glob('asynq/*.pyi')]
+    ["py.typed"]
+    + ["%s.pxd" % module for module in CYTHON_MODULES]
+    + [os.path.relpath(f, "asynq/") for f in glob.glob("asynq/*.pyi")]
 )
 
-VERSION = '1.2.0'
+VERSION = "1.2.0"
 
 
 EXTENSIONS = [
-    Extension(
-        'asynq.%s' % module,
-        ['asynq/%s.py' % module]
-    ) for module in CYTHON_MODULES
+    Extension("asynq.%s" % module, ["asynq/%s.py" % module])
+    for module in CYTHON_MODULES
 ]
 
 
-if __name__ == '__main__':
-    with codecs.open('./README.rst', encoding='utf-8') as f:
+if __name__ == "__main__":
+    with codecs.open("./README.rst", encoding="utf-8") as f:
         long_description = f.read()
 
     setup(
-        name='asynq',
+        name="asynq",
         version=VERSION,
-        author='Quora, Inc.',
-        author_email='asynq@quora.com',
-        description='Quora\'s asynq library',
+        author="Quora, Inc.",
+        author_email="asynq@quora.com",
+        description="Quora's asynq library",
         long_description=long_description,
-        url='https://github.com/quora/asynq',
-        license='Apache Software License',
+        url="https://github.com/quora/asynq",
+        license="Apache Software License",
         classifiers=[
-            'License :: OSI Approved :: Apache Software License',
-
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3.5',
-            'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
         ],
-        keywords='quora asynq common utility',
-        packages=['asynq', 'asynq.tests'],
-        package_data={'asynq': DATA_FILES},
+        keywords="quora asynq common utility",
+        packages=["asynq", "asynq.tests"],
+        package_data={"asynq": DATA_FILES},
         ext_modules=EXTENSIONS,
-        setup_requires=['Cython>=0.27.1', 'qcore', 'setuptools'],
+        setup_requires=["Cython>=0.27.1", "qcore", "setuptools"],
         install_requires=[
-            'Cython>=0.27.1',
-            'qcore',
-            'inspect2',
+            "Cython>=0.27.1",
+            "qcore",
+            "inspect2",
             'mock; python_version < "3.3"',
-            'pygments',
+            "pygments",
         ],
     )

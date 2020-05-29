@@ -14,7 +14,13 @@
 
 from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
 from asynq import asynq, async_proxy, is_pure_async_fn, result, async_call, ConstFuture
-from asynq.decorators import lazy, get_async_fn, get_async_or_sync_fn, make_async_decorator, AsyncDecorator
+from asynq.decorators import (
+    lazy,
+    get_async_fn,
+    get_async_or_sync_fn,
+    make_async_decorator,
+    AsyncDecorator,
+)
 import pickle
 
 
@@ -22,8 +28,10 @@ def double_return_value(fun):
     @asynq(pure=True)
     def wrapper_fn(*args, **kwargs):
         value = yield fun.asynq(*args, **kwargs)
-        result(value * 2); return
-    return make_async_decorator(fun, wrapper_fn, 'double_return_value')
+        result(value * 2)
+        return
+
+    return make_async_decorator(fun, wrapper_fn, "double_return_value")
 
 
 @double_return_value
@@ -49,7 +57,8 @@ class MyClass(object):
         cls, proxied = yield self.async_proxy_classmethod.asynq(number)
         assert cls is MyClass
         assert proxied == number
-        result(self); return
+        result(self)
+        return
 
     @async_proxy()
     @classmethod
@@ -59,61 +68,66 @@ class MyClass(object):
     @asynq()
     @classmethod
     def get_cls_and_args(cls, number):
-        print('get_cls_and_args')
+        print("get_cls_and_args")
         assert cls.get_cls_ac() is cls
         assert (yield cls.get_cls_ac.asynq()) is cls
         assert cls.get_cls().value() is cls
         assert (yield cls.get_cls()) is cls
-        result((cls, number)); return
+        result((cls, number))
+        return
 
     @asynq()
     @classmethod
     def get_cls_ac(cls):
-        print('get_cls_ac')
-        result(cls); return
+        print("get_cls_ac")
+        result(cls)
+        return
 
     @asynq(pure=True)
     @classmethod
     def get_cls(cls):
-        print('get_cls')
-        result(cls); return
+        print("get_cls")
+        result(cls)
+        return
 
     @asynq()
     @staticmethod
     def static_ac(number):
-        print('static_ac')
-        result(number); return
+        print("static_ac")
+        result(number)
+        return
 
     @staticmethod
     @asynq(pure=True)
     def static(number):
-        print('static')
-        result(number); return
+        print("static")
+        result(number)
+        return
 
     @staticmethod
     def sync_staticmethod():
-        return 'sync_staticmethod'
+        return "sync_staticmethod"
 
     @asynq(sync_fn=sync_staticmethod)
     @staticmethod
     def async_staticmethod():
-        return 'async_staticmethod'
+        return "async_staticmethod"
 
     @classmethod
     def sync_classmethod(cls):
-        return 'sync_classmethod'
+        return "sync_classmethod"
 
     @asynq(sync_fn=sync_classmethod)
     @classmethod
     def async_classmethod(cls):
-        return 'async_classmethod'
+        return "async_classmethod"
 
     def sync_method(self):
-        return 'sync_method'
+        return "sync_method"
 
     @asynq(sync_fn=sync_method)
     def async_method(self):
-        return 'async_method'
+        return "async_method"
 
     @double_return_value
     @asynq()
@@ -123,26 +137,26 @@ class MyClass(object):
 
 
 def sync_fn():
-    return 'sync_fn'
+    return "sync_fn"
 
 
 @asynq(sync_fn=sync_fn)
 def async_fn():
-    return 'async_fn'
+    return "async_fn"
 
 
 @asynq(pure=True)
 def pure_async_fn():
-    return 'pure_async_fn'
+    return "pure_async_fn"
 
 
 def sync_proxied_fn():
-    return 'sync_proxied_fn'
+    return "sync_proxied_fn"
 
 
 @async_proxy(sync_fn=sync_proxied_fn)
 def async_proxied_fn():
-    return ConstFuture('async_proxied_fn')
+    return ConstFuture("async_proxied_fn")
 
 
 @lazy
@@ -162,7 +176,7 @@ class DisallowSetting(object):
         return False
 
     def __setattr__(self, attr, value):
-        raise AttributeError('cannot set attribute %s' % attr)
+        raise AttributeError("cannot set attribute %s" % attr)
 
 
 def test_is_pure_async_fn():
@@ -185,7 +199,7 @@ def test_get_async_fn():
     assert is_pure_async_fn(wrapper)
     result = wrapper()
     assert_is_instance(result, ConstFuture)
-    assert_eq('sync_fn', result.value())
+    assert_eq("sync_fn", result.value())
 
 
 def test_get_async_or_sync_fn():
@@ -194,14 +208,15 @@ def test_get_async_or_sync_fn():
 
 
 def test_async_proxy():
-    assert_eq('sync_proxied_fn', sync_proxied_fn())
-    assert_eq('sync_proxied_fn', async_proxied_fn())
+    assert_eq("sync_proxied_fn", sync_proxied_fn())
+    assert_eq("sync_proxied_fn", async_proxied_fn())
 
     result = async_proxied_fn.asynq()
     assert_is_instance(result, ConstFuture)
-    assert_eq('async_proxied_fn', result.value())
+    assert_eq("async_proxied_fn", result.value())
 
     with AssertRaises(AssertionError):
+
         @async_proxy(pure=True, sync_fn=sync_proxied_fn)
         def this_doesnt_make_sense():
             pass
@@ -213,25 +228,25 @@ def test():
 
 
 def test_staticmethod_sync_fn():
-    assert_eq('sync_staticmethod', MyClass.async_staticmethod())
-    assert_eq('async_staticmethod', MyClass.async_staticmethod.asynq().value())
+    assert_eq("sync_staticmethod", MyClass.async_staticmethod())
+    assert_eq("async_staticmethod", MyClass.async_staticmethod.asynq().value())
 
 
 def test_classmethod_sync_fn():
-    assert_eq('async_classmethod', MyClass.async_classmethod.asynq().value())
-    assert_eq('sync_classmethod', MyClass.async_classmethod())
+    assert_eq("async_classmethod", MyClass.async_classmethod.asynq().value())
+    assert_eq("sync_classmethod", MyClass.async_classmethod())
 
 
 def test_method_sync_fn():
     instance = MyClass()
-    assert_eq('sync_method', instance.async_method())
-    assert_eq('async_method', instance.async_method.asynq().value())
+    assert_eq("sync_method", instance.async_method())
+    assert_eq("async_method", instance.async_method.asynq().value())
 
 
 def test_pickling():
     pickled = pickle.dumps(async_fn)
     unpickled = pickle.loads(pickled)
-    assert_eq('sync_fn', unpickled())
+    assert_eq("sync_fn", unpickled())
 
 
 def test_async_call():
@@ -259,4 +274,4 @@ def test_make_async_decorator():
     assert_eq(18, MyClass.square.asynq(3).value())
 
     assert not is_pure_async_fn(square)
-    assert_eq('@double_return_value()', square.name())
+    assert_eq("@double_return_value()", square.name())

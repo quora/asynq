@@ -14,14 +14,14 @@
 
 from asynq import asynq, Future, scheduler
 
-values = {} # type: ignore
+values = {}  # type: ignore
 
 
 @asynq(pure=True)
 def get(key):
     global values
     value = values.get(key)
-    print('Get %s -> %s' % (str(key), str(value)))
+    print("Get %s -> %s" % (str(key), str(value)))
     return value
 
 
@@ -29,7 +29,7 @@ def get(key):
 def set(key, value):
     global values
     values[key] = value
-    print('Set %s <- %s' % (str(key), str(value)))
+    print("Set %s <- %s" % (str(key), str(value)))
 
 
 @asynq(pure=True)
@@ -43,7 +43,7 @@ def get_and_set(key_from, key_to, depends_on):
 def order_test():
     global values
     values = {}
-    prev_task = set(0, 'value')
+    prev_task = set(0, "value")
     tasks = []
     for i in range(0, 10):
         task = get_and_set(i, i + 1, prev_task)  # No need to yield!
@@ -58,6 +58,7 @@ def order_test():
     # Nothing happens here
     yield None
     assert len(values) == 11  # Done at this point
+
 
 def test():
     order_test()()

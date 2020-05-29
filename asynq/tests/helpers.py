@@ -21,9 +21,9 @@ class Profiler(object):
         self.diff = 0
 
     def __enter__(self):
-        print('Entering %s:' % self.label)
+        print("Entering %s:" % self.label)
         self.start = time.time()
 
     def __exit__(self, type, value, traceback):
         self.diff = time.time() - self.start
-        print('{0} took {1:.3f}s'.format(self.label, self.diff))
+        print("{0} took {1:.3f}s".format(self.label, self.diff))

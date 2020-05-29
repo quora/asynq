@@ -26,9 +26,9 @@ from . import batching
 from . import _debug
 from .async_task import AsyncTask
 
-assert str(__name__).endswith('asynq.scheduler') \
-    or str(__name__).endswith('asynq.lib64.scheduler'), \
-    "Are you importing asynq from the wrong directory?"
+assert str(__name__).endswith("asynq.scheduler") or str(__name__).endswith(
+    "asynq.lib64.scheduler"
+), "Are you importing asynq from the wrong directory?"
 
 _debug_options = _debug.options
 _futures_none = futures._none
@@ -47,12 +47,12 @@ class TaskScheduler(object):
         self.on_after_batch_flush = core_events.EventHook()
         thread = threading.current_thread()
         thread_name = thread.name if thread.name else str(thread.ident)
-        if '_state' in globals():
+        if "_state" in globals():
             _state.last_id += 1
             _id = _state.last_id
         else:
             _id = 0
-        self.name = '%s / %d' % (thread_name, _id)
+        self.name = "%s / %d" % (thread_name, _id)
         self.reset()
 
     def reset(self):
@@ -93,7 +93,9 @@ class TaskScheduler(object):
             if len(self._tasks) > _debug_options.MAX_TASK_STACK_SIZE:
                 self.reset()
                 debug.dump(self)
-                raise RuntimeError('Number of scheduled tasks exceeded maximum threshold.')
+                raise RuntimeError(
+                    "Number of scheduled tasks exceeded maximum threshold."
+                )
 
             # _tasks is a stack, so take the last one.
             task = self._tasks[-1]
@@ -116,10 +118,12 @@ class TaskScheduler(object):
     def _schedule_batch(self, batch):
         if batch.is_flushed():
             if _debug_options.DUMP_SCHEDULE_BATCH:
-                debug.write("@async: can't schedule flushed batch %s" % debug.str(batch))
+                debug.write(
+                    "@async: can't schedule flushed batch %s" % debug.str(batch)
+                )
             return False
         if _debug_options.DUMP_SCHEDULE_BATCH and batch not in self._batches:
-            debug.write('@async: scheduling batch %s' % debug.str(batch))
+            debug.write("@async: scheduling batch %s" % debug.str(batch))
         self._batches.add(batch)
         return True
 
@@ -149,7 +153,7 @@ class TaskScheduler(object):
                 # we add the dependencies to the task stack (since some of the batch items
                 # in the subtree might have been flushed)
                 if _debug_options.DUMP_CONTINUE_TASK:
-                    debug.write('@async: skipping %s' % debug.str(task))
+                    debug.write("@async: skipping %s" % debug.str(task))
                 task._dependencies_scheduled = False
                 task._pause_contexts()
                 self._tasks.pop()
@@ -161,13 +165,17 @@ class TaskScheduler(object):
                 for dependency in task._dependencies:
                     if not dependency.is_computed():
                         if _debug_options.DUMP_SCHEDULE_TASK:
-                            debug.write('@async: scheduling task %s' % debug.str(dependency))
+                            debug.write(
+                                "@async: scheduling task %s" % debug.str(dependency)
+                            )
                         if _debug_options.DUMP_DEPENDENCIES:
-                            debug.write('@async: +dependency: %s needs %s' % (debug.str(task), debug.str(dependency)))
+                            debug.write(
+                                "@async: +dependency: %s needs %s"
+                                % (debug.str(task), debug.str(dependency))
+                            )
                         self._tasks.append(dependency)
         else:
             self._continue_with_task(task)
-
 
     def _continue_with_task(self, task):
         task._resume_contexts()
@@ -175,7 +183,7 @@ class TaskScheduler(object):
         self.active_task = task
 
         if _debug_options.DUMP_CONTINUE_TASK:
-            debug.write('@async: -> continuing %s' % debug.str(task))
+            debug.write("@async: -> continuing %s" % debug.str(task))
         if _debug_options.COLLECT_PERF_STATS:
             start = utime()
             task._continue()
@@ -185,7 +193,7 @@ class TaskScheduler(object):
         else:
             task._continue()
         if _debug_options.DUMP_CONTINUE_TASK:
-            debug.write('@async: <- continued %s' % debug.str(task))
+            debug.write("@async: <- continued %s" % debug.str(task))
 
         self.active_task = old_task
         # We get a new set of dependencies when we run _continue, so these haven't
@@ -205,7 +213,7 @@ class TaskScheduler(object):
         batch = self._select_batch_to_flush()
         if batch is None:
             if _debug_options.DUMP_FLUSH_BATCH:
-                debug.write('@async: no batch to flush')
+                debug.write("@async: no batch to flush")
             else:
                 return None
         self._batches.remove(batch)
@@ -244,8 +252,13 @@ class TaskScheduler(object):
         return best_batch
 
     def __str__(self):
-        return '%s %s (%d tasks, %d batches; active task: %s)' % \
-            (type(self), repr(self.name), len(self._tasks), len(self._batches), str(self.active_task))
+        return "%s %s (%d tasks, %d batches; active task: %s)" % (
+            type(self),
+            repr(self.name),
+            len(self._tasks),
+            len(self._batches),
+            str(self.active_task),
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -253,30 +266,37 @@ class TaskScheduler(object):
     def dump(self, indent=0):
         debug.write(debug.str(self), indent)
         if self._tasks:
-            debug.write('Task queue:', indent + 1)
+            debug.write("Task queue:", indent + 1)
             for task in self._tasks:
                 task.dump(indent + 2)
         else:
-            debug.write('No tasks in task queue.', indent + 1)
+            debug.write("No tasks in task queue.", indent + 1)
         if self._batches:
-            debug.write('Batches:', indent + 1)
+            debug.write("Batches:", indent + 1)
             for batch in self._batches:
                 batch.dump(indent + 2)
 
     def try_time_based_dump(self, last_task=None):
         current_time = time.time()
-        if (current_time - self._last_dump_time) < _debug_options.SCHEDULER_STATE_DUMP_INTERVAL:
+        if (
+            current_time - self._last_dump_time
+        ) < _debug_options.SCHEDULER_STATE_DUMP_INTERVAL:
             return
         self._last_dump_time = current_time
-        debug.write('\n--- Scheduler state dump: --------------------------------------------')
+        debug.write(
+            "\n--- Scheduler state dump: --------------------------------------------"
+        )
         try:
             self.dump()
             if last_task is not None:
-                debug.write('Last task: %s' % debug.str(last_task), 1)
+                debug.write("Last task: %s" % debug.str(last_task), 1)
         finally:
-            debug.write('----------------------------------------------------------------------\n')
+            debug.write(
+                "----------------------------------------------------------------------\n"
+            )
             stdout.flush()
             stderr.flush()
+
 
 class LocalTaskSchedulerState(threading.local):
     def __init__(self):
@@ -286,16 +306,19 @@ class LocalTaskSchedulerState(threading.local):
     def reset(self):
         self.current = TaskScheduler()
 
+
 _state = LocalTaskSchedulerState()
-globals()['_state'] = _state
+globals()["_state"] = _state
 
 
 def get_scheduler():
     global _state
     return _state.current
 
+
 def reset():
     _state.reset()
+
 
 def get_active_task():
     global _state

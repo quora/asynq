@@ -13,13 +13,19 @@
 # limitations under the License.
 
 from asynq import AsyncTask, asynq
-from asynq.generator import END_OF_GENERATOR, async_generator, list_of_generator, take_first, Value
+from asynq.generator import (
+    END_OF_GENERATOR,
+    async_generator,
+    list_of_generator,
+    take_first,
+    Value,
+)
 from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
 
 
 def test_value():
-    val = Value('value')
-    assert_eq('value', val.value)
+    val = Value("value")
+    assert_eq("value", val.value)
     assert_eq("<Value: 'value'>", repr(val))
 
 

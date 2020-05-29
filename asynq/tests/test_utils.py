@@ -15,10 +15,9 @@
 from asynq import result, ConstFuture, AsyncTaskResult
 from qcore.asserts import AssertRaises
 
+
 def test_result():
     with AssertRaises(AssertionError):
         result(ConstFuture(None))
     with AssertRaises(AsyncTaskResult):
         result(None)
-
-
