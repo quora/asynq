@@ -32,8 +32,8 @@ Converted to use ``asynq``, this code would look like:
 
     @asynq()
     def all_author_names(aids):
-        uids = yield [author_of_answer.async(aid) for aid in aids]
-        names = yield [name_of_user.async(uid) for uid in uids]
+        uids = yield [author_of_answer.asynq(aid) for aid in aids]
+        names = yield [name_of_user.asynq(uid) for uid in uids]
         result(names); return
 
 All ``author_of_answer`` calls will be combined into a single memcache request, as will all of the
@@ -50,7 +50,7 @@ their value if necessary and then returns it.
 The following are the most important Future classes used in ``asynq``:
 
 - ``AsyncTask``, a Future representing the execution of an asynchronous function (see below).
-  Normally created by calling ``.async()`` on an asynchronous function.
+  Normally created by calling ``.asynq()`` on an asynchronous function.
 - ``ConstFuture``, a Future whose value is known at creation time. This is useful when you need
   to pass a Future somewhere, but no computation is actually needed.
 - ``BatchBase`` and ``BatchItemBase``, the building blocks for doing batching. See below for
@@ -73,7 +73,7 @@ support returning a value from a generator.
 
 The framework requires usage of the ``@asynq()`` decorator on all asynchronous functions. This
 decorator wraps the generator function so that it can be called like a normal, synchronous function.
-It also creates a ``.async`` attribute on the function that allows calling the function
+It also creates a ``.asynq`` attribute on the function that allows calling the function
 asynchronously. Calling this attribute will return an ``AsyncTask`` object corresponding to the
 function.
 
@@ -87,11 +87,11 @@ and asynchronously like this:
 
 .. code-block:: python
 
-    result = yield async_fn.async(a, b)
+    result = yield async_fn.asynq(a, b)
 
-Calling ``async_fn.async(a, b).value()`` has the same result as ``async_fn(a, b)``.
+Calling ``async_fn.asynq(a, b).value()`` has the same result as ``async_fn(a, b)``.
 
-The decorator has a ``pure=True`` option that disables the ``.async`` attribute and instead makes
+The decorator has a ``pure=True`` option that disables the ``.asynq`` attribute and instead makes
 the function itself asynchronous, so that calling it returns an ``AsyncTask``. We recommend to use
 this option only in special cases like decorators for asynchronous functions.
 
@@ -106,7 +106,7 @@ and calls it accordingly:
     def async_call(fn, *args, **kwargs):
         if is_async_fn(fn):
             # Returns an AsyncTask
-            return fn.async(*args, **kwargs)
+            return fn.asynq(*args, **kwargs)
         return ConstFuture(fn(*args, **kwargs))
 
 Batching
@@ -139,16 +139,16 @@ can schedule tasks in arbitrary order. For example, consider the following code:
 
     @asynq()
     def show_warning():
-        yield do_something_that_creates_a_warning.async()
+        yield do_something_that_creates_a_warning.asynq()
 
     @asynq()
     def suppress_warning():
         with warnings.catch_warnings():
-            yield show_warning.async()
+            yield show_warning.asynq()
 
     @asynq()
     def caller():
-        yield show_warning.async(), suppress_warning.async()
+        yield show_warning.asynq(), suppress_warning.asynq()
 
 This code should show only one warning, because only the second call to ``show_warning`` is within
 a ``catch_warnings()`` context, but depending on how the scheduler happens to execute these
@@ -199,7 +199,7 @@ of these are in the ``asynq.tools`` module. These tools include:
   function.
 - The ``asynq.mock`` module is an enhancement to the standard ``mock`` module that makes it
   painless to mock asynchronous functions. Without this module, mocking any asynchronous function
-  will often also require mocking its ``.async`` attribute. We recommend using ``asynq.mock.patch``
+  will often also require mocking its ``.asynq`` attribute. We recommend using ``asynq.mock.patch``
   for all mocking in projects that use ``asynq``.
 - The ``asynq.generator`` module provides an experimental implementation of asynchronous
   generators, which can produce a sequence of values while also using ``asynq``'s batching support.
@@ -209,8 +209,9 @@ Compatibility
 
 ``asynq`` runs on Python 2.7 and Python 3.
 
-To support Python 3.7, in which ``async`` will be a full keyword, the ``@async()`` decorator and
-``.async`` attribute are aliased to ``@asynq()`` and ``.asynq``.
+Previous versions of ``asynq`` used the name ``async`` for the ``@asynq()`` decorator and the
+``.asynq`` attribute. Because ``async`` is a keyword in recent versions of Python 3, we now use
+the spelling ``asynq`` in both places. ``asynq`` version 1.3.0 drops support for the old spelling.
 
 Contributors
 ------------
