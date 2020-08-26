@@ -26,7 +26,7 @@ script:
 - python -m nose asynq
 - if [[ "$PYVER" != "cp27-cp27m" ]]; then pip install mypy==0.770; fi # mypy requires python 3.5+
 - if [[ "$PYVER" != "cp27-cp27m" ]]; then mypy asynq; fi
-- if [[ "$PYVER" = "cp38-cp38" ]]; then pip install black==19.10b0; fi
+- if [[ "$PYVER" = "cp38-cp38" ]]; then pip install black==20.8b0; fi
 - if [[ "$PYVER" = "cp38-cp38" ]]; then black --check asynq setup.py; fi
 - docker run --rm -e PYVER -v `pwd`:/io $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
 - ls wheelhouse/
