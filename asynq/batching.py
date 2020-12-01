@@ -113,7 +113,6 @@ class BatchBase(futures.FutureBase):
         except BaseException as error:
             if not self.is_computed():
                 self.set_error(error)
-            raise  # Must re-throw to properly implement FutureBase API
 
     def _computed(self):
         # The purpose of this overridden method is to ensure that
