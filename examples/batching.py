@@ -21,11 +21,11 @@ Requires the python-memcached library to be installed.
 """
 
 from asynq import asynq, async_proxy, BatchBase, BatchItemBase, result
-import core
+import qcore
 import itertools
 import memcache
 
-MISS = core.MarkerObject(u'miss')
+MISS = qcore.MarkerObject(u'miss')
 
 
 class Client(object):
