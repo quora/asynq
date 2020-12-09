@@ -1,6 +1,7 @@
 from .contexts import AsyncContext
 from asynq import asynq, async_proxy
 
+from qcore import Utime
 from qcore.events import EventHook
 from typing import (
     Any,
@@ -68,6 +69,8 @@ def call_with_context(
 def deduplicate(keygetter: Optional[Callable[..., Any]] = ...) -> _AsyncWrapper: ...
 
 class AsyncTimer(AsyncContext):
+    total_time: Utime
+
     def __init__(self) -> None: ...
     def resume(self) -> None: ...
     def pause(self) -> None: ...
