@@ -1,13 +1,15 @@
 import threading
-from typing import Any, List, Optional, Tuple
+from typing import Any, Generic, List, Optional, Tuple, TypeVar
 
 from . import futures
+
+_T = TypeVar("_T", bound=BatchItemBase)
 
 class BatchingError(Exception): ...
 class BatchCancelledError(BatchingError): ...
 
-class BatchBase(futures.FutureBase):
-    items: List[BatchItemBase]
+class BatchBase(futures.FutureBase, Generic[_T]):
+    items: List[_T]
     def __init__(self) -> None: ...
     def is_flushed(self) -> bool: ...
     def is_cancelled(self) -> bool: ...
@@ -20,7 +22,7 @@ class BatchBase(futures.FutureBase):
 class BatchItemBase(futures.FutureBase):
     batch: BatchBase
     index: int
-    def __init__(self, batch: BatchBase) -> None: ...
+    def __init__(self: _T, batch: BatchBase[_T]) -> None: ...
 
 class DebugBatchItem(BatchItemBase):
     def __init__(self, batch_name: str = ..., result: Any = ...) -> None: ...
