@@ -167,8 +167,6 @@ class _PatchAsync(_patch):
             setattr(mock_fn, "async", async_fn)
         return mock_fn
 
-    start = __enter__
-
     def copy(self):
         """Identical to the superclass except that a _PatchAsync object is created."""
         if hasattr(self, "mocksignature"):  # Python 2
