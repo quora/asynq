@@ -216,6 +216,17 @@ def test_maybe_wrap_new():
         assert_eq("capybara", fn)
 
 
+def test_start_stop():
+    original_fn = fn
+    new_fn = asynq.asynq()(lambda: 42)
+    patch = asynq.mock.patch("asynq.tests.test_mock.fn", new_fn)
+    assert_is(original_fn, asynq.tests.test_mock.fn)
+    patch.start()
+    assert_is(new_fn, asynq.tests.test_mock.fn)
+    patch.stop()
+    assert_is(original_fn, asynq.tests.test_mock.fn)
+
+
 class TestPatchMethodWithMethod(object):
     def setup(self):
         self.calls = []
