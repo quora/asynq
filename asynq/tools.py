@@ -228,7 +228,7 @@ def acached_per_instance():
 def alru_cache(maxsize=128, key_fn=None):
     """Async equivalent of qcore.caching.lru_cache().
 
-    maxsize is the number of different keys cache can accomodate.
+    maxsize is the number of different keys cache can accommodate.
     key_fn is the function that builds key from args. The default key function
     creates a tuple out of args and kwargs. If you use the default it acts the same
     as functools.lru_cache (except with async).
