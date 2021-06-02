@@ -20,7 +20,7 @@ from qcore.asserts import assert_is
 def outer_async():
     """Test that we get the correct active task from the scheduler.
 
-    Even when the execution of one task gets interrupted by a synchonous call to another async
+    Even when the execution of one task gets interrupted by a synchronous call to another async
     function, the scheduler retains the correct active task.
 
     """

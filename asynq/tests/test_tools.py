@@ -648,5 +648,5 @@ class DeduplicateClassWrapper:
 def test_deduplicate_same_class():
     obj = DeduplicateClassWrapper()
 
-    # make sure the five method has a seperate key and therefore there was no cache mixup
+    # make sure the five method has a separate key and therefore there was no cache mixup
     assert_eq((3, 5), obj.return_three_and_five())

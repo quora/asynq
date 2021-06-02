@@ -271,7 +271,7 @@ class AsyncTask(futures.FutureBase):
                 # now, we are storing the _traceback on the error. we use this so we can
                 # raise it with that exact traceback later.
                 # now, we when do raise it, the upper level gets a new traceback
-                # with the curent level's traceback connected via a linked list pointer.
+                # with the current level's traceback connected via a linked list pointer.
                 # known as tb_next in traceback object.
                 # this is really important. if we keep updating this traceback,
                 # we can glue all the different tasks' tracebacks and make it look like
