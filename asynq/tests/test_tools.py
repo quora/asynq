@@ -67,21 +67,26 @@ def alen(seq):
     return len(seq)
 
 
+def gen():
+    yield 1
+    yield None
+
+
 def test_afilter():
-    assert_eq([], list(afilter.asynq(filter_fn, []).value()))
-    assert_eq([], list(afilter.asynq(filter_fn, [None]).value()))
-    assert_eq([1], list(afilter(filter_fn, [None, 1, None])))
-    assert_eq([1], list(afilter.asynq(filter_fn, [None, 1, None]).value()))
-    assert_eq([1], list(afilter(None, [None, 1, None])))
+    assert_eq([], afilter.asynq(filter_fn, []).value())
+    assert_eq([], afilter.asynq(filter_fn, [None]).value())
+    assert_eq([1], afilter(filter_fn, [None, 1, None]))
+    assert_eq([1], afilter.asynq(filter_fn, [None, 1, None]).value())
+    assert_eq([1], afilter(None, [None, 1, None]))
+    assert_eq([1], afilter(filter_fn, gen()))
+    assert_eq([1], afilter(None, gen()))
 
 
 def test_afilterfalse():
-    assert_eq([], list(afilterfalse.asynq(filter_fn, []).value()))
-    assert_eq([None], list(afilterfalse.asynq(filter_fn, [None]).value()))
-    assert_eq([None, None], list(afilterfalse(filter_fn, [None, 1, None])))
-    assert_eq(
-        [None, None], list(afilterfalse.asynq(filter_fn, [None, 1, None]).value())
-    )
+    assert_eq([], afilterfalse.asynq(filter_fn, []).value())
+    assert_eq([None], afilterfalse.asynq(filter_fn, [None]).value())
+    assert_eq([None, None], afilterfalse(filter_fn, [None, 1, None]))
+    assert_eq([None, None], afilterfalse.asynq(filter_fn, [None, 1, None]).value())
 
 
 def test_asift():
