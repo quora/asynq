@@ -64,8 +64,10 @@ def afilter(function, sequence):
 
     """
     if function is None:
-        result(filter(None, sequence))
+        result(list(filter(None, sequence)))
         return
+    # Make sure generators work correctly (we'll iterate over them twice).
+    sequence = list(sequence)
     should_include = yield [function.asynq(elt) for elt in sequence]
     result(list(itertools.compress(sequence, should_include)))
     return
@@ -78,6 +80,7 @@ def afilterfalse(function, sequence):
     Returns a list.
 
     """
+    sequence = list(sequence)
     should_exclude = yield [function.asynq(elt) for elt in sequence]
     should_include = [not res for res in should_exclude]
     result(list(itertools.compress(sequence, should_include)))
