@@ -87,6 +87,7 @@ def test_afilterfalse():
     assert_eq([None], afilterfalse.asynq(filter_fn, [None]).value())
     assert_eq([None, None], afilterfalse(filter_fn, [None, 1, None]))
     assert_eq([None, None], afilterfalse.asynq(filter_fn, [None, 1, None]).value())
+    assert_eq([None], afilterfalse(filter_fn, gen()))
 
 
 def test_asift():
