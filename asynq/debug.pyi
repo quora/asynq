@@ -15,6 +15,7 @@ from typing import (
 )
 
 from ._debug import options as options
+
 @overload
 def DUMP_ALL(self, value: None = ...) -> bool: ...
 @overload

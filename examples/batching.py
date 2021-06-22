@@ -25,7 +25,7 @@ import qcore
 import itertools
 import memcache
 
-MISS = qcore.MarkerObject(u'miss')
+MISS = qcore.MarkerObject(u"miss")
 
 
 class Client(object):
@@ -51,6 +51,7 @@ class Client(object):
             result(names); return
 
     """
+
     def __init__(self, servers):
         # keep a reference to the current batch and to the underlying library's client object
         self.batch = _MCBatch(self)
@@ -62,12 +63,12 @@ class Client(object):
     @async_proxy()
     def get(self, key):
         """Gets the value of key. May be called asynchronously."""
-        return self._make_batch_item('get', (key,))
+        return self._make_batch_item("get", (key,))
 
     @async_proxy()
     def set(self, key, value):
         """Sets the value of key. May be called asynchronously."""
-        return self._make_batch_item('set', (key, value))
+        return self._make_batch_item("set", (key, value))
 
     def sync_get_multi(self, keys):
         """Synchronously retrieves the values for the given keys."""
@@ -91,10 +92,11 @@ class Client(object):
             value = yield cached_function.asynq(a, b)
 
         """
+
         def decorator(fn):
             @asynq()
             def wrapped(*args):
-                key = key_prefix + ':' + ':'.join(map(str, args))
+                key = key_prefix + ":" + ":".join(map(str, args))
                 value = yield self.get.asynq(key)
                 if value is MISS:
                     # possible enhancement: make it possible for the inner function to be async
@@ -102,8 +104,11 @@ class Client(object):
                     # there is a race condition here since somebody else could have set the key
                     # while we were computing the value, but don't worry about that for now
                     yield self.set.asynq(key, value)
-                result(value); return
+                result(value)
+                return
+
             return wrapped
+
         return decorator
 
 
@@ -120,7 +125,7 @@ class _MCBatch(BatchBase):
         item_groups = itertools.groupby(self.items, lambda i: i.cmd)
         for group, items in item_groups:
             items = list(items)
-            if group == 'get':
+            if group == "get":
                 keys = {item.args[0] for item in items}
                 values = self.client.sync_get_multi(keys)
                 for item in items:
@@ -129,7 +134,7 @@ class _MCBatch(BatchBase):
                         item.set_value(values[key])
                     else:
                         item.set_value(MISS)
-            elif group == 'set':
+            elif group == "set":
                 args = {item.args[0]: item.args[1] for item in items}
                 not_stored = set(self.client.sync_set_multi(args))
                 for item in items:
