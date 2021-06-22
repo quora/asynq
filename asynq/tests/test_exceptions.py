@@ -44,7 +44,7 @@ def test():
         try:
             yield tasks
             raise AssertionError()
-        except AssertionError:
+        except Exception:
             pass
         assert counter == 2
         assert tasks[0].value() == 1

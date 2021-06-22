@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import asynq
+from asynq import asynq, result
 from .helpers import Profiler
 
 counter = 0
@@ -41,7 +41,7 @@ def test():
         try:
             print("In try block.")
             yield incr()
-            return (yield incr())
+            result((yield incr()))
         except BaseException as e:
             print("In except block, e = " + repr(e))
             assert sync_incr() == 3
