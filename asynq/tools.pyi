@@ -17,6 +17,7 @@ from typing import (
 
 _T = TypeVar("_T")
 _U = TypeVar("_U")
+
 @asynq()
 def amap(function: Callable[[_T], _U], sequence: Iterable[_T]) -> List[_U]: ...
 @asynq()
