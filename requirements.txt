@@ -5,3 +5,4 @@ Cython>=0.27.1
 qcore
 inspect2
 pygments
+black==21.6b0; python_version >= "3.6"
