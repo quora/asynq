@@ -28,8 +28,7 @@ def fn():
 @asynq.asynq()
 def async_caller():
     ret = yield fn.asynq()
-    asynq.result((ret, fn()))
-    return
+    return (ret, fn())
 
 
 def non_async_caller():
@@ -56,8 +55,7 @@ instance = Cls()
 @asynq.asynq()
 def class_method_async_caller():
     ret = yield Cls.async_classmethod.asynq()
-    asynq.result((ret, Cls.async_classmethod()))
-    return
+    return (ret, Cls.async_classmethod())
 
 
 def class_method_non_async_caller():
@@ -68,8 +66,7 @@ def class_method_non_async_caller():
 def method_async_caller():
     obj = Cls()
     ret = yield obj.async_method.asynq()
-    asynq.result((ret, obj.async_method()))
-    return
+    return (ret, obj.async_method())
 
 
 def method_non_async_caller():

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__doc__ = """
+"""
 
 Simple example of asynq-based batching support for a memcache client.
 
@@ -20,12 +20,12 @@ Requires the python-memcached library to be installed.
 
 """
 
-from asynq import asynq, async_proxy, BatchBase, BatchItemBase, result
+from asynq import asynq, async_proxy, BatchBase, BatchItemBase
 import qcore
 import itertools
 import memcache
 
-MISS = qcore.MarkerObject(u"miss")
+MISS = qcore.MarkerObject("miss")
 
 
 class Client(object):
@@ -48,7 +48,7 @@ class Client(object):
             "Returns names of authors for all of the given aids."
             uids = yield [author_of_answer.asynq(aid) for aid in aids]
             names = yield [name_of_user.asynq(uid) for uid in uids]
-            result(names); return
+            return names
 
     """
 
@@ -104,8 +104,7 @@ class Client(object):
                     # there is a race condition here since somebody else could have set the key
                     # while we were computing the value, but don't worry about that for now
                     yield self.set.asynq(key, value)
-                result(value)
-                return
+                return value
 
             return wrapped
 
@@ -115,7 +114,7 @@ class Client(object):
 class _MCBatch(BatchBase):
     def __init__(self, client):
         self.client = client
-        super(_MCBatch, self).__init__()
+        super().__init__()
 
     def _try_switch_active_batch(self):
         if self.client.batch is self:
@@ -143,6 +142,6 @@ class _MCBatch(BatchBase):
 
 class _MCBatchItem(BatchItemBase):
     def __init__(self, batch, cmd, args):
-        super(_MCBatchItem, self).__init__(batch)
+        super().__init__(batch)
         self.cmd = cmd
         self.args = args

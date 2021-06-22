@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import asynq, result
+from asynq import asynq
 from .helpers import Profiler
 
 counter = 0
@@ -26,8 +26,7 @@ def test():
         global counter
         counter += 1
         print("Counter: %i" % counter)
-        result(counter)
-        return
+        return counter
         yield
 
     def sync_incr():
@@ -42,8 +41,7 @@ def test():
         try:
             print("In try block.")
             yield incr()
-            result((yield incr()))  # ; return
-            assert False, "Must not reach this point!"
+            return (yield incr())
         except BaseException as e:
             print("In except block, e = " + repr(e))
             assert sync_incr() == 3

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__doc__ = """
+"""
 
 Tests that when using multiple inheritance, both parent classes' methods can be called.
 
@@ -20,7 +20,7 @@ See the implementation of DecoratorBase.__get__ for how this works.
 
 """
 
-from asynq import asynq, result
+from asynq import asynq
 
 
 called = {}
@@ -51,8 +51,7 @@ def test():
     def inner():
         instance = Child()
         yield instance.method.asynq()
-        result(None)
-        return
+        return None
 
     inner()
     assert called["Parent1"]

@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from qcore.asserts import AssertRaises
-from six.moves import xrange
 
-from asynq import asynq, debug, result
+from asynq import asynq, debug
 from .helpers import Profiler
 
 
@@ -30,12 +29,10 @@ def test_recursion():
     @asynq()
     def sum_async(i, dump_progress=False):
         if i == 0:
-            result(0)
-            return
+            return 0
         if dump_progress and i % 100 == 0:
             print("... in sum_async(%s)" % i)
-        result(i + (yield sum_async.asynq(i - 1, dump_progress)))
-        return
+        return i + (yield sum_async.asynq(i - 1, dump_progress))
 
     with AssertRaises(RuntimeError):
         sum(2000, True)  # By default max stack depth is ~ 1000
@@ -46,19 +43,19 @@ def test_recursion():
 
     p1 = Profiler("200 x sum(500)")
     with p1:
-        for i in xrange(0, 200):
+        for i in range(200):
             sum(500)
 
     p2 = Profiler("20 x sum_async(500)() (w/assertions)")
     with p2:
-        for i in xrange(0, 20):
+        for i in range(20):
             sum_async(500)
 
     print("Slowdown: %s" % (p2.diff * 10.0 / p1.diff))
 
     p3 = Profiler("20 x sum_async(500)() (w/o assertions)")
     with debug.disable_complex_assertions(), p3:
-        for i in xrange(0, 20):
+        for i in range(0, 20):
             sum_async(500)
 
     print("Slowdown: %s" % (p3.diff * 10.0 / p1.diff))

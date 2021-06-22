@@ -18,7 +18,6 @@ from setuptools.extension import Extension
 import glob
 import os.path
 import codecs
-import sys
 
 
 CYTHON_MODULES = [
@@ -66,22 +65,15 @@ if __name__ == "__main__":
         classifiers=[
             "License :: OSI Approved :: Apache Software License",
             "Programming Language :: Python",
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3.5",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
         ],
         keywords="quora asynq common utility",
         packages=["asynq", "asynq.tests"],
         package_data={"asynq": DATA_FILES},
         ext_modules=EXTENSIONS,
         setup_requires=["Cython>=0.27.1", "qcore", "setuptools"],
-        install_requires=[
-            "Cython>=0.27.1",
-            "qcore",
-            "inspect2",
-            'mock; python_version < "3.3"',
-            "pygments",
-        ],
+        install_requires=["Cython>=0.27.1", "qcore", "pygments"],
     )

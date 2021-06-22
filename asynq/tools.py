@@ -12,25 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__doc__ = """
+"""
 
 Helper functions for use with asynq (similar to itertools).
 
 """
 
 from .contexts import AsyncContext
-from .decorators import (
-    asynq,
-    async_proxy,
-    async_call,
-    AsyncDecorator,
-    AsyncDecoratorBinder,
-)
-from .futures import ConstFuture
-
-# we shouldn't use the return syntax in generators here so that asynq can be imported
-# under Python versions that lack our patch to allow returning from generators
-from .utils import result
+from .decorators import asynq, async_call, AsyncDecorator, AsyncDecoratorBinder
 
 from qcore import get_original_fn, utime
 from qcore.caching import get_args_tuple, get_kwargs_defaults, LRUCache
@@ -38,7 +27,7 @@ from qcore.events import EventHook
 from qcore.errors import reraise, prepare_for_reraise
 from qcore.decorators import decorate
 import functools
-import inspect2
+import inspect
 import itertools
 import weakref
 import threading
@@ -52,8 +41,7 @@ def amap(function, sequence):
     Returns a list.
 
     """
-    result((yield [function.asynq(elt) for elt in sequence]))
-    return
+    return (yield [function.asynq(elt) for elt in sequence])
 
 
 @asynq()
@@ -64,13 +52,12 @@ def afilter(function, sequence):
 
     """
     if function is None:
-        result(list(filter(None, sequence)))
-        return
+        return list(filter(None, sequence))
+
     # Make sure generators work correctly (we'll iterate over them twice).
     sequence = list(sequence)
     should_include = yield [function.asynq(elt) for elt in sequence]
-    result(list(itertools.compress(sequence, should_include)))
-    return
+    return list(itertools.compress(sequence, should_include))
 
 
 @asynq()
@@ -83,8 +70,7 @@ def afilterfalse(function, sequence):
     sequence = list(sequence)
     should_exclude = yield [function.asynq(elt) for elt in sequence]
     should_include = [not res for res in should_exclude]
-    result(list(itertools.compress(sequence, should_include)))
-    return
+    return list(itertools.compress(sequence, should_include))
 
 
 @asynq()
@@ -104,8 +90,7 @@ def asorted(iterable, key=None, reverse=False):
     # we need to use key= here because otherwise we will compare the values when the key are
     # equal, which would be a behavior difference between sorted() and asorted()
     pairs = sorted(zip(keys, values), key=lambda p: p[0], reverse=reverse)
-    result([p[1] for p in pairs])
-    return
+    return [p[1] for p in pairs]
 
 
 @asynq()
@@ -123,8 +108,7 @@ def amax(*args, **kwargs):
         iterable = args
 
     if key_fn is None:
-        result(max(iterable))
-        return
+        return max(iterable)
 
     # support generators
     if not isinstance(iterable, (list, tuple)):
@@ -132,8 +116,7 @@ def amax(*args, **kwargs):
 
     keys = yield amap.asynq(key_fn, iterable)
     max_pair = max(enumerate(iterable), key=lambda pair: keys[pair[0]])
-    result(max_pair[1])
-    return
+    return max_pair[1]
 
 
 @asynq()
@@ -151,8 +134,7 @@ def amin(*args, **kwargs):
         iterable = args
 
     if key_fn is None:
-        result(min(iterable))
-        return
+        return min(iterable)
 
     # support generators
     if not isinstance(iterable, (list, tuple)):
@@ -160,8 +142,7 @@ def amin(*args, **kwargs):
 
     keys = yield amap.asynq(key_fn, iterable)
     max_pair = min(enumerate(iterable), key=lambda pair: keys[pair[0]])
-    result(max_pair[1])
-    return
+    return max_pair[1]
 
 
 @asynq()
@@ -175,8 +156,7 @@ def asift(pred, items):
             yes.append(item)
         else:
             no.append(item)
-    result((yes, no))
-    return
+    return (yes, no)
 
 
 def acached_per_instance():
@@ -190,7 +170,7 @@ def acached_per_instance():
     """
 
     def cache_fun(fun):
-        argspec = inspect2.getfullargspec(get_original_fn(fun))
+        argspec = inspect.getfullargspec(get_original_fn(fun))
         arg_names = argspec.args[1:] + argspec.kwonlyargs  # remove self
         async_fun = fun.asynq
         kwargs_defaults = get_kwargs_defaults(argspec)
@@ -213,13 +193,11 @@ def acached_per_instance():
 
             k = cache_key(args, kwargs)
             try:
-                result(instance_cache[k])
-                return
+                return instance_cache[k]
             except KeyError:
                 value = yield async_fun(self, *args, **kwargs)
                 instance_cache[k] = value
-                result(value)
-                return
+                return value
 
         # just so unit tests can check that this is cleaned up correctly
         new_fun.__acached_per_instance_cache__ = cache
@@ -244,7 +222,7 @@ def alru_cache(maxsize=128, key_fn=None):
 
     def decorator(fn):
         cache = LRUCache(maxsize)
-        argspec = inspect2.getfullargspec(get_original_fn(fn))
+        argspec = inspect.getfullargspec(get_original_fn(fn))
         arg_names = argspec.args[1:] + argspec.kwonlyargs  # remove self
         async_fun = fn.asynq
         kwargs_defaults = get_kwargs_defaults(argspec)
@@ -260,13 +238,11 @@ def alru_cache(maxsize=128, key_fn=None):
         def wrapper(*args, **kwargs):
             key = cache_key(args, kwargs)
             try:
-                result(cache[key])
-                return
+                return cache[key]
             except KeyError:
                 value = yield async_fun(*args, **kwargs)
                 cache[key] = value
-                result(value)
-                return
+                return value
 
         return wrapper
 
@@ -291,8 +267,7 @@ def alazy_constant(ttl=0):
             ):
                 wrapper.alazy_constant_cached_value = yield fn.asynq()
                 wrapper.alazy_constant_refresh_time = utime()
-            result(wrapper.alazy_constant_cached_value)
-            return
+            return wrapper.alazy_constant_cached_value
 
         def dirty():
             wrapper.alazy_constant_refresh_time = 0
@@ -322,8 +297,7 @@ def aretry(exception_cls, max_tries=10, sleep=0.05):
             for i in range(max_tries):
                 try:
                     ret = yield fn.asynq(*args, **kwargs)
-                    result(ret)
-                    return
+                    return ret
                 except exception_cls:
                     if i + 1 == max_tries:
                         raise
@@ -350,8 +324,7 @@ def call_with_context(context, fn, *args, **kwargs):
 
     """
     with context:
-        result((yield fn.asynq(*args, **kwargs)))
-        return
+        return (yield fn.asynq(*args, **kwargs))
 
 
 class DeduplicateDecoratorBinder(AsyncDecoratorBinder):
@@ -434,7 +407,7 @@ def deduplicate(keygetter=None):
         _keygetter = keygetter
         if _keygetter is None:
             original_fn = get_original_fn(fun)
-            argspec = inspect2.getfullargspec(original_fn)
+            argspec = inspect.getfullargspec(original_fn)
             arg_names = argspec.args + argspec.kwonlyargs
             kwargs_defaults = get_kwargs_defaults(argspec)
             _keygetter = lambda args, kwargs: get_args_tuple(
@@ -517,7 +490,6 @@ class AsyncEventHook(EventHook):
             except BaseException as e:
                 prepare_for_reraise(e)
                 error = e
-            result(error)
-            return
+            return error
 
         return wrapped

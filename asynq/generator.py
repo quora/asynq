@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__doc__ = """
+"""
 
 Async generators.
 
@@ -22,9 +22,8 @@ import functools
 
 from .decorators import asynq, async_proxy
 from .futures import ConstFuture
-from .utils import result
 
-END_OF_GENERATOR = qcore.MarkerObject(u"end of generator")
+END_OF_GENERATOR = qcore.MarkerObject("end of generator")
 
 
 def async_generator():
@@ -97,8 +96,7 @@ def list_of_generator(generator):
         if value is END_OF_GENERATOR:
             continue
         data.append(value)
-    result(data)
-    return
+    return data
 
 
 @asynq()
@@ -112,8 +110,7 @@ def take_first(generator, n):
         ret.append(value)
         if i == n - 1:
             break
-    result(ret)
-    return
+    return ret
 
 
 class _AsyncGenerator(object):
@@ -160,11 +157,9 @@ class _AsyncGenerator(object):
             try:
                 value = self._get_one_value(yield_result)
             except StopIteration:
-                result(END_OF_GENERATOR)
-                return
+                return END_OF_GENERATOR
             if isinstance(value, Value):
-                result(value.value)
-                return
+                return value.value
             else:
                 yield_result = yield value
 

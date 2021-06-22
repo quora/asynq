@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import AsyncContext, asynq, debug, result, NonAsyncContext
+from asynq import AsyncContext, asynq, debug, NonAsyncContext
 from .helpers import Profiler
 from qcore.asserts import assert_eq, assert_is, AssertRaises
 
@@ -88,8 +88,7 @@ def test_adder():
     def async_add(a, b):
         yield debug.sync()
         z = a + b + change_amount
-        result(z)
-        return
+        return z
 
     class AsyncAddChanger(AsyncContext):
         def __init__(self, diff):
@@ -120,14 +119,12 @@ def test_adder():
                 assert_eq(expected_change_amount_base + 2, change_amount)
             assert_eq(expected_change_amount_base + 1, change_amount)
         assert_eq(expected_change_amount_base + 0, change_amount)
-        result((yield async_add(z, q)))
-        return
+        return (yield async_add(z, q))
 
     @asynq(pure=True)
     def useless():
         a, b, c = yield (add_twice(1, 1), add_twice(1, 1), async_add(1, 1))
-        result((a, b, c))
-        return
+        return (a, b, c)
 
     assert_eq(2, async_add(1, 1)())
     assert_eq((7, 7, 2), useless()())
@@ -139,12 +136,11 @@ def test_adder():
 
 class Ctx(NonAsyncContext):
     def __enter__(self):
-        super(Ctx, self).__enter__()
+        super().__enter__()
         return self
 
     def __exit__(self, typ, val, tb):
-        super(Ctx, self).__exit__(typ, val, tb)
-        return
+        super().__exit__(typ, val, tb)
 
 
 def test_non_async_context():
@@ -155,17 +151,15 @@ def test_non_async_context():
                 ret = yield ExternalCacheBatchItem(mc._batch, "get", "test")
             else:
                 ret = 0
-        result(ret)
-        return
+        return ret
 
     @asynq()
     def batch(should_yield=True):
-        ret1, ret2 = (
-            yield async_fn_with_yield.asynq(should_yield),
+        ret1, ret2 = yield (
+            async_fn_with_yield.asynq(should_yield),
             async_fn_with_yield.asynq(should_yield),
         )
-        result((ret1, ret2))
-        return
+        return (ret1, ret2)
 
     with AssertRaises(AssertionError):
         batch()

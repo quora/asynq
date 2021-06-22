@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__doc__ = """
+"""
 
 Easy mocking for async functions.
 
@@ -24,27 +24,13 @@ This file is named mock_ instead of mock so that it can import the standard mock
 """
 
 import inspect
-
-try:
-    from unittest import mock
-except ImportError:
-    # py3
-    import mock
-
-try:
-    _patch = mock._patch
-except AttributeError:
-    # some versions of mock put the implementation in mock/mock.py
-    _patch = mock.mock._patch
-try:
-    _get_target = mock._get_target
-except AttributeError:
-    # some versions of mock put the implementation in mock/mock.py
-    _get_target = mock.mock._get_target
-
+from unittest import mock
 
 from .decorators import asynq
 from .futures import ConstFuture
+
+_patch = mock._patch
+_get_target = mock._get_target
 
 
 def patch(
@@ -56,7 +42,7 @@ def patch(
     spec_set=None,
     autospec=False,
     new_callable=None,
-    **kwargs
+    **kwargs,
 ):
     """Mocks an async function.
 
@@ -90,7 +76,7 @@ def _patch_object(
     spec_set=None,
     autospec=False,
     new_callable=None,
-    **kwargs
+    **kwargs,
 ):
     getter = lambda: target
     return _make_patch_async(
@@ -220,8 +206,8 @@ class _AsyncWrapper(object):
 
     def __getattr__(self, attr):
         raise TypeError(
-            "You cannot read attributes directly on a .asynq function. Read them on the "
-            "function itself instead."
+            "You cannot read attributes directly on a .asynq function. Read them on the"
+            " function itself instead."
         )
 
 

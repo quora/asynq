@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__doc__ = """
+"""
 
 Asynq is a framework for asynchronous programming in Python.
 
 It supports futures, batching, and asynchronous contexts.
 
 """
-import sys
 
 from . import debug
 from . import futures

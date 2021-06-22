@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from asynq import asynq, result, AsyncContext
+from asynq import asynq, AsyncContext
 from qcore.asserts import AssertRaises, assert_eq
 
 from .helpers import Profiler
@@ -34,8 +34,7 @@ def test():
         if must_throw:
             raise RuntimeError
         counter += 1
-        result(counter)
-        return
+        return counter
 
     @asynq(pure=True)
     def test():
@@ -45,7 +44,7 @@ def test():
         try:
             yield tasks
             raise AssertionError()
-        except:
+        except AssertionError:
             pass
         assert counter == 2
         assert tasks[0].value() == 1
@@ -97,8 +96,7 @@ def test_async_context():
                     # we need this to have a real dependency on an async task, otherwise
                     # it executes the whole function inline and the real problem is never tested
                     val = yield dependency.asynq()
-        result(val)
-        return
+        return val
 
     def check_contexts_released_properly(raise_in_pause, raise_in_resume):
         with AssertRaises(KeyboardInterrupt):

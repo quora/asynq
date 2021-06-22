@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import time
 
-from asynq import asynq, AsyncContext, result, scheduler
+from asynq import asynq, AsyncContext, scheduler
 from asynq.tools import (
     amap,
     afilter,
@@ -43,11 +42,7 @@ from qcore.asserts import (
 from qcore import get_original_fn
 import inspect
 import pickle
-
-try:
-    import mock
-except ImportError:
-    from unittest import mock  # type: ignore
+from unittest import mock
 
 
 @asynq()
@@ -58,8 +53,7 @@ def inner_fn(x):
 @asynq()
 def filter_fn(elt):
     yield inner_fn.asynq(elt)
-    result(elt is not None)
-    return
+    return elt is not None
 
 
 @asynq()
@@ -168,15 +162,10 @@ class AsyncObject(object):
     def raises_exception(self):
         assert False
 
-    if sys.version_info >= (3, 0):
-        exec(
-            """
-@acached_per_instance()
-@asynq()
-def with_kwonly_arg(self, *, arg=1):
-    return arg
-"""
-        )
+    @acached_per_instance()
+    @asynq()
+    def with_kwonly_arg(self, *, arg=1):
+        return arg
 
     @deduplicate()
     @asynq()
@@ -213,8 +202,7 @@ def test_acached_per_instance():
 
         assert_eq(1, len(cache), extra=repr(cache))
 
-        if sys.version_info >= (3, 0):
-            assert_eq(1, obj.with_kwonly_arg(arg=1))
+        assert_eq(1, obj.with_kwonly_arg(arg=1))
 
         del obj
         assert_eq(0, len(cache), extra=repr(cache))
@@ -444,10 +432,8 @@ def increment_value(val=1):
 @asynq()
 def recursive_incrementer(n):
     if n == 0:
-        result((yield increment_value.asynq(n)))
-        return
-    result(recursive_incrementer(n - 1))
-    return
+        return (yield increment_value.asynq(n))
+    return recursive_incrementer(n - 1)
 
 
 @deduplicate()
@@ -461,8 +447,7 @@ def call_with_dirty():
 def recursive_call_with_dirty():
     global i
     if i > 0:
-        result(i)
-        return
+        return i
     i += 1
     recursive_call_with_dirty.dirty()
     yield recursive_call_with_dirty.asynq()
@@ -489,15 +474,10 @@ def deduplicated_recusive():
         deduplicate_caller()
 
 
-if sys.version_info >= (3, 0):
-    exec(
-        """
 @deduplicate()
 @asynq()
 def call_with_kwonly_arg(*, arg):
     return arg
-"""
-    )
 
 
 def test_deduplicate():
@@ -530,10 +510,9 @@ def _check_deduplicate():
 
     yield call_with_dirty.asynq()
 
-    if sys.version_info >= (3, 0):
-        with AssertRaises(TypeError):
-            yield call_with_kwonly_arg.asynq(1)
-        assert_eq(1, (yield call_with_kwonly_arg.asynq(arg=1)))
+    with AssertRaises(TypeError):
+        yield call_with_kwonly_arg.asynq(1)
+    assert_eq(1, (yield call_with_kwonly_arg.asynq(arg=1)))
 
     i = 0
     deduplicate_caller()
@@ -556,8 +535,7 @@ def test_async_timer():
 def _slow_task(t):
     yield None
     time.sleep(t)
-    result(0)
-    return
+    return 0
 
 
 @asynq()
@@ -565,8 +543,7 @@ def _timed_slow_task(t):
     with AsyncTimer() as timer:
         yield None
         time.sleep(t)
-    result(timer.total_time)
-    return
+    return timer.total_time
 
 
 @asynq()
@@ -636,19 +613,16 @@ class DeduplicateClassWrapper:
     @deduplicate()
     @asynq()
     def return_three(self):
-        result(3)
-        return
+        return 3
 
     @deduplicate()
     @asynq()
     def return_five(self):
-        result(5)
-        return
+        return 5
 
     @asynq()
     def return_three_and_five(self):
-        result((yield (self.return_three.asynq(), self.return_five.asynq())))
-        return
+        return (yield (self.return_three.asynq(), self.return_five.asynq()))
 
 
 def test_deduplicate_same_class():
