@@ -1,4 +1,4 @@
-name: typeshed-client
+name: asynq
 
 on:
   - push
@@ -20,6 +20,6 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox tox-gh-actions
+        pip install tox tox-gh-actions wheel
     - name: Test with tox
       run: tox
