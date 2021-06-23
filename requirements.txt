@@ -3,3 +3,4 @@ Cython>=0.27.1
 qcore
 pygments
 black==21.6b0; python_version >= "3.6"
+mypy==0.910
