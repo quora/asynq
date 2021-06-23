@@ -12,19 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import, division, print_function
-
 import sys
 import traceback
 import logging
 
-import six
-from six import StringIO
+from io import StringIO
 from qcore.asserts import assert_eq, assert_in, assert_is, assert_is_not
 from qcore import MarkerObject, prepare_for_reraise
 
 import asynq
-from asynq import result
 
 
 def test_dump_error():
@@ -72,9 +68,6 @@ def test_format_error():
 
 
 def test_format_error_chaining():
-    if six.PY2:
-        return  # py2 doesn't have chaining
-
     try:
         try:
             raise ValueError
@@ -120,19 +113,16 @@ def test_format_asynq_stack():
     def level1(arg):
         if arg == 0:
             format_list.append(asynq.debug.format_asynq_stack())
-        result(arg)
-        return
+        return arg
 
     @asynq.asynq()
     def level2(arg):
-        result((yield level1.asynq(arg)))
-        return
+        return (yield level1.asynq(arg))
 
     @asynq.asynq()
     def root():
         vals = yield [level2.asynq(i) for i in range(5)]
-        result(vals)
-        return
+        return vals
 
     root()
 
@@ -243,7 +233,7 @@ def test_extract_traceback():
     )
 
 
-a_return_value = MarkerObject(u"A return value.")
+a_return_value = MarkerObject("A return value.")
 
 
 @asynq.mock.patch("asynq.debug.traceback.format_list")
@@ -263,7 +253,7 @@ def test_format_tb(mock_extract_tb, mock_format_list):
 
 @asynq.mock.patch("asynq.debug.format_error")
 def test_asynq_stack_trace_formatter(mock_format_error):
-    mock_format_error.return_value = u"This is some traceback."
+    mock_format_error.return_value = "This is some traceback."
     stderr_string_io = StringIO()
     handler = logging.StreamHandler(stream=stderr_string_io)
     handler.setFormatter(asynq.debug.AsynqStackTracebackFormatter())
@@ -277,7 +267,7 @@ def test_asynq_stack_trace_formatter(mock_format_error):
         logger.exception("Test")
     ty, val, tb = exc_info
     mock_format_error.assert_called_once_with(val, tb=tb)
-    assert_eq(u"Test\nThis is some traceback.\n", stderr_string_io.getvalue())
+    assert_eq("Test\nThis is some traceback.\n", stderr_string_io.getvalue())
 
 
 def test_filter_traceback():
@@ -344,9 +334,12 @@ def test_filter_traceback():
     # A full match should be required, this is a partial match
     expected_partial_match = [
         "\n",
-        '  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq\n',
-        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
-        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
+        '  File "asynq/decorators.py", line 153, in'
+        " asynq.decorators.AsyncDecorator.asynq\n",
+        '  File "asynq/decorators.py", line 203, in'
+        " asynq.decorators.AsyncProxyDecorator._call_pure\n",
+        '  File "asynq/decorators.py", line 203, in'
+        " asynq.decorators.AsyncProxyDecorator._call_pure\n",
         '  File "something.py", line 25 in hello_world\n',
         "    hello()\n",
     ]
@@ -365,9 +358,12 @@ def test_filter_traceback():
     # A full match should be required, this is a partial match
     expected_partial_match_end = [
         "\n",
-        '  File "asynq/decorators.py", line 153, in asynq.decorators.AsyncDecorator.asynq\n',
-        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
-        '  File "asynq/decorators.py", line 203, in asynq.decorators.AsyncProxyDecorator._call_pure\n',
+        '  File "asynq/decorators.py", line 153, in'
+        " asynq.decorators.AsyncDecorator.asynq\n",
+        '  File "asynq/decorators.py", line 203, in'
+        " asynq.decorators.AsyncProxyDecorator._call_pure\n",
+        '  File "asynq/decorators.py", line 203, in'
+        " asynq.decorators.AsyncProxyDecorator._call_pure\n",
     ]
 
     assert_eq(

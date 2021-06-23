@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
 import contextlib
 import sys
 import qcore
@@ -341,9 +340,10 @@ def disable_complex_assertions():
 
 
 def sync():
-    assert (
-        False
-    ), "'import asynq' seems broken: this function must be replaced with asynq.batching.sync."
+    assert False, (
+        "'import asynq' seems broken: this function must be replaced with"
+        " asynq.batching.sync."
+    )
 
 
 def get_frame(generator):

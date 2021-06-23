@@ -14,7 +14,7 @@
 
 import gc
 
-from asynq import asynq, debug, result, AsyncTask
+from asynq import asynq, debug, AsyncTask
 from .helpers import Profiler
 
 values = {}  # type: ignore
@@ -35,8 +35,7 @@ def wrapped_async(*args, **kwargs):
 @asynq(pure=True)
 def get(key):
     global values
-    result(values.get(key))
-    return
+    return values.get(key)
     yield  # Must be a generator
 
 

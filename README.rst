@@ -34,7 +34,7 @@ Converted to use ``asynq``, this code would look like:
     def all_author_names(aids):
         uids = yield [author_of_answer.asynq(aid) for aid in aids]
         names = yield [name_of_user.asynq(uid) for uid in uids]
-        result(names); return
+        return names
 
 All ``author_of_answer`` calls will be combined into a single memcache request, as will all of the
 ``name_of_user`` calls.
@@ -64,12 +64,6 @@ Decorators and asynchronous functions
 asynchronous functions yields one or more Futures, it cedes control the asynq scheduler, which will
 resolve the futures that were yielded and continue running the function after the futures have been
 computed.
-
-Returning a value from an asynchronous function is hard in Python 2 because generators are not
-allowed to return a value. ``asynq`` provides the special ``result()`` function that can be used to
-return a value from an asynchronous function; it is implemented by raising a custom exception
-that is caught by the scheduler. At Quora, we instead use a patched Python 2 binary that does
-support returning a value from a generator.
 
 The framework requires usage of the ``@asynq()`` decorator on all asynchronous functions. This
 decorator wraps the generator function so that it can be called like a normal, synchronous function.
@@ -207,7 +201,7 @@ of these are in the ``asynq.tools`` module. These tools include:
 Compatibility
 -------------
 
-``asynq`` runs on Python 2.7 and Python 3.
+``asynq`` runs on Python 3.6 and newer.
 
 Previous versions of ``asynq`` used the name ``async`` for the ``@asynq()`` decorator and the
 ``.asynq`` attribute. Because ``async`` is a keyword in recent versions of Python 3, we now use

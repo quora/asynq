@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from qcore.asserts import assert_eq
-from asynq import AsyncScopedValue, asynq, result, async_override
+from asynq import AsyncScopedValue, asynq, async_override
 from asynq.batching import DebugBatchItem
 
 v = AsyncScopedValue("a")
@@ -35,8 +35,7 @@ def async_scoped_value_helper(inner_val):
     with v.override(inner_val):
         yield DebugBatchItem()
         assert_eq(v.get(), inner_val)
-        result((yield nested.asynq()))
-        return
+        return (yield nested.asynq())
 
 
 @asynq()

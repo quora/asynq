@@ -13,14 +13,14 @@
 # limitations under the License.
 
 from qcore import MarkerObject
-from asynq import asynq, async_proxy, result, ConstFuture
+from asynq import asynq, async_proxy, ConstFuture
 from collections import deque
 
 
 # TODO(alex): finish w/this test
 
 
-empty = MarkerObject(u"empty @ asynq.channels")
+empty = MarkerObject("empty @ asynq.channels")
 future_empty = ConstFuture(empty)
 future_false = ConstFuture(False)
 future_true = ConstFuture(True)
@@ -55,8 +55,7 @@ def _push_async(channel, value):
     yield None
     while True:
         if channel.push(value, False) is future_true:
-            result(future_true)
-            return
+            return future_true
         yield None
 
 
@@ -66,6 +65,5 @@ def _pull_async(channel):
     while True:
         item = channel.pull(False)
         if item is not future_empty:
-            result(item)
-            return
+            return item
         yield None

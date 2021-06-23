@@ -1,0 +1,15 @@
+[tool.black]
+target_version = ['py36', 'py37', 'py38', 'py39']
+include = '\.pyi?$'
+skip-magic-trailing-comma = true
+experimental-string-processing = true
+
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | \.eggs
+)/
+'''

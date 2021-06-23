@@ -5,14 +5,14 @@ import collections
 
 from qcore import SECOND
 from qcore.asserts import assert_eq, assert_le, assert_ge, assert_unordered_list_eq
-from asynq import asynq, debug, profiler, result
+from asynq import asynq, debug, profiler
 from .debug_cache import reset_caches, mc
 from .caching import ExternalCacheBatchItem
 
 
 class ProfilerThread(threading.Thread):
     def __init__(self, stats_list):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.stats_list = stats_list[:]
 
     def run(self):
@@ -55,8 +55,7 @@ def test_collect_perf_stats():
     @asynq()
     def func(depth):
         if depth == 0:
-            result((yield ExternalCacheBatchItem(mc._batch, "get", "test")))
-            return
+            return (yield ExternalCacheBatchItem(mc._batch, "get", "test"))
         time.sleep(float(sleep_time) / SECOND)
         yield func.asynq(depth - 1), func.asynq(depth - 1)
 

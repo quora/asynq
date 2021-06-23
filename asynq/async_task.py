@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import inspect
-import six
 import sys
 
 import qcore.helpers as core_helpers
@@ -57,7 +56,7 @@ class AsyncTask(futures.FutureBase):
     """
 
     def __init__(self, generator, fn, args, kwargs):
-        super(AsyncTask, self).__init__()
+        super().__init__()
         if _debug_options.ENABLE_COMPLEX_ASSERTIONS:
             assert core_inspection.is_cython_or_generator(generator), (
                 "generator is expected, but %s is provided" % generator
@@ -463,7 +462,7 @@ def unwrap(value):
         return [unwrap(item) for item in lst]
     elif type(value) is dict:
         dct = value
-        return {key: unwrap(value) for key, value in six.iteritems(dct)}
+        return {key: unwrap(value) for key, value in dct.items()}
     else:
         raise TypeError(
             "Cannot unwrap an object of type '%s': only futures and None are allowed."
@@ -492,6 +491,6 @@ def extract_futures(value, result):
             extract_futures(value[i], result)
             i -= 1
     elif type(value) is dict:
-        for item in six.itervalues(value):
+        for item in value.values():
             extract_futures(item, result)
     return result

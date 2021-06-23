@@ -87,14 +87,14 @@ def asynq(  # type: ignore
     *,
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> _MkAsyncDecorator: ...
 @overload
 def asynq(
     pure: bool,
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> _MkPureAsyncDecorator: ...  # type: ignore
 @overload
 def async_proxy(
@@ -108,7 +108,7 @@ def async_proxy(
 def async_call(
     fn: Union[Callable[..., _T], Callable[..., futures.FutureBase[_T]]],
     *args: Any,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> _T: ...
 def make_async_decorator(
     fn: Callable[..., Any],

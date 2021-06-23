@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
-from asynq import asynq, async_proxy, is_pure_async_fn, result, async_call, ConstFuture
+from asynq import asynq, async_proxy, is_pure_async_fn, async_call, ConstFuture
 from asynq.decorators import (
     lazy,
     get_async_fn,
@@ -28,8 +28,7 @@ def double_return_value(fun):
     @asynq(pure=True)
     def wrapper_fn(*args, **kwargs):
         value = yield fun.asynq(*args, **kwargs)
-        result(value * 2)
-        return
+        return value * 2
 
     return make_async_decorator(fun, wrapper_fn, "double_return_value")
 
@@ -57,8 +56,7 @@ class MyClass(object):
         cls, proxied = yield self.async_proxy_classmethod.asynq(number)
         assert cls is MyClass
         assert proxied == number
-        result(self)
-        return
+        return self
 
     @async_proxy()
     @classmethod
@@ -73,36 +71,31 @@ class MyClass(object):
         assert (yield cls.get_cls_ac.asynq()) is cls
         assert cls.get_cls().value() is cls
         assert (yield cls.get_cls()) is cls
-        result((cls, number))
-        return
+        return (cls, number)
 
     @asynq()
     @classmethod
     def get_cls_ac(cls):
         print("get_cls_ac")
-        result(cls)
-        return
+        return cls
 
     @asynq(pure=True)
     @classmethod
     def get_cls(cls):
         print("get_cls")
-        result(cls)
-        return
+        return cls
 
     @asynq()
     @staticmethod
     def static_ac(number):
         print("static_ac")
-        result(number)
-        return
+        return number
 
     @staticmethod
     @asynq(pure=True)
     def static(number):
         print("static")
-        result(number)
-        return
+        return number
 
     @staticmethod
     def sync_staticmethod():
