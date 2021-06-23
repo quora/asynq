@@ -17,7 +17,6 @@ from setuptools.extension import Extension
 
 import glob
 import os.path
-import codecs
 
 
 CYTHON_MODULES = [
@@ -50,7 +49,7 @@ EXTENSIONS = [
 
 
 if __name__ == "__main__":
-    with codecs.open("./README.rst", encoding="utf-8") as f:
+    with open("./README.rst", encoding="utf-8") as f:
         long_description = f.read()
 
     setup(
@@ -60,6 +59,7 @@ if __name__ == "__main__":
         author_email="asynq@quora.com",
         description="Quora's asynq library",
         long_description=long_description,
+        long_description_content_type="text/x-rst",
         url="https://github.com/quora/asynq",
         license="Apache Software License",
         classifiers=[
