@@ -1,8 +1,5 @@
 .. image:: http://i.imgur.com/jCPNyOa.png
 
-.. image:: https://travis-ci.org/quora/asynq.svg?branch=master
-    :target: https://travis-ci.org/quora/asynq
-
 ``asynq`` is a library for asynchronous programming in Python with a focus on batching requests to
 external services. It also provides seamless interoperability with synchronous code, support for
 asynchronous context managers, and tools to make writing and testing asynchronous code easier.
