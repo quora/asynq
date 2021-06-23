@@ -10,5 +10,6 @@ exclude = '''
   | \.mypy_cache
   | \.tox
   | \.venv
+  | \.eggs
 )/
 '''
