@@ -1,9 +1,7 @@
 from abc import abstractmethod
-from typing import ContextManager, Type, Optional, TypeVar
+from typing import Type, Optional, TypeVar
 from types import TracebackType
 import asynq
-
-from .futures import FutureBase
 
 _T = TypeVar("_T", bound=AsyncContext)
 
@@ -17,9 +15,6 @@ class NonAsyncContext(object):
     ) -> None: ...
     def pause(self) -> None: ...
     def resume(self) -> None: ...
-
-def enter_context(context: ContextManager[object]) -> FutureBase: ...
-def leave_context(context: ContextManager[object], active_task: FutureBase) -> None: ...
 
 class AsyncContext(object):
     def __enter__(self: _T) -> _T: ...
