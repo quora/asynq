@@ -201,6 +201,7 @@ def acached_per_instance():
 
         # just so unit tests can check that this is cleaned up correctly
         new_fun.__acached_per_instance_cache__ = cache
+        new_fun.fn = fun
         return new_fun
 
     return cache_fun

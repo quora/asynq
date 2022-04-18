@@ -1,3 +1,6 @@
+## Unreleased
+* Add `get_original_fn` support to `@acached_per_instance()`
+
 ## 1.4.0
 * Fix generator support for afilter() and afilterfalse()
 * Drop support for Python 2.7, 3.4, and 3.5
