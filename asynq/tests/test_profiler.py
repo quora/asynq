@@ -69,7 +69,7 @@ def test_collect_perf_stats():
 
     batches = 1
     async_tasks = 2 ** (depth + 1) - 1
-    num_leaf_tasks = 2 ** depth
+    num_leaf_tasks = 2**depth
 
     assert_eq(async_tasks + batches, len(profiled_result))
 
