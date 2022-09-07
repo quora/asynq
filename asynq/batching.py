@@ -88,7 +88,8 @@ class BatchBase(futures.FutureBase):
                 debug.dump_stack()
         try:
             self.error()  # Makes future to compute w/o raising an error
-            self.items.clear()  # Break circular reference between batch and items
+            if not _debug.options.KEEP_DEPENDENCIES:
+                self.items.clear()  # Break circular reference between batch and items
         finally:
             if _debug_options.DUMP_FLUSH_BATCH:
                 debug.write("@async: <- batch flushed: %s" % debug.str(self))
