@@ -392,9 +392,7 @@ class TestRetry(object):
 
         decorated = aretry(Exception)(fn)
 
-        assert_eq(
-            inspect.getargspec(fn), inspect.getargspec(get_original_fn(decorated))
-        )
+        assert_eq(inspect.signature(fn), inspect.signature(get_original_fn(decorated)))
 
 
 class Ctx(AsyncContext):

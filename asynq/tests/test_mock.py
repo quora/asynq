@@ -225,7 +225,7 @@ def test_start_stop():
 
 
 class TestPatchMethodWithMethod(object):
-    def setup(self):
+    def setup_method(self):
         self.calls = []
 
     def mock_method(self, foo):

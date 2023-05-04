@@ -424,7 +424,7 @@ def filter_traceback(tb_list):
         did_replacement = False
         # for each replacement, try checking if all lines match
         # if so, replace with the given replacement
-        for (text_to_match, replacement) in REPLACEMENTS:
+        for text_to_match, replacement in REPLACEMENTS:
             matches = True
             j = 0
             while j < len(text_to_match) and (i + j) < len(tb_list):

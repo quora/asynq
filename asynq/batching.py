@@ -167,11 +167,11 @@ class BatchBase(futures.FutureBase):
     def __str__(self):
         return "%s (%s, %i items)" % (
             core_inspection.get_full_name(type(self)),
-            "cancelled"
-            if self.is_cancelled()
-            else "flushed"
-            if self.is_flushed()
-            else "pending",
+            (
+                "cancelled"
+                if self.is_cancelled()
+                else "flushed" if self.is_flushed() else "pending"
+            ),
             len(self.items),
         )
 
