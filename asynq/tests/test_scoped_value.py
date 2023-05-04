@@ -44,7 +44,6 @@ def async_scoped_value_caller():
 
 
 def test_async_scoped_value():
-
     async_scoped_value_caller()
 
     val = AsyncScopedValue("capybara")
