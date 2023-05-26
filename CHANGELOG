@@ -1,5 +1,8 @@
-## Unreleased
+## 1.5.0
+* Add support for Python 3.10 and 3.11
+* Drop support for Python 3.6
 * Break reference cycle between batches and batch items
+* Remove inaccessible functions from type stub
 
 ## 1.4.0
 * Fix generator support for afilter() and afilterfalse()
