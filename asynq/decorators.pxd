@@ -52,6 +52,15 @@ cdef class AsyncDecorator(PureAsyncDecorator):
     pass
 
 
+cdef class EagerAsyncDecorator(qcore.decorators.DecoratorBase):
+    cdef public type task_cls
+    cdef public bint needs_wrapper
+
+    cpdef str name(self)
+    cpdef bint is_pure_async_fn(self) except -1
+    cpdef object _call_pure(self, tuple args, dict kwargs)
+
+
 cdef class AsyncAndSyncPairDecorator(AsyncDecorator):
     cdef public object sync_fn
 
