@@ -1,3 +1,6 @@
+## 1.5.1
+* Pin to `Cython<3`
+
 ## 1.5.0
 * Add support for Python 3.10 and 3.11
 * Drop support for Python 3.6
