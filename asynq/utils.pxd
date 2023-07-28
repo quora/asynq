@@ -16,10 +16,10 @@ import cython
 from cpython.ref cimport PyObject
 from cpython cimport bool
 
-from futures cimport FutureBase
-cimport async_task
-cimport scheduler
-cimport _debug
+from .futures cimport FutureBase
+from . cimport async_task
+from . cimport scheduler
+from . cimport _debug
 
 
 cdef _debug.DebugOptions _debug_options

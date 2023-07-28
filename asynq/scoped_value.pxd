@@ -14,13 +14,13 @@
 
 import cython
 
-cimport contexts
+from . cimport contexts
 
 
 cdef object _empty_context
 
 cdef class AsyncScopedValue(object):
-    cpdef public object _value
+    cdef public object _value
 
     cpdef object get(self)
     cpdef set(self, object value)

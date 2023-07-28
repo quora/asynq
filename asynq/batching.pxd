@@ -16,9 +16,9 @@ import cython
 from cpython.ref cimport PyObject
 
 cimport qcore.inspection as core_inspection
-cimport futures
-cimport _debug
-cimport profiler
+from . cimport futures
+from . cimport _debug
+from . cimport profiler
 
 
 cdef _debug.DebugOptions _debug_options

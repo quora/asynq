@@ -18,11 +18,11 @@ from cpython.ref cimport PyObject
 cimport qcore.events as core_events
 cimport qcore.helpers as core_helpers
 cimport qcore.inspection as core_inspection
-cimport futures
-cimport scheduler
-cimport _debug
-cimport profiler
-cimport batching
+from . cimport futures
+from . cimport scheduler
+from . cimport _debug
+from . cimport profiler
+from . cimport batching
 
 
 cdef _debug.DebugOptions _debug_options

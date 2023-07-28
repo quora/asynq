@@ -17,7 +17,7 @@ from cpython.ref cimport PyObject
 
 cimport qcore.events as core_events
 cimport qcore.helpers as core_helpers
-cimport _debug
+from . cimport _debug
 
 cdef _debug.DebugOptions _debug_options
 cdef core_helpers.MarkerObject _none
