@@ -16,10 +16,10 @@ import cython
 from cpython.ref cimport PyObject
 
 cimport qcore.events as core_events
-cimport futures
-cimport async_task
-cimport batching
-cimport _debug
+from . cimport futures
+from . cimport async_task
+from . cimport batching
+from . cimport _debug
 
 
 cdef _debug.DebugOptions _debug_options

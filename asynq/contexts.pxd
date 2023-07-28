@@ -14,7 +14,7 @@
 
 import cython
 
-cimport async_task
+from . cimport async_task
 
 
 @cython.locals(active_task=async_task.AsyncTask)

@@ -49,6 +49,9 @@ EXTENSIONS = [
 
 
 if __name__ == "__main__":
+    for extension in EXTENSIONS:
+        extension.cython_directives = {"language_level": "3"}
+
     with open("./README.rst", encoding="utf-8") as f:
         long_description = f.read()
 
@@ -65,16 +68,16 @@ if __name__ == "__main__":
         classifiers=[
             "License :: OSI Approved :: Apache Software License",
             "Programming Language :: Python",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
         ],
         keywords="quora asynq common utility",
         packages=["asynq", "asynq.tests"],
         package_data={"asynq": DATA_FILES},
         ext_modules=EXTENSIONS,
-        setup_requires=["Cython==0.29.36", "qcore", "setuptools"],
-        install_requires=["Cython>=0.27.1", "qcore", "pygments"],
+        setup_requires=["Cython", "qcore", "setuptools"],
+        install_requires=["qcore", "pygments"],
     )

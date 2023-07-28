@@ -18,9 +18,9 @@ from cpython.ref cimport PyObject
 cimport qcore.helpers as core_helpers
 cimport qcore.inspection as core_inspection
 cimport qcore.decorators
-cimport futures
-cimport async_task
-cimport _debug
+from . cimport futures
+from . cimport async_task
+from . cimport _debug
 
 cdef _debug.DebugOptions _debug_options
 
