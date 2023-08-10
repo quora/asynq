@@ -1,4 +1,3 @@
-import qcore
 from typing import Any, Generic, TypeVar
 
 from . import contexts

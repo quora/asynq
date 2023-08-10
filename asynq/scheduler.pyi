@@ -2,7 +2,6 @@ import threading
 from typing import Any, Optional
 
 from . import futures
-from .async_task import AsyncTask
 
 class AsyncTaskError(Exception): ...
 
