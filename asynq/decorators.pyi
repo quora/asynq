@@ -1,17 +1,9 @@
+from typing import (Any, Awaitable, Callable, Generic, Mapping, Optional, Type,
+                    TypeVar, Union, overload)
+
 import qcore.decorators
-from typing import (
-    Any,
-    Callable,
-    Generic,
-    Mapping,
-    Optional,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
-from . import async_task
-from . import futures
+
+from . import async_task, futures
 
 _T = TypeVar("_T")
 
@@ -47,8 +39,10 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder, Generic[_T]):
 
 class AsyncDecorator(PureAsyncDecorator[_T]):
     binder_cls = AsyncDecoratorBinder  # type: ignore
+    def __init__(self, fn: Callable[..., _T], cls: Optional[Type[futures.FutureBase]], kwargs: Mapping[str, Any] = ..., asyncio_fn: Callable[..., Awaitable] = ...): ...
     def is_pure_async_fn(self) -> bool: ...
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]: ...
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
     def __get__(self, owner: Any, cls: Any) -> AsyncDecorator[_T]: ...  # type: ignore
 
@@ -94,6 +88,7 @@ def asynq(
     pure: bool,
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
+    asyncio_fn: Callable[..., Awaitable] = ...,
     **kwargs: Any,
 ) -> _MkPureAsyncDecorator: ...  # type: ignore
 @overload
