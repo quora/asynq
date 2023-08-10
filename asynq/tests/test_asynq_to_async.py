@@ -47,5 +47,4 @@ def g(x):
 
 
 def test_asyncio():
-    assert asyncio.run(g.asyncio(5)) == {
-        "a": [1, 2], "b": (3, 4), "c": 5, "d": 200}
+    assert asyncio.run(g.asyncio(5)) == {"a": [1, 2], "b": (3, 4), "c": 5, "d": 200}

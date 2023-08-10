@@ -1,5 +1,15 @@
-from typing import (Any, Awaitable, Callable, Generic, Mapping, Optional, Type,
-                    TypeVar, Union, overload)
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Generic,
+    Mapping,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 import qcore.decorators
 
@@ -39,7 +49,13 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder, Generic[_T]):
 
 class AsyncDecorator(PureAsyncDecorator[_T]):
     binder_cls = AsyncDecoratorBinder  # type: ignore
-    def __init__(self, fn: Callable[..., _T], cls: Optional[Type[futures.FutureBase]], kwargs: Mapping[str, Any] = ..., asyncio_fn: Callable[..., Awaitable] = ...): ...
+    def __init__(
+        self,
+        fn: Callable[..., _T],
+        cls: Optional[Type[futures.FutureBase]],
+        kwargs: Mapping[str, Any] = ...,
+        asyncio_fn: Callable[..., Awaitable] = ...,
+    ): ...
     def is_pure_async_fn(self) -> bool: ...
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
     def asyncio(self, *args, **kwargs) -> Awaitable[Any]: ...

@@ -36,7 +36,9 @@ def lazy(fn):
 
     @core_inspection.wraps(fn)
     def new_fn(*args, **kwargs):
-        def value_provider(): return fn(*args, **kwargs)
+        def value_provider():
+            return fn(*args, **kwargs)
+
         return futures.Future(value_provider)
 
     new_fn.is_pure_async_fn = core_helpers.true_fn
@@ -193,8 +195,7 @@ class AsyncDecorator(PureAsyncDecorator):
 
     def __call__(self, *args, **kwargs):
         if asynq_to_async.is_asyncio_mode():
-            raise RuntimeError(
-                'asyncio mode does not support synchronous calls')
+            raise RuntimeError("asyncio mode does not support synchronous calls")
 
         return self._call_pure(args, kwargs).value()
 
