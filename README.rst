@@ -198,7 +198,7 @@ of these are in the ``asynq.tools`` module. These tools include:
 Compatibility
 -------------
 
-``asynq`` runs on Python 3.6 and newer.
+``asynq`` runs on Python 3.8 and newer.
 
 Previous versions of ``asynq`` used the name ``async`` for the ``@asynq()`` decorator and the
 ``.asynq`` attribute. Because ``async`` is a keyword in recent versions of Python 3, we now use
