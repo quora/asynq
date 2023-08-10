@@ -1,5 +1,5 @@
 from .contexts import AsyncContext
-from asynq import asynq, async_proxy
+from asynq import asynq
 
 from qcore import Utime
 from qcore.events import EventHook
@@ -52,6 +52,7 @@ def asift(
 ) -> Tuple[List[_T], List[_T]]: ...
 
 # Used to implement decorators that just wrap a function without changing the signature.
+
 class _AsyncWrapper:
     def __call__(self, fn: _T) -> _T: ...
 

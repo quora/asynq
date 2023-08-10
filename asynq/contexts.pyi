@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import Type, Optional, TypeVar
 from types import TracebackType
-import asynq
 
 _T = TypeVar("_T", bound=AsyncContext)
 

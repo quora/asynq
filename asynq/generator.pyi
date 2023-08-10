@@ -1,10 +1,8 @@
 import qcore
-import functools
 from typing import Any, Callable, Generic, List, TypeVar
 
 from .decorators import asynq, async_proxy
 from .futures import FutureBase
-from .utils import result
 
 END_OF_GENERATOR: qcore.MarkerObject
 

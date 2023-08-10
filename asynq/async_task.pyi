@@ -3,8 +3,6 @@ from typing import Any, Callable, Iterable, List, Mapping, TypeVar
 
 from . import futures
 
-import asynq
-
 _T = TypeVar("_T")
 
 class AsyncTaskCancelledError(GeneratorExit): ...
