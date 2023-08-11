@@ -13,6 +13,14 @@
 # limitations under the License.
 
 import asynq
+import asyncio
+
+from .asynq_to_async import is_asyncio_mode
+from . import debug
+from ._debug import options as _debug_options
+
+
+ASYNCIO_CONTEXT_FIELD = '_asynq_contexts'
 
 
 class NonAsyncContext(object):
@@ -29,10 +37,16 @@ class NonAsyncContext(object):
     """
 
     def __enter__(self):
-        self._active_task = enter_context(self)
+        if is_asyncio_mode():
+            enter_context_asyncio(self)
+        else:
+            self._active_task = enter_context(self)
 
     def __exit__(self, typ, val, tb):
-        leave_context(self, self._active_task)
+        if is_asyncio_mode():
+            leave_context_asyncio(self)
+        else:
+            leave_context(self, self._active_task)
 
     def pause(self):
         assert False, "Task %s cannot yield while %s is active" % (
@@ -59,6 +73,34 @@ def leave_context(context, active_task):
     if active_task is not None:
         active_task._leave_context(context)
 
+def enter_context_asyncio(context):
+    if _debug_options.DUMP_CONTEXTS:
+        debug.write("@async: +context: %s" % debug.str(context))
+
+    # since we are in asyncio mode, there is an active task
+    task = asyncio.current_task()
+
+    if hasattr(task, ASYNCIO_CONTEXT_FIELD):
+        getattr(task, ASYNCIO_CONTEXT_FIELD)[id(context)] = context
+    else:
+        setattr(task, ASYNCIO_CONTEXT_FIELD, {id(context): context})
+
+def leave_context_asyncio(context):
+    if _debug_options.DUMP_CONTEXTS:
+        debug.write("@async: -context: %s" % debug.str(context))
+
+    task = asyncio.current_task()
+    del getattr(task, ASYNCIO_CONTEXT_FIELD)[id(context)]  # type: ignore
+    context.pause()
+
+def pause_contexts_asyncio(task):
+    for ctx in reversed(list(getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values())):
+        ctx.pause()
+
+def resume_contexts_asyncio(task):
+    for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
+        ctx.resume()
+
 
 class AsyncContext(object):
     """Base class for contexts that should pause and resume during an async's function execution.
@@ -77,14 +119,22 @@ class AsyncContext(object):
     """
 
     def __enter__(self):
-        self._active_task = enter_context(self)
+        if is_asyncio_mode():
+            enter_context_asyncio(self)
+        else:
+            self._active_task = enter_context(self)
+
         self.resume()
         return self
 
     def __exit__(self, ty, value, tb):
-        leave_context(self, self._active_task)
-        self.pause()
-        del self._active_task
+        if is_asyncio_mode():
+            leave_context_asyncio(self)
+            self.pause()
+        else:
+            leave_context(self, self._active_task)
+            self.pause()
+            del self._active_task
 
     def resume(self):
         raise NotImplementedError()

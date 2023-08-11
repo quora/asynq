@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import asyncio
 import inspect
 from typing import Any, Awaitable
 
@@ -21,6 +22,7 @@ import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
 
 from . import _debug, async_task, asynq_to_async, futures
+from .contexts import ASYNCIO_CONTEXT_FIELD
 
 __traceback_hide__ = True
 
@@ -168,6 +170,7 @@ class AsyncDecorator(PureAsyncDecorator):
             if inspect.isgeneratorfunction(self.fn):
 
                 async def wrapped(*_args, **_kwargs):
+                    task = asyncio.current_task()
                     with asynq_to_async.AsyncioMode():
                         send = None
                         generator = self.fn(*_args, **_kwargs)
@@ -177,7 +180,15 @@ class AsyncDecorator(PureAsyncDecorator):
                             except StopIteration as exc:
                                 return exc.value
 
+                            # pause the current task's contexts
+                            for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
+                                ctx.pause()
+
                             send = await asynq_to_async.resolve_awaitables(result)
+
+                            # resume the current task's contexts
+                            for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
+                                ctx.resume()
 
                 self.asyncio_fn = wrapped
             else:
