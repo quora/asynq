@@ -205,6 +205,7 @@ class Future(FutureBase):
 
 class ConstFuture(FutureBase):
     """Future wrapping the constant."""
+    running = False
 
     def __init__(self, value):
         self._value = _none

@@ -55,7 +55,7 @@ class AsyncTask(futures.FutureBase):
 
     """
 
-    def __init__(self, generator, fn, args, kwargs):
+    def __init__(self, generator, fn, args, kwargs, last_value=None):
         super().__init__()
         if _debug_options.ENABLE_COMPLEX_ASSERTIONS:
             assert core_inspection.is_cython_or_generator(generator), (
@@ -67,7 +67,6 @@ class AsyncTask(futures.FutureBase):
         self.iteration_index = 0
         self._generator = generator
         self._frame = None
-        self._last_value = None
         self._dependencies = []
         self._contexts = OrderedDict()
         self._contexts_active = False
@@ -77,6 +76,7 @@ class AsyncTask(futures.FutureBase):
         self.perf_stats = {}
         self.creator = asynq.scheduler.get_active_task()
         self.running = False
+        self._accept_yield_result(last_value)
         if _debug_options.DUMP_NEW_TASKS:
             debug.write(
                 "@async: new task: %s, created by %s"

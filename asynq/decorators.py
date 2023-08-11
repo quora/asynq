@@ -159,6 +159,54 @@ class AsyncDecorator(PureAsyncDecorator):
         return self._call_pure(args, kwargs).value()
 
 
+class EagerAsyncDecorator(qcore.decorators.DecoratorBase):
+    binder_cls = AsyncDecoratorBinder
+    task_cls = async_task.AsyncTask
+
+    def __init__(self, fn):
+        qcore.decorators.DecoratorBase.__init__(self, fn)
+        self.needs_wrapper = core_inspection.is_cython_or_generator(fn)
+
+    def asynq(self, *args, **kwargs):
+        return self._call_pure(args, kwargs)
+
+    def name(self):
+        return "@asynq()"
+
+    def __call__(self, *args, **kwargs):
+        return self._call_pure(args, kwargs).value()
+
+    def _call_pure(self, args, kwargs):
+        result = self.fn(*args, **kwargs)
+        if not self.needs_wrapper:
+            return futures.ConstFuture(result)
+        to_send = None
+        while True:
+            create_task = False
+            try:
+                yield_result = result.send(to_send)
+            except StopIteration as e:
+                return futures.ConstFuture(e.value)
+            if isinstance(yield_result, futures.ConstFuture):
+                to_send = yield_result.value()
+            elif isinstance(yield_result, (list, tuple)):
+                to_send = []
+                for item in yield_result:
+                    if isinstance(item, futures.ConstFuture):
+                        to_send.append(item.value())
+                    else:
+                        create_task = True
+                        break
+                if not create_task and isinstance(yield_result, tuple):
+                    to_send = tuple(to_send)
+            else:
+                create_task = True
+            if create_task:
+                return async_task.AsyncTask(
+                    result, self.fn, args, kwargs, last_value=yield_result
+                )
+
+
 class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder):
     def __call__(self, *args, **kwargs):
         # the base class implementation adds .instance here, but we don't want that because we
@@ -211,7 +259,7 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
         return self.sync_fn(*args, **kwargs)
 
 
-def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
+def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, eager=True, **kwargs):
     """Async task decorator.
     Converts a method returning generator object to
     a method returning AsyncTask object.
@@ -228,12 +276,14 @@ def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
         ), "@asynq() decorator can be applied just once"
         if pure:
             return qcore.decorators.decorate(PureAsyncDecorator, cls, kwargs)(fn)
-        elif sync_fn is None:
-            return qcore.decorators.decorate(AsyncDecorator, cls)(fn)
-        else:
+        elif sync_fn is not None:
             return qcore.decorators.decorate(AsyncAndSyncPairDecorator, cls, sync_fn)(
                 fn
             )
+        elif cls is async_task.AsyncTask and eager:
+            return qcore.decorators.decorate(EagerAsyncDecorator)(fn)
+        else:
+            return qcore.decorators.decorate(AsyncDecorator, cls)(fn)
 
     return decorate
 
