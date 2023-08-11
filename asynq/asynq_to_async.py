@@ -14,7 +14,7 @@
 
 
 import asyncio
-import cython
+import cython  # type: ignore
 from typing import Any, Awaitable
 
 from .batching import BatchItemBase
