@@ -20,7 +20,8 @@ from . import debug
 from ._debug import options as _debug_options
 
 
-ASYNCIO_CONTEXT_FIELD = '_asynq_contexts'
+ASYNCIO_CONTEXT_FIELD = "_asynq_contexts"
+ASYNCIO_CONTEXT_ACTIVE_FIELD = "_asynq_contexts_active"
 
 
 class NonAsyncContext(object):
@@ -73,6 +74,7 @@ def leave_context(context, active_task):
     if active_task is not None:
         active_task._leave_context(context)
 
+
 def enter_context_asyncio(context):
     if _debug_options.DUMP_CONTEXTS:
         debug.write("@async: +context: %s" % debug.str(context))
@@ -85,21 +87,27 @@ def enter_context_asyncio(context):
     else:
         setattr(task, ASYNCIO_CONTEXT_FIELD, {id(context): context})
 
+
 def leave_context_asyncio(context):
     if _debug_options.DUMP_CONTEXTS:
         debug.write("@async: -context: %s" % debug.str(context))
 
     task = asyncio.current_task()
     del getattr(task, ASYNCIO_CONTEXT_FIELD)[id(context)]  # type: ignore
-    context.pause()
+
 
 def pause_contexts_asyncio(task):
-    for ctx in reversed(list(getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values())):
-        ctx.pause()
+    if getattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, False):
+        setattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, False)
+        for ctx in reversed(list(getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values())):
+            ctx.pause()
+
 
 def resume_contexts_asyncio(task):
-    for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
-        ctx.resume()
+    if not getattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, False):
+        setattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, True)
+        for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
+            ctx.resume()
 
 
 class AsyncContext(object):

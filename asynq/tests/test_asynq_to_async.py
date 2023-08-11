@@ -19,58 +19,39 @@ from qcore.asserts import assert_eq
 
 import asynq
 from asynq.tools import AsyncTimer
-from asynq.batching import BatchItemBase, BatchBase
-
-
-async def f3():
-    return 200
-
-
-@asynq.asynq(asyncio_fn=f3)
-def f2():
-    return 100
-
-
-@asynq.asynq()
-def f(x):
-    a = yield asynq.ConstFuture(3)
-    b = yield asynq.ConstFuture(2)
-    assert (yield None) == None
-    return a - b + x
-
-
-@asynq.asynq()
-def g(x):
-    obj = yield {
-        "a": [f.asynq(0), f.asynq(1)],
-        "b": (f.asynq(2), f.asynq(3)),
-        "c": f.asynq(4),
-        "d": f2.asynq(),
-    }
-    return obj
 
 
 def test_asyncio():
+    async def f3():
+        return 200
+
+    @asynq.asynq(asyncio_fn=f3)
+    def f2():
+        return 100
+
+    @asynq.asynq()
+    def f(x):
+        a = yield asynq.ConstFuture(3)
+        b = yield asynq.ConstFuture(2)
+        assert (yield None) == None
+        return a - b + x
+
+    @asynq.asynq()
+    def g(x):
+        obj = yield {
+            "a": [f.asynq(0), f.asynq(1)],
+            "b": (f.asynq(2), f.asynq(3)),
+            "c": f.asynq(4),
+            "d": f2.asynq(),
+        }
+        return obj
+
     assert asyncio.run(g.asyncio(5)) == {"a": [1, 2], "b": (3, 4), "c": 5, "d": 200}
 
 
-
-
 def test_context():
-    class TestBatchItem(BatchItemBase):
-        pass
-
-    class TestBatch(BatchBase):
-        def _try_switch_active_batch(self):
-            pass
-        def _flush(self):
-            for item in self.items:
-                item.set_value(None)
-            time.sleep(0.1 * len(self.items))
-        def _cancel(self):
-            pass
-
-    batch = TestBatch()
+    async def blocking_op():
+        await asyncio.sleep(0.1)
 
     @asynq.asynq()
     def f1():
@@ -87,16 +68,16 @@ def test_context():
             t = yield f3.asynq()
             time.sleep(0.1)
         return timer.total_time, t
-    
+
     @asynq.asynq()
     def f3():
         with AsyncTimer() as timer:
             # since AsyncTimer is paused on blocking operations,
             # the time for TestBatch is not measured
-            yield [TestBatchItem(batch), TestBatchItem(batch)]
+            yield [blocking_op(), blocking_op()]
         return timer.total_time
 
-    t1, t2, t3 = f1()
+    t1, t2, t3 = asyncio.run(f1.asyncio())
     assert_eq(400000, t1, tolerance=10000)  # 400ms, 10us tolerance
     assert_eq(200000, t2, tolerance=10000)  # 200ms, 10us tolerance
     assert_eq(000000, t3, tolerance=10000)  #   0ms, 10us tolerance
