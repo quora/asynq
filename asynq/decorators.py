@@ -22,7 +22,7 @@ import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
 
 from . import _debug, async_task, asynq_to_async, futures
-from .contexts import ASYNCIO_CONTEXT_FIELD
+from .contexts import ASYNCIO_CONTEXT_FIELD, pause_contexts_asyncio, resume_contexts_asyncio
 
 __traceback_hide__ = True
 
@@ -181,14 +181,9 @@ class AsyncDecorator(PureAsyncDecorator):
                                 return exc.value
 
                             # pause the current task's contexts
-                            for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
-                                ctx.pause()
-
+                            pause_contexts_asyncio(task)
                             send = await asynq_to_async.resolve_awaitables(result)
-
-                            # resume the current task's contexts
-                            for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
-                                ctx.resume()
+                            resume_contexts_asyncio(task)
 
                 self.asyncio_fn = wrapped
             else:
