@@ -49,7 +49,7 @@ async def resolve_awaitables(x: Any):
     if x is None:
         return None
 
-    raise ValueError("Unknown structured awaitable type: ", type(x))
+    raise TypeError("Unknown structured awaitable type: ", type(x))
 
 
 class AsyncioMode:
