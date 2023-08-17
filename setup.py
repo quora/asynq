@@ -21,6 +21,7 @@ import os.path
 
 CYTHON_MODULES = [
     "async_task",
+    "asynq_to_async",
     "batching",
     "contexts",
     "_debug",

@@ -65,6 +65,7 @@ from .generator import (
     take_first,
     Value,
 )
+from .asynq_to_async import is_asyncio_mode
 
 debug.sync = batching.sync
 debug.attach_exception_hook()

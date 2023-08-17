@@ -12,17 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import asyncio
+import inspect
+from typing import Any, Awaitable
+
+import qcore.decorators
 import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
-import qcore.decorators
 
-from . import futures
-from . import async_task
-from . import _debug
+from . import async_task, asynq_to_async, futures
+from .contexts import (
+    ASYNCIO_CONTEXT_FIELD,
+    pause_contexts_asyncio,
+    resume_contexts_asyncio,
+)
 
 __traceback_hide__ = True
-
-_debug_options = _debug.options
 
 
 def lazy(fn):
@@ -34,7 +40,9 @@ def lazy(fn):
 
     @core_inspection.wraps(fn)
     def new_fn(*args, **kwargs):
-        value_provider = lambda: fn(*args, **kwargs)
+        def value_provider():
+            return fn(*args, **kwargs)
+
         return futures.Future(value_provider)
 
     new_fn.is_pure_async_fn = core_helpers.true_fn
@@ -146,16 +154,56 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
 class AsyncDecorator(PureAsyncDecorator):
     binder_cls = AsyncDecoratorBinder
 
+    def __init__(self, fn, cls, kwargs={}, asyncio_fn=None):
+        super().__init__(fn, cls, kwargs)
+        self.asyncio_fn = asyncio_fn
+
     def is_pure_async_fn(self):
         return False
 
     def asynq(self, *args, **kwargs):
+        if asynq_to_async.is_asyncio_mode():
+            return self.asyncio(*args, **kwargs)
+
         return self._call_pure(args, kwargs)
+
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
+        if self.asyncio_fn is None:
+            if inspect.isgeneratorfunction(self.fn):
+
+                async def wrapped(*_args, **_kwargs):
+                    task = asyncio.current_task()
+                    with asynq_to_async.AsyncioMode():
+                        send = None
+                        generator = self.fn(*_args, **_kwargs)
+                        while True:
+                            resume_contexts_asyncio(task)
+                            try:
+                                result = generator.send(send)
+                            except StopIteration as exc:
+                                return exc.value
+
+                            pause_contexts_asyncio(task)
+                            send = await asynq_to_async.resolve_awaitables(result)
+
+                self.asyncio_fn = wrapped
+            else:
+
+                async def wrapped(*_args, **_kwargs):
+                    with asynq_to_async.AsyncioMode():
+                        return self.fn(*_args, **_kwargs)
+
+                self.asyncio_fn = wrapped
+
+        return self.asyncio_fn(*args, **kwargs)
 
     def name(self):
         return "@asynq()"
 
     def __call__(self, *args, **kwargs):
+        if asynq_to_async.is_asyncio_mode():
+            raise RuntimeError("asyncio mode does not support synchronous calls")
+
         return self._call_pure(args, kwargs).value()
 
 
@@ -211,7 +259,9 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
         return self.sync_fn(*args, **kwargs)
 
 
-def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
+def asynq(
+    pure=False, sync_fn=None, cls=async_task.AsyncTask, asyncio_fn=None, **kwargs
+):
     """Async task decorator.
     Converts a method returning generator object to
     a method returning AsyncTask object.
@@ -229,7 +279,10 @@ def asynq(pure=False, sync_fn=None, cls=async_task.AsyncTask, **kwargs):
         if pure:
             return qcore.decorators.decorate(PureAsyncDecorator, cls, kwargs)(fn)
         elif sync_fn is None:
-            return qcore.decorators.decorate(AsyncDecorator, cls)(fn)
+            decorated = qcore.decorators.decorate(
+                AsyncDecorator, cls, kwargs, asyncio_fn
+            )(fn)
+            return decorated
         else:
             return qcore.decorators.decorate(AsyncAndSyncPairDecorator, cls, sync_fn)(
                 fn
