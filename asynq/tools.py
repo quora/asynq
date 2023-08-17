@@ -453,13 +453,9 @@ class AsyncTimer(AsyncContext):
 
     def resume(self):
         self._last_start_time = utime()
-        if hasattr(self, "debug"):
-            print("resume")
 
     def pause(self):
         self.total_time += utime() - self._last_start_time
-        if hasattr(self, "debug"):
-            print("pause - ", self.total_time)
 
 
 class AsyncEventHook(EventHook):

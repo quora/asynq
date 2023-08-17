@@ -14,18 +14,15 @@
 
 
 import asyncio
-import cython  # type: ignore
 from typing import Any, Awaitable
 
 from .batching import BatchItemBase
 from .futures import ConstFuture
 
-_asyncio_mode = cython.declare(cython.int, 0)
+_asyncio_mode = 0
 
 
 # asyncio_mode > 0 indicates that a synchronous call runs on an asyncio loop.
-@cython.ccall
-@cython.inline
 def is_asyncio_mode():
     return _asyncio_mode > 0
 
@@ -55,7 +52,6 @@ async def resolve_awaitables(x: Any):
     raise TypeError("Unknown structured awaitable type: ", type(x))
 
 
-@cython.cclass
 class AsyncioMode:
     """
     This context manager is internally used by .asyncio() to indicate that we are in asyncio mode.

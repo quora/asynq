@@ -80,5 +80,5 @@ if __name__ == "__main__":
         package_data={"asynq": DATA_FILES},
         ext_modules=EXTENSIONS,
         setup_requires=["Cython", "qcore", "setuptools"],
-        install_requires=["Cython", "qcore", "pygments"],
+        install_requires=["qcore", "pygments"],
     )
