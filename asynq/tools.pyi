@@ -11,7 +11,9 @@ from typing import (
     List,
     Optional,
     Tuple,
+    Type,
     TypeVar,
+    Union,
     overload,
 )
 
@@ -62,7 +64,9 @@ def alru_cache(
 ) -> _AsyncWrapper: ...
 def alazy_constant(ttl: int = ...) -> Callable[..., Any]: ...
 def aretry(
-    exception_cls: type, max_tries: int = ..., sleep: float = ...
+    exception_cls: Union[Type[BaseException], Tuple[Type[BaseException], ...]],
+    max_tries: int = ...,
+    sleep: float = ...,
 ) -> Callable[..., Any]: ...
 @asynq()
 def call_with_context(
