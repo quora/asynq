@@ -150,6 +150,12 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
         else:
             return self.decorator.asynq(self.instance, *args, **kwargs)
 
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
+        if self.instance is None:
+            return self.decorator.asyncio(*args, **kwargs)
+        else:
+            return self.decorator.asyncio(self.instance, *args, **kwargs)
+
 
 class AsyncDecorator(PureAsyncDecorator):
     binder_cls = AsyncDecoratorBinder

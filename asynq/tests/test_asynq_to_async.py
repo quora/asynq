@@ -15,6 +15,7 @@
 
 import asyncio
 import time
+
 from qcore.asserts import assert_eq
 
 import asynq
@@ -33,7 +34,7 @@ def test_asyncio():
     def f(x):
         a = yield asynq.ConstFuture(3)
         b = yield asynq.ConstFuture(2)
-        assert (yield None) == None
+        assert (yield None) is None
         return a - b + x
 
     @asynq.asynq()
@@ -81,3 +82,26 @@ def test_context():
     assert_eq(400000, t1, tolerance=10000)  # 400ms, 10us tolerance
     assert_eq(200000, t2, tolerance=10000)  # 200ms, 10us tolerance
     assert_eq(000000, t3, tolerance=10000)  #   0ms, 10us tolerance
+
+
+def test_method():
+    async def g(slf, x):
+        return slf._x + x + 20
+
+    class A:
+        def __init__(self, x):
+            self._x = x
+
+        @asynq.asynq(asyncio_fn=g)
+        def f(self, x):
+            return self._x + x + 10
+
+    a = A(100)
+    assert_eq(a.f(5), 115)
+
+    @asynq.asynq()
+    def original(x):
+        return (yield a.f.asynq(x))
+
+    assert_eq(original(6), 116)
+    assert_eq(asyncio.run(a.f.asyncio(7)), 127)
