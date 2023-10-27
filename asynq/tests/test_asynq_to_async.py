@@ -87,21 +87,21 @@ def test_context():
 def test_method():
     async def g(slf, x):
         return slf._x + x + 20
-    
+
     class A:
         def __init__(self, x):
-            self._x = x        
+            self._x = x
 
         @asynq.asynq(asyncio_fn=g)
         def f(self, x):
             return self._x + x + 10
-        
+
     a = A(100)
     assert_eq(a.f(5), 115)
 
     @asynq.asynq()
     def original(x):
         return (yield a.f.asynq(x))
-    
+
     assert_eq(original(6), 116)
     assert_eq(asyncio.run(a.f.asyncio(7)), 127)
