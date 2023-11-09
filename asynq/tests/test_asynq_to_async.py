@@ -115,6 +115,6 @@ def test_pure():
     @asynq.asynq()
     def i():
         return (yield h())
-    
+
     assert i() == 100
     assert asyncio.run(i.asyncio()) == 100
