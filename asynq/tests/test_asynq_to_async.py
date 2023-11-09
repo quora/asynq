@@ -105,3 +105,16 @@ def test_method():
 
     assert_eq(original(6), 116)
     assert_eq(asyncio.run(a.f.asyncio(7)), 127)
+
+
+def test_pure():
+    @asynq.asynq(pure=True)
+    def h():
+        return 100
+
+    @asynq.asynq()
+    def i():
+        return (yield h())
+    
+    assert i() == 100
+    assert asyncio.run(i.asyncio()) == 100

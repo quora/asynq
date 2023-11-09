@@ -115,11 +115,12 @@ class PureAsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
 class PureAsyncDecorator(qcore.decorators.DecoratorBase):
     binder_cls = PureAsyncDecoratorBinder
 
-    def __init__(self, fn, task_cls, kwargs={}):
+    def __init__(self, fn, task_cls, kwargs={}, asyncio_fn=None):
         qcore.decorators.DecoratorBase.__init__(self, fn)
         self.task_cls = task_cls
         self.needs_wrapper = core_inspection.is_cython_or_generator(fn)
         self.kwargs = kwargs
+        self.asyncio_fn = asyncio_fn
 
     def name(self):
         return "@asynq(pure=True)"
@@ -131,47 +132,6 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase):
         raise async_task.AsyncTaskResult(self.fn(*args, **kwargs))
         return
         yield
-
-    def __call__(self, *args, **kwargs):
-        return self._call_pure(args, kwargs)
-
-    def _call_pure(self, args, kwargs):
-        if not self.needs_wrapper:
-            result = self._fn_wrapper(args, kwargs)
-        else:
-            result = self.fn(*args, **kwargs)
-        return self.task_cls(result, self.fn, args, kwargs, **self.kwargs)
-
-
-class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
-    def asynq(self, *args, **kwargs):
-        if self.instance is None:
-            return self.decorator.asynq(*args, **kwargs)
-        else:
-            return self.decorator.asynq(self.instance, *args, **kwargs)
-
-    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
-        if self.instance is None:
-            return self.decorator.asyncio(*args, **kwargs)
-        else:
-            return self.decorator.asyncio(self.instance, *args, **kwargs)
-
-
-class AsyncDecorator(PureAsyncDecorator):
-    binder_cls = AsyncDecoratorBinder
-
-    def __init__(self, fn, cls, kwargs={}, asyncio_fn=None):
-        super().__init__(fn, cls, kwargs)
-        self.asyncio_fn = asyncio_fn
-
-    def is_pure_async_fn(self):
-        return False
-
-    def asynq(self, *args, **kwargs):
-        if asynq_to_async.is_asyncio_mode():
-            return self.asyncio(*args, **kwargs)
-
-        return self._call_pure(args, kwargs)
 
     def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
         if self.asyncio_fn is None:
@@ -202,6 +162,46 @@ class AsyncDecorator(PureAsyncDecorator):
                 self.asyncio_fn = wrapped
 
         return self.asyncio_fn(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        return self._call_pure(args, kwargs)
+
+    def _call_pure(self, args, kwargs):
+        if asynq_to_async.is_asyncio_mode():
+            return self.asyncio(*args, **kwargs)
+
+        if not self.needs_wrapper:
+            result = self._fn_wrapper(args, kwargs)
+        else:
+            result = self.fn(*args, **kwargs)
+        return self.task_cls(result, self.fn, args, kwargs, **self.kwargs)
+
+
+class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
+    def asynq(self, *args, **kwargs):
+        if self.instance is None:
+            return self.decorator.asynq(*args, **kwargs)
+        else:
+            return self.decorator.asynq(self.instance, *args, **kwargs)
+
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
+        if self.instance is None:
+            return self.decorator.asyncio(*args, **kwargs)
+        else:
+            return self.decorator.asyncio(self.instance, *args, **kwargs)
+
+
+class AsyncDecorator(PureAsyncDecorator):
+    binder_cls = AsyncDecoratorBinder
+
+    def __init__(self, fn, cls, kwargs={}, asyncio_fn=None):
+        super().__init__(fn, cls, kwargs, asyncio_fn)
+
+    def is_pure_async_fn(self):
+        return False
+
+    def asynq(self, *args, **kwargs):
+        return self._call_pure(args, kwargs)
 
     def name(self):
         return "@asynq()"
