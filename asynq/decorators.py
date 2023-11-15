@@ -307,9 +307,9 @@ def async_proxy(pure=False, sync_fn=None, asyncio_fn=None):
         if sync_fn is None:
             return qcore.decorators.decorate(AsyncProxyDecorator, asyncio_fn)(fn)
         else:
-            return qcore.decorators.decorate(AsyncAndSyncPairProxyDecorator, sync_fn, asyncio_fn)(
-                fn
-            )
+            return qcore.decorators.decorate(
+                AsyncAndSyncPairProxyDecorator, sync_fn, asyncio_fn
+            )(fn)
 
     return decorate
 
