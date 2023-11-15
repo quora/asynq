@@ -20,7 +20,7 @@ from qcore.asserts import assert_eq
 
 import asynq
 from asynq import ConstFuture
-from asynq.tools import AsyncTimer
+from asynq.tools import AsyncTimer, deduplicate
 
 
 def test_asyncio():
@@ -132,3 +132,24 @@ def test_proxy():
     assert j(-100) == 788
     assert j.asynq(-200).value() == 688
     assert asyncio.run(j.asyncio(-300)) == 699
+
+
+def test_deduplicate():
+    @deduplicate()
+    @asynq.asynq()
+    def l():
+        return 3
+
+    async def n():
+        return 4
+
+    @deduplicate()
+    @asynq.asynq(asyncio_fn=n)
+    def m():
+        return 3
+
+    assert l() == 3
+    assert asyncio.run(l.asyncio()) == 3
+
+    assert m() == 3
+    assert asyncio.run(m.asyncio()) == 4

@@ -18,21 +18,23 @@ Helper functions for use with asynq (similar to itertools).
 
 """
 
-from .asynq_to_async import is_asyncio_mode
-from .contexts import AsyncContext
-from .decorators import asynq, async_call, AsyncDecorator, AsyncDecoratorBinder
-
-from qcore import get_original_fn, utime
-from qcore.caching import get_args_tuple, get_kwargs_defaults, LRUCache
-from qcore.events import EventHook
-from qcore.errors import reraise, prepare_for_reraise
-from qcore.decorators import decorate
 import functools
 import inspect
 import itertools
-import weakref
 import threading
 import time
+import weakref
+from typing import Any, Awaitable
+
+from qcore import get_original_fn, utime
+from qcore.caching import LRUCache, get_args_tuple, get_kwargs_defaults
+from qcore.decorators import decorate
+from qcore.errors import prepare_for_reraise, reraise
+from qcore.events import EventHook
+
+from .asynq_to_async import is_asyncio_mode
+from .contexts import AsyncContext
+from .decorators import AsyncDecorator, AsyncDecoratorBinder, async_call, asynq
 
 
 @asynq()
@@ -346,10 +348,13 @@ class DeduplicateDecorator(AsyncDecorator):
 
     def cache_key(self, args, kwargs):
         return self.keygetter(args, kwargs), threading.current_thread(), id(self.fn)
+    
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
+        return self.fn.asyncio(*args, **kwargs)
 
     def asynq(self, *args, **kwargs):
         if is_asyncio_mode():
-            return self.asyncio(*args, **kwargs)
+            return self.fn.asyncio(*args, **kwargs)
 
         cache_key = self.cache_key(args, kwargs)
 
