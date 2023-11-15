@@ -123,12 +123,10 @@ def test_pure():
 
 def test_proxy():
     async def k(x):
-        print('k called')
         return x + 999
 
     @asynq.async_proxy(asyncio_fn=k)
     def j(x):
-        print('j called')
         return ConstFuture(x + 888)
 
     assert j(-100) == 788
