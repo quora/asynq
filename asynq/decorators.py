@@ -248,17 +248,17 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
 
 
 class AsyncProxyDecorator(AsyncDecorator):
-    def __init__(self, fn):
+    def __init__(self, fn, asyncio_fn=None):
         # we don't need the task class but still need to pass it to the superclass
-        AsyncDecorator.__init__(self, fn, None)
+        AsyncDecorator.__init__(self, fn, None, asyncio_fn=asyncio_fn)
 
     def _call_pure(self, args, kwargs):
         return self.fn(*args, **kwargs)
 
 
 class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
-    def __init__(self, fn, sync_fn):
-        AsyncProxyDecorator.__init__(self, fn)
+    def __init__(self, fn, sync_fn, asyncio_fn=None):
+        AsyncProxyDecorator.__init__(self, fn, asyncio_fn=asyncio_fn)
         self.sync_fn = sync_fn
 
     def __call__(self, *args, **kwargs):
@@ -297,7 +297,7 @@ def asynq(
     return decorate
 
 
-def async_proxy(pure=False, sync_fn=None):
+def async_proxy(pure=False, sync_fn=None, asyncio_fn=None):
     if sync_fn is not None:
         assert pure is False, "sync_fn=? cannot be used together with pure=True"
 
@@ -305,9 +305,9 @@ def async_proxy(pure=False, sync_fn=None):
         if pure:
             return fn
         if sync_fn is None:
-            return qcore.decorators.decorate(AsyncProxyDecorator)(fn)
+            return qcore.decorators.decorate(AsyncProxyDecorator, asyncio_fn)(fn)
         else:
-            return qcore.decorators.decorate(AsyncAndSyncPairProxyDecorator, sync_fn)(
+            return qcore.decorators.decorate(AsyncAndSyncPairProxyDecorator, sync_fn, asyncio_fn)(
                 fn
             )
 

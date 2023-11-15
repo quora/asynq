@@ -19,6 +19,7 @@ import time
 from qcore.asserts import assert_eq
 
 import asynq
+from asynq import ConstFuture
 from asynq.tools import AsyncTimer
 
 
@@ -118,3 +119,18 @@ def test_pure():
 
     assert i() == 100
     assert asyncio.run(i.asyncio()) == 100
+
+
+def test_proxy():
+    async def k(x):
+        print('k called')
+        return x + 999
+
+    @asynq.async_proxy(asyncio_fn=k)
+    def j(x):
+        print('j called')
+        return ConstFuture(x + 888)
+
+    assert j(-100) == 788
+    assert j.asynq(-200).value() == 688
+    assert asyncio.run(j.asyncio(-300)) == 699

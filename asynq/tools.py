@@ -18,6 +18,7 @@ Helper functions for use with asynq (similar to itertools).
 
 """
 
+from .asynq_to_async import is_asyncio_mode
 from .contexts import AsyncContext
 from .decorators import asynq, async_call, AsyncDecorator, AsyncDecoratorBinder
 
@@ -347,6 +348,9 @@ class DeduplicateDecorator(AsyncDecorator):
         return self.keygetter(args, kwargs), threading.current_thread(), id(self.fn)
 
     def asynq(self, *args, **kwargs):
+        if is_asyncio_mode():
+            return self.asyncio(*args, **kwargs)
+
         cache_key = self.cache_key(args, kwargs)
 
         try:
