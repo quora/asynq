@@ -129,9 +129,36 @@ def test_proxy():
     def j(x):
         return ConstFuture(x + 888)
 
+    @asynq.asynq()
+    def jj(x):
+        return (yield j.asynq(x))
+
     assert j(-100) == 788
     assert j.asynq(-200).value() == 688
     assert asyncio.run(j.asyncio(-300)) == 699
+    assert asyncio.run(jj.asyncio(0)) == 999
+    assert jj(0) == 888
+    assert jj.asynq(0).value() == 888
+
+
+def test_proxy_and_bind():
+    async def async_g(self, x):
+        return x + 20 + B.SELF
+
+    class B:
+        SELF = 500
+
+        @asynq.async_proxy(asyncio_fn=async_g)
+        def g(self, x):
+            return ConstFuture(x + 10 + B.SELF)
+
+        @asynq.asynq()
+        def f(self, x):
+            return (yield self.g.asynq(x)) + 1
+
+    b = B()
+    assert b.f(0) == 511
+    assert asyncio.run(b.f.asyncio(1000)) == 1521
 
 
 def test_deduplicate():

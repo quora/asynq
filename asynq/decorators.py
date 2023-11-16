@@ -253,6 +253,9 @@ class AsyncProxyDecorator(AsyncDecorator):
         AsyncDecorator.__init__(self, fn, None, asyncio_fn=asyncio_fn)
 
     def _call_pure(self, args, kwargs):
+        if asynq_to_async.is_asyncio_mode():
+            return self.asyncio(*args, **kwargs)
+
         return self.fn(*args, **kwargs)
 
 
