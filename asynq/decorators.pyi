@@ -36,9 +36,11 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T]):
         fn: Callable[..., _T],
         task_cls: Optional[Type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
+        asyncio_fn: Optional[Callable[..., Awaitable]] = ...,
     ) -> None: ...
     def name(self) -> str: ...
     def is_pure_async_fn(self) -> bool: ...
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]: ...
     def __call__(
         self, *args: Any, **kwargs: Any
     ) -> Union[_T, futures.FutureBase[_T]]: ...
@@ -46,6 +48,7 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T]):
 
 class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder, Generic[_T]):
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
+    def asyncio(self, *args, **kwargs) -> Awaitable[Any]: ...
 
 class AsyncDecorator(PureAsyncDecorator[_T]):
     binder_cls = AsyncDecoratorBinder  # type: ignore
@@ -54,11 +57,10 @@ class AsyncDecorator(PureAsyncDecorator[_T]):
         fn: Callable[..., _T],
         cls: Optional[Type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
-        asyncio_fn: Callable[..., Awaitable] = ...,
+        asyncio_fn: Optional[Callable[..., Awaitable]] = ...,
     ): ...
     def is_pure_async_fn(self) -> bool: ...
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
-    def asyncio(self, *args, **kwargs) -> Awaitable[Any]: ...
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
     def __get__(self, owner: Any, cls: Any) -> AsyncDecorator[_T]: ...  # type: ignore
 
@@ -77,11 +79,18 @@ class AsyncAndSyncPairDecorator(AsyncDecorator[_T]):
     def __get__(self, owner: Any, cls: Any) -> Any: ...
 
 class AsyncProxyDecorator(AsyncDecorator[_T]):
-    def __init__(self, fn: Callable[..., futures.FutureBase[_T]]) -> None: ...
+    def __init__(
+        self,
+        fn: Callable[..., futures.FutureBase[_T]],
+        asyncio_fn: Optional[Callable[..., Awaitable[Any]]] = ...,
+    ) -> None: ...
 
 class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T]):
     def __init__(
-        self, fn: Callable[..., futures.FutureBase[_T]], sync_fn: Callable[..., _T]
+        self,
+        fn: Callable[..., futures.FutureBase[_T]],
+        sync_fn: Callable[..., _T],
+        asyncio_fn: Optional[Callable[..., Awaitable[Any]]] = ...,
     ) -> None: ...
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
 
@@ -97,6 +106,7 @@ def asynq(  # type: ignore
     *,
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
+    asyncio_fn: Optional[Callable[..., Awaitable]] = ...,
     **kwargs: Any,
 ) -> _MkAsyncDecorator: ...
 @overload
@@ -104,16 +114,20 @@ def asynq(
     pure: bool,
     sync_fn: Optional[Callable[..., Any]] = ...,
     cls: Type[futures.FutureBase] = ...,
-    asyncio_fn: Callable[..., Awaitable] = ...,
+    asyncio_fn: Optional[Callable[..., Awaitable[Any]]] = ...,
     **kwargs: Any,
 ) -> _MkPureAsyncDecorator: ...  # type: ignore
 @overload
 def async_proxy(
-    *, sync_fn: Optional[Callable[..., Any]] = ...
+    *,
+    sync_fn: Optional[Callable[..., Any]] = ...,
+    asyncio_fn: Optional[Callable[..., Awaitable[Any]]] = ...,
 ) -> _MkAsyncDecorator: ...
 @overload
 def async_proxy(
-    pure: bool, sync_fn: Optional[Callable[..., Any]] = ...
+    pure: bool,
+    sync_fn: Optional[Callable[..., Any]] = ...,
+    asyncio_fn: Optional[Callable[..., Awaitable[Any]]] = ...,
 ) -> _MkPureAsyncDecorator: ...
 @asynq()
 def async_call(
