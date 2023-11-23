@@ -15,7 +15,7 @@
 
 import asyncio
 import inspect
-from typing import Any, Awaitable
+from typing import Any, Coroutine
 
 import qcore.decorators
 import qcore.helpers as core_helpers
@@ -133,7 +133,7 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase):
         return
         yield
 
-    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
+    def asyncio(self, *args, **kwargs) -> Coroutine[Any, Any, Any]:
         if self.asyncio_fn is None:
             if inspect.isgeneratorfunction(self.fn):
 
@@ -184,7 +184,7 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
         else:
             return self.decorator.asynq(self.instance, *args, **kwargs)
 
-    def asyncio(self, *args, **kwargs) -> Awaitable[Any]:
+    def asyncio(self, *args, **kwargs) -> Coroutine[Any, Any, Any]:
         if self.instance is None:
             return self.decorator.asyncio(*args, **kwargs)
         else:
