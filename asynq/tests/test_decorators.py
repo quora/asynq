@@ -264,7 +264,7 @@ def test_async_call():
 
     @asynq()
     def g0(f, *args, **kwargs):
-        d = (yield async_call.asynq(f, *args, **kwargs))
+        d = yield async_call.asynq(f, *args, **kwargs)
         return d
 
     for f in [f1, f2, f3]:

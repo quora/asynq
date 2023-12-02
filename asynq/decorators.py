@@ -326,13 +326,14 @@ async def asyncio_call(fn, *args, **kwargs):
 
     """
     if is_pure_async_fn(fn):
-        return (await fn.asyncio(*args, **kwargs))
+        return await fn.asyncio(*args, **kwargs)
     elif hasattr(fn, "asynq"):
-        return (await fn.asyncio(*args, **kwargs))
+        return await fn.asyncio(*args, **kwargs)
     elif hasattr(fn, "async"):
-        return (await getattr(fn, "async")(*args, **kwargs))
+        return await getattr(fn, "async")(*args, **kwargs)
     else:
         return fn(*args, **kwargs)
+
 
 @async_proxy(asyncio_fn=asyncio_call)
 def async_call(fn, *args, **kwargs):
