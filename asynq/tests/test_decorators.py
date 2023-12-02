@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from qcore.asserts import assert_eq, assert_is, assert_is_instance, AssertRaises
-from asynq import asynq, async_proxy, is_pure_async_fn, async_call, ConstFuture
+import asyncio
+import pickle
+
+from qcore.asserts import AssertRaises, assert_eq, assert_is, assert_is_instance
+
+from asynq import ConstFuture, async_call, async_proxy, asynq, is_pure_async_fn
 from asynq.decorators import (
-    lazy,
+    AsyncDecorator,
     get_async_fn,
     get_async_or_sync_fn,
+    lazy,
     make_async_decorator,
-    AsyncDecorator,
 )
-import pickle
 
 
 def double_return_value(fun):
@@ -258,6 +261,17 @@ def test_async_call():
         assert_eq((10, 1), async_call.asynq(f, 10).value())
         assert_eq((10, 5), async_call.asynq(f, 10, 5).value())
         assert_eq((10, 7), async_call.asynq(f, 10, kw=7).value())
+
+    @asynq()
+    def g0(f, *args, **kwargs):
+        d = (yield async_call.asynq(f, *args, **kwargs))
+        return d
+
+    for f in [f1, f2, f3]:
+        assert_eq((10, 1), asyncio.run(async_call.asyncio(f, 10)))
+        assert_eq((10, 1), asyncio.run(g0.asyncio(f, 10)))
+        assert_eq((10, 5), asyncio.run(g0.asyncio(f, 10, 5)))
+        assert_eq((10, 7), asyncio.run(g0.asyncio(f, 10, kw=7)))
 
 
 def test_make_async_decorator():
