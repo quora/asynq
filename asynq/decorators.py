@@ -22,6 +22,7 @@ import qcore.helpers as core_helpers
 import qcore.inspection as core_inspection
 
 from . import async_task, asynq_to_async, futures
+from .asynq_to_async import is_asyncio_mode
 from .contexts import (
     ASYNCIO_CONTEXT_FIELD,
     pause_contexts_asyncio,
@@ -317,7 +318,24 @@ def async_proxy(pure=False, sync_fn=None, asyncio_fn=None):
     return decorate
 
 
-@async_proxy()
+async def asyncio_call(fn, *args, **kwargs):
+    """An asyncio-version of async_call.
+
+    Note that it is not always possible to detect whether an function is a coroutine function or not.
+    For example, a callable F that returns Coroutine is a coroutine function, but inspect.iscoroutinefunction(F) is False.
+
+    """
+    if is_pure_async_fn(fn):
+        return await fn.asyncio(*args, **kwargs)
+    elif hasattr(fn, "asynq"):
+        return await fn.asyncio(*args, **kwargs)
+    elif hasattr(fn, "async"):
+        return await getattr(fn, "async")(*args, **kwargs)
+    else:
+        return fn(*args, **kwargs)
+
+
+@async_proxy(asyncio_fn=asyncio_call)
 def async_call(fn, *args, **kwargs):
     """Use this if you are not sure if fn is async or not.
 
