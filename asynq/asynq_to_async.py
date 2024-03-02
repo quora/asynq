@@ -27,6 +27,16 @@ def is_asyncio_mode():
     return _asyncio_mode > 0
 
 
+async def _gather(*awaitables):
+    """Gather awaitables, but cancel all of them if one of them fails."""
+    try:
+        futures = asyncio.gather(*awaitables)
+        return await futures
+    except Exception:
+        futures.cancel()
+        raise
+
+
 async def resolve_awaitables(x: Any):
     """
     Resolve a possibly-nested collection of awaitables.
@@ -38,11 +48,11 @@ async def resolve_awaitables(x: Any):
     if isinstance(x, BatchItemBase):
         raise RuntimeError("asynq BatchItem is not supported in asyncio mode")
     if isinstance(x, list):
-        return await asyncio.gather(*[resolve_awaitables(item) for item in x])
+        return await _gather(*[resolve_awaitables(item) for item in x])
     if isinstance(x, tuple):
-        return tuple(await asyncio.gather(*[resolve_awaitables(item) for item in x]))
+        return tuple(await _gather(*[resolve_awaitables(item) for item in x]))
     if isinstance(x, dict):
-        resolutions = await asyncio.gather(
+        resolutions = await _gather(
             *[resolve_awaitables(value) for value in x.values()]
         )
         return {key: resolution for (key, resolution) in zip(x.keys(), resolutions)}

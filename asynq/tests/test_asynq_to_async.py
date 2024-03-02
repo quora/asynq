@@ -14,6 +14,7 @@
 
 
 import asyncio
+import pytest
 import time
 
 from qcore.asserts import assert_eq
@@ -49,6 +50,26 @@ def test_asyncio():
         return obj
 
     assert asyncio.run(g.asyncio(5)) == {"a": [1, 2], "b": (3, 4), "c": 5, "d": 200}
+
+
+def test_asyncio_exception():
+    async def f2_async():
+        assert False
+
+    @asynq.asynq(asyncio_fn=f2_async)
+    def f2():
+        assert False
+
+    @asynq.asynq()
+    def f3():
+        yield f2.asynq()
+
+    @asynq.asynq()
+    def f():
+        with pytest.raises(AssertionError):
+            yield [f3.asynq(), f3.asynq()]
+
+    asyncio.run(f.asyncio())
 
 
 def test_context():
