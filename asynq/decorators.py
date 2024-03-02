@@ -15,7 +15,6 @@
 
 import asyncio
 import inspect
-import sys
 from typing import Any, Coroutine
 
 import qcore.decorators
@@ -164,7 +163,6 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase):
                                 send = await asynq_to_async.resolve_awaitables(result)
                                 exception = None
                             except Exception as exc:
-                                traceback = sys.exc_info()[2]
                                 exception = exc
 
                 self.asyncio_fn = wrapped
