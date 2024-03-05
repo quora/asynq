@@ -31,7 +31,14 @@ async def _gather(awaitables):
     """Gather awaitables, but wait all other awaitables to finish even if some of them fail."""
 
     tasks = [asyncio.ensure_future(awaitable) for awaitable in awaitables]
+
+    # Wait for all tasks to finish, even if some of them fail.
     await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED)
+
+    # mark exceptions are retrieved.
+    for task in tasks:
+        task.exception()
+
     return [task.result() for task in tasks]
 
 

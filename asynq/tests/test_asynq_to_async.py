@@ -53,23 +53,45 @@ def test_asyncio():
 
 
 def test_asyncio_exception():
-    async def f2_async():
+    call_count = 0
+
+    async def func_success_async():
+        nonlocal call_count
+        await asyncio.sleep(0.25)
+        call_count += 1
+
+    @asynq.asynq(asyncio_fn=func_success_async)
+    def func_success():
+        raise NotImplementedError()
+
+    async def func_fail_async():
+        nonlocal call_count
+        await asyncio.sleep(0.05)
+        call_count += 1
         assert False
 
-    @asynq.asynq(asyncio_fn=f2_async)
-    def f2():
-        assert False
+    @asynq.asynq(asyncio_fn=func_fail_async)
+    def func_fail():
+        raise NotImplementedError()
 
     @asynq.asynq()
-    def f3():
-        yield f2.asynq()
-
-    @asynq.asynq()
-    def f():
+    def func_main():
         with pytest.raises(AssertionError):
-            yield [f3.asynq(), f3.asynq()]
+            # func_fail will fail earlier than func_success
+            # but this statement should wait for all tasks to finish.
+            yield [
+                func_success.asynq(),
+                func_fail.asynq(),
+                func_success.asynq(),
+                func_fail.asynq(),
+                func_success.asynq(),
+                func_success.asynq(),
+                func_success.asynq(),
+                func_fail.asynq(),
+            ]
 
-    asyncio.run(f.asyncio())
+    asyncio.run(func_main.asyncio())
+    assert call_count == 8
 
 
 def test_context():
