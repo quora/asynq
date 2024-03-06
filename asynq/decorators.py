@@ -141,17 +141,29 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase):
                 async def wrapped(*_args, **_kwargs):
                     task = asyncio.current_task()
                     with asynq_to_async.AsyncioMode():
-                        send = None
+                        send, exception = None, None
+
                         generator = self.fn(*_args, **_kwargs)
                         while True:
                             resume_contexts_asyncio(task)
                             try:
-                                result = generator.send(send)
+                                if exception is None:
+                                    result = generator.send(send)
+                                else:
+                                    result = generator.throw(
+                                        type(exception),
+                                        exception,
+                                        exception.__traceback__,
+                                    )
                             except StopIteration as exc:
                                 return exc.value
 
                             pause_contexts_asyncio(task)
-                            send = await asynq_to_async.resolve_awaitables(result)
+                            try:
+                                send = await asynq_to_async.resolve_awaitables(result)
+                                exception = None
+                            except Exception as exc:
+                                exception = exc
 
                 self.asyncio_fn = wrapped
             else:

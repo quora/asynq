@@ -14,6 +14,7 @@
 
 
 import asyncio
+import pytest
 import time
 
 from qcore.asserts import assert_eq
@@ -49,6 +50,48 @@ def test_asyncio():
         return obj
 
     assert asyncio.run(g.asyncio(5)) == {"a": [1, 2], "b": (3, 4), "c": 5, "d": 200}
+
+
+def test_asyncio_exception():
+    call_count = 0
+
+    async def func_success_async():
+        nonlocal call_count
+        await asyncio.sleep(0.25)
+        call_count += 1
+
+    @asynq.asynq(asyncio_fn=func_success_async)
+    def func_success():
+        raise NotImplementedError()
+
+    async def func_fail_async():
+        nonlocal call_count
+        await asyncio.sleep(0.05)
+        call_count += 1
+        assert False
+
+    @asynq.asynq(asyncio_fn=func_fail_async)
+    def func_fail():
+        raise NotImplementedError()
+
+    @asynq.asynq()
+    def func_main():
+        with pytest.raises(AssertionError):
+            # func_fail will fail earlier than func_success
+            # but this statement should wait for all tasks to finish.
+            yield [
+                func_success.asynq(),
+                func_fail.asynq(),
+                func_success.asynq(),
+                func_fail.asynq(),
+                func_success.asynq(),
+                func_success.asynq(),
+                func_success.asynq(),
+                func_fail.asynq(),
+            ]
+
+    asyncio.run(func_main.asyncio())
+    assert call_count == 8
 
 
 def test_context():
