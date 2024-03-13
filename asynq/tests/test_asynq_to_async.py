@@ -51,6 +51,12 @@ def test_asyncio():
 
     assert asyncio.run(g.asyncio(5)) == {"a": [1, 2], "b": (3, 4), "c": 5, "d": 200}
 
+    @asynq.asynq()
+    def empty():
+        return (yield [])
+
+    assert asyncio.run(empty.asyncio()) == []
+
 
 def test_asyncio_exception():
     call_count = 0
