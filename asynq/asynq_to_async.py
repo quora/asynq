@@ -30,6 +30,9 @@ def is_asyncio_mode():
 async def _gather(awaitables):
     """Gather awaitables, but wait all other awaitables to finish even if some of them fail."""
 
+    if len(awaitables) == 0:
+        return []
+
     tasks = [asyncio.ensure_future(awaitable) for awaitable in awaitables]
 
     # Wait for all tasks to finish, even if some of them fail.
