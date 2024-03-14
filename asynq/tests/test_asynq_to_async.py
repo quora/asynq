@@ -14,9 +14,9 @@
 
 
 import asyncio
-import pytest
 import time
 
+import pytest
 from qcore.asserts import assert_eq
 
 import asynq
@@ -188,6 +188,18 @@ def test_proxy():
     assert asyncio.run(jj.asyncio(0)) == 999
     assert jj(0) == 888
     assert jj.asynq(0).value() == 888
+
+
+def test_proxy_passthrough():
+    @asynq.asynq()
+    def f2():
+        return 100
+
+    @asynq.async_proxy()
+    def f1():
+        return f2.asynq()
+
+    assert asyncio.run(f1.asyncio()) == 100
 
 
 def test_proxy_and_bind():
