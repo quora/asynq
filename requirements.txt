@@ -2,5 +2,5 @@ pytest
 Cython>=0.27.1
 qcore
 pygments
-black==23.7.0
+black==24.3.0
 mypy==1.4.1
