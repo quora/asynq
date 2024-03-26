@@ -235,11 +235,13 @@ class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder):
 class AsyncAndSyncPairDecorator(AsyncDecorator):
     binder_cls = AsyncAndSyncPairDecoratorBinder
 
-    def __init__(self, fn, cls, sync_fn, kwargs={}):
-        AsyncDecorator.__init__(self, fn, cls, kwargs)
+    def __init__(self, fn, cls, sync_fn, kwargs={}, asyncio_fn=None):
+        AsyncDecorator.__init__(self, fn, cls, kwargs, asyncio_fn)
         self.sync_fn = sync_fn
 
     def __call__(self, *args, **kwargs):
+        if is_asyncio_mode():
+            raise RuntimeError("asyncio mode does not support synchronous calls")
         return self.sync_fn(*args, **kwargs)
 
     def __get__(self, owner, cls):
@@ -253,7 +255,11 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
         if self.type in (staticmethod, classmethod):
             fn = self.type(fn)
         new_self = qcore.decorators.decorate(
-            AsyncAndSyncPairDecorator, self.task_cls, sync_fn, self.kwargs
+            AsyncAndSyncPairDecorator,
+            self.task_cls,
+            sync_fn,
+            self.kwargs,
+            self.asyncio_fn,
         )(fn)
         return AsyncDecorator.__get__(new_self, owner, cls)
 
@@ -315,9 +321,9 @@ def asynq(
             )(fn)
             return decorated
         else:
-            return qcore.decorators.decorate(AsyncAndSyncPairDecorator, cls, sync_fn)(
-                fn
-            )
+            return qcore.decorators.decorate(
+                AsyncAndSyncPairDecorator, cls, sync_fn, kwargs, asyncio_fn
+            )(fn)
 
     return decorate
 
