@@ -136,7 +136,11 @@ def sync_fn():
     return "sync_fn"
 
 
-@asynq(sync_fn=sync_fn)
+async def asyncio_fn():
+    return "asyncio_fn"
+
+
+@asynq(sync_fn=sync_fn, asyncio_fn=asyncio_fn)
 def async_fn():
     return "async_fn"
 
@@ -237,6 +241,12 @@ def test_method_sync_fn():
     instance = MyClass()
     assert_eq("sync_method", instance.async_method())
     assert_eq("async_method", instance.async_method.asynq().value())
+
+
+def test_function_sync_asyncio_fn():
+    assert_eq("sync_fn", async_fn())
+    assert_eq("async_fn", async_fn.asynq().value())
+    assert_eq("asyncio_fn", asyncio.run(async_fn.asyncio()))
 
 
 def test_pickling():
