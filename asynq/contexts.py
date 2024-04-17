@@ -93,7 +93,7 @@ def leave_context_asyncio(context):
         debug.write("@async: -context: %s" % debug.str(context))
 
     task = asyncio.current_task()
-    del getattr(task, ASYNCIO_CONTEXT_FIELD)[id(context)]  # type: ignore
+    getattr(task, ASYNCIO_CONTEXT_FIELD, {}).pop(id(context), None)  # type: ignore
 
 
 def pause_contexts_asyncio(task):
@@ -104,7 +104,7 @@ def pause_contexts_asyncio(task):
 
 
 def resume_contexts_asyncio(task):
-    if not getattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, False):
+    if not getattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, True):
         setattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, True)
         for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
             ctx.resume()
