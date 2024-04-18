@@ -92,7 +92,9 @@ class AsyncContext(object):
         return self
 
     def __exit__(self, ty, value, tb):
-        if not is_asyncio_mode():
+        if is_asyncio_mode():
+            self.pause()
+        else:
             leave_context(self, self._active_task)
             self.pause()
             del self._active_task

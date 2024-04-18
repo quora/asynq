@@ -105,7 +105,7 @@ def test_context():
         await asyncio.sleep(0.1)
 
     @asynq.asynq()
-    def f1():
+    def f1():  # 500ms
         with AsyncTimer() as timer:
             time.sleep(0.1)
             t1, t2 = yield f2.asynq()
@@ -113,7 +113,7 @@ def test_context():
         return timer.total_time, t1, t2
 
     @asynq.asynq()
-    def f2():
+    def f2():  # 300ms
         with AsyncTimer() as timer:
             time.sleep(0.1)
             t = yield f3.asynq()
@@ -121,7 +121,7 @@ def test_context():
         return timer.total_time, t
 
     @asynq.asynq()
-    def f3():
+    def f3():  # 100ms
         with AsyncTimer() as timer:
             # since AsyncTimer is paused on blocking operations,
             # the time for TestBatch is not measured
@@ -129,9 +129,9 @@ def test_context():
         return timer.total_time
 
     t1, t2, t3 = asyncio.run(f1.asyncio())
-    assert_eq(400000, t1, tolerance=10000)  # 400ms, 10us tolerance
-    assert_eq(200000, t2, tolerance=10000)  # 200ms, 10us tolerance
-    assert_eq(000000, t3, tolerance=10000)  #   0ms, 10us tolerance
+    assert_eq(500000, t1, tolerance=10000)  # 400ms, 10us tolerance
+    assert_eq(300000, t2, tolerance=10000)  # 200ms, 10us tolerance
+    assert_eq(100000, t3, tolerance=10000)  #   0ms, 10us tolerance
 
 
 def test_method():
