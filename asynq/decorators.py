@@ -23,7 +23,6 @@ import qcore.inspection as core_inspection
 
 from . import async_task, futures
 from .asynq_to_async import AsyncioMode, is_asyncio_mode, resolve_awaitables
-from .contexts import pause_contexts_asyncio, resume_contexts_asyncio
 
 __traceback_hide__ = True
 
@@ -114,7 +113,6 @@ def convert_asynq_to_async(fn):
 
                 generator = fn(*_args, **_kwargs)
                 while True:
-                    resume_contexts_asyncio(task)
                     try:
                         if exception is None:
                             result = generator.send(send)
@@ -125,7 +123,6 @@ def convert_asynq_to_async(fn):
                     except StopIteration as exc:
                         return exc.value
 
-                    pause_contexts_asyncio(task)
                     try:
                         send = await resolve_awaitables(result)
                         exception = None

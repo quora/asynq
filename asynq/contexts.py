@@ -20,10 +20,6 @@ from . import debug
 from ._debug import options as _debug_options
 
 
-ASYNCIO_CONTEXT_FIELD = "_asynq_contexts"
-ASYNCIO_CONTEXT_ACTIVE_FIELD = "_asynq_contexts_active"
-
-
 class NonAsyncContext(object):
     """Indicates that context can't contain yield statements.
 
@@ -38,15 +34,11 @@ class NonAsyncContext(object):
     """
 
     def __enter__(self):
-        if is_asyncio_mode():
-            enter_context_asyncio(self)
-        else:
+        if not is_asyncio_mode():
             self._active_task = enter_context(self)
 
     def __exit__(self, typ, val, tb):
-        if is_asyncio_mode():
-            leave_context_asyncio(self)
-        else:
+        if not is_asyncio_mode():
             leave_context(self, self._active_task)
 
     def pause(self):
@@ -75,40 +67,6 @@ def leave_context(context, active_task):
         active_task._leave_context(context)
 
 
-def enter_context_asyncio(context):
-    if _debug_options.DUMP_CONTEXTS:
-        debug.write("@async: +context: %s" % debug.str(context))
-
-    # since we are in asyncio mode, there is an active task
-    task = asyncio.current_task()
-
-    if hasattr(task, ASYNCIO_CONTEXT_FIELD):
-        getattr(task, ASYNCIO_CONTEXT_FIELD)[id(context)] = context
-    else:
-        setattr(task, ASYNCIO_CONTEXT_FIELD, {id(context): context})
-
-
-def leave_context_asyncio(context):
-    if _debug_options.DUMP_CONTEXTS:
-        debug.write("@async: -context: %s" % debug.str(context))
-
-    task = asyncio.current_task()
-    getattr(task, ASYNCIO_CONTEXT_FIELD, {}).pop(id(context), None)  # type: ignore
-
-
-def pause_contexts_asyncio(task):
-    if getattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, False):
-        setattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, False)
-        for ctx in reversed(list(getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values())):
-            ctx.pause()
-
-
-def resume_contexts_asyncio(task):
-    if not getattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, True):
-        setattr(task, ASYNCIO_CONTEXT_ACTIVE_FIELD, True)
-        for ctx in getattr(task, ASYNCIO_CONTEXT_FIELD, {}).values():
-            ctx.resume()
-
 
 class AsyncContext(object):
     """Base class for contexts that should pause and resume during an async's function execution.
@@ -127,19 +85,14 @@ class AsyncContext(object):
     """
 
     def __enter__(self):
-        if is_asyncio_mode():
-            enter_context_asyncio(self)
-        else:
+        if not is_asyncio_mode():
             self._active_task = enter_context(self)
 
         self.resume()
         return self
 
     def __exit__(self, ty, value, tb):
-        if is_asyncio_mode():
-            leave_context_asyncio(self)
-            self.pause()
-        else:
+        if not is_asyncio_mode():
             leave_context(self, self._active_task)
             self.pause()
             del self._active_task
