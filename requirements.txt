@@ -4,3 +4,4 @@ qcore
 pygments
 black==24.3.0
 mypy==1.4.1
+typing_extensions==4.11.0
