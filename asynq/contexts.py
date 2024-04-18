@@ -67,7 +67,6 @@ def leave_context(context, active_task):
         active_task._leave_context(context)
 
 
-
 class AsyncContext(object):
     """Base class for contexts that should pause and resume during an async's function execution.
 
