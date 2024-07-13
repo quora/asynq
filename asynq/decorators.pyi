@@ -12,12 +12,14 @@ from typing import (
 )
 
 import qcore.decorators
+from typing_extensions import ParamSpec
 
 from . import async_task, futures
 
 _T = TypeVar("_T")
 _Coroutine = Coroutine[Any, Any, Any]
 _CoroutineFn = Callable[..., _Coroutine]
+OriginalFunctionParams = ParamSpec("OriginalFunctionParams")
 
 def lazy(fn: Callable[..., _T]) -> Callable[..., futures.FutureBase[_T]]: ...
 def has_async_fn(fn: object) -> bool: ...
@@ -31,18 +33,24 @@ def get_async_or_sync_fn(fn: object) -> Any: ...
 class PureAsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
     def is_pure_async_fn(self) -> bool: ...
 
-class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T]):
+class PureAsyncDecorator(
+    qcore.decorators.DecoratorBase, Generic[_T, OriginalFunctionParams]
+):
     binder_cls = PureAsyncDecoratorBinder
     def __init__(
         self,
-        fn: Callable[..., _T],
+        fn: Callable[OriginalFunctionParams, _T],
         task_cls: Optional[Type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
         asyncio_fn: Optional[_CoroutineFn] = ...,
     ) -> None: ...
     def name(self) -> str: ...
     def is_pure_async_fn(self) -> bool: ...
-    def asyncio(self, *args, **kwargs) -> _Coroutine: ...
+    def asyncio(
+        self,
+        *args: OriginalFunctionParams.args,
+        **kwargs: OriginalFunctionParams.kwargs,
+    ) -> _Coroutine: ...
     def __call__(
         self, *args: Any, **kwargs: Any
     ) -> Union[_T, futures.FutureBase[_T]]: ...
@@ -52,11 +60,11 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder, Generic[_T]):
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
     def asyncio(self, *args, **kwargs) -> _Coroutine: ...
 
-class AsyncDecorator(PureAsyncDecorator[_T]):
+class AsyncDecorator(PureAsyncDecorator[_T, OriginalFunctionParams]):
     binder_cls = AsyncDecoratorBinder  # type: ignore
     def __init__(
         self,
-        fn: Callable[..., _T],
+        fn: Callable[OriginalFunctionParams, _T],
         cls: Optional[Type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
         asyncio_fn: Optional[_CoroutineFn] = ...,
@@ -68,7 +76,7 @@ class AsyncDecorator(PureAsyncDecorator[_T]):
 
 class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder[_T]): ...
 
-class AsyncAndSyncPairDecorator(AsyncDecorator[_T]):
+class AsyncAndSyncPairDecorator(AsyncDecorator[_T, OriginalFunctionParams]):
     binder_cls = AsyncAndSyncPairDecoratorBinder  # type: ignore
     def __init__(
         self,
@@ -80,14 +88,14 @@ class AsyncAndSyncPairDecorator(AsyncDecorator[_T]):
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
     def __get__(self, owner: Any, cls: Any) -> Any: ...
 
-class AsyncProxyDecorator(AsyncDecorator[_T]):
+class AsyncProxyDecorator(AsyncDecorator[_T, OriginalFunctionParams]):
     def __init__(
         self,
         fn: Callable[..., futures.FutureBase[_T]],
         asyncio_fn: Optional[_CoroutineFn] = ...,
     ) -> None: ...
 
-class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T]):
+class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T, OriginalFunctionParams]):
     def __init__(
         self,
         fn: Callable[..., futures.FutureBase[_T]],
@@ -97,10 +105,14 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T]):
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
 
 class _MkAsyncDecorator:
-    def __call__(self, fn: Callable[..., _T]) -> AsyncDecorator[_T]: ...
+    def __call__(
+        self, fn: Callable[OriginalFunctionParams, _T]
+    ) -> AsyncDecorator[_T, OriginalFunctionParams]: ...
 
 class _MkPureAsyncDecorator:
-    def __call__(self, fn: Callable[..., _T]) -> PureAsyncDecorator[_T]: ...
+    def __call__(
+        self, fn: Callable[OriginalFunctionParams, _T]
+    ) -> PureAsyncDecorator[_T, OriginalFunctionParams]: ...
 
 # In reality these two can return other Decorator subclasses, but that doesn't matter for callers.
 @overload
