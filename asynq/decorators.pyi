@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Callable,
-    Concatenate,
     Coroutine,
     Generator,
     Generic,
@@ -13,7 +12,7 @@ from typing import (
 )
 
 import qcore.decorators
-from typing_extensions import Literal, ParamSpec
+from typing_extensions import Concatenate, Literal, ParamSpec
 
 from . import async_task, futures
 
