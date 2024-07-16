@@ -13,3 +13,6 @@ exclude = '''
   | \.eggs
 )/
 '''
+
+[tool.mypy]
+warn_unused_ignores = true
