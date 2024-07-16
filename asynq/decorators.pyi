@@ -127,9 +127,7 @@ class _MkAsyncDecorator:
         self, fn: Callable[_P, Generator[Any, Any, _T]]
     ) -> AsyncDecorator[_T, _P]: ...
     @overload
-    def __call__(
-        self, fn: Callable[_P, _T]
-    ) -> AsyncDecorator[_T, _P]: ...
+    def __call__(self, fn: Callable[_P, _T]) -> AsyncDecorator[_T, _P]: ...
 
 class _MkPureAsyncDecorator:
     @overload
@@ -137,9 +135,7 @@ class _MkPureAsyncDecorator:
         self, fn: Callable[_P, Generator[Any, Any, _T]]
     ) -> PureAsyncDecorator[_T, _P]: ...
     @overload
-    def __call__(
-        self, fn: Callable[_P, _T]
-    ) -> PureAsyncDecorator[_T, _P]: ...
+    def __call__(self, fn: Callable[_P, _T]) -> PureAsyncDecorator[_T, _P]: ...
 
 # In reality these two can return other Decorator subclasses, but that doesn't matter for callers.
 @overload
@@ -161,9 +157,7 @@ def asynq(  # type: ignore
 @overload
 def asynq(
     pure: bool,
-    sync_fn: Optional[
-        Callable[_P, Union[_T, Generator[Any, Any, _T]]]
-    ] = ...,
+    sync_fn: Optional[Callable[_P, Union[_T, Generator[Any, Any, _T]]]] = ...,
     cls: Type[futures.FutureBase] = ...,
     asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
     **kwargs: Any,
