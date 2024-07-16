@@ -57,5 +57,6 @@ def test_async_call() -> None:
 
 
 def test_amax(x: int = 1, y: int = 2) -> None:
-    assert_type(amax(1, 2, key=len), Any)  # TODO: int
-    assert_type(amax([1, 2], key=len), Any)  # TODO: int
+    if TYPE_CHECKING:
+        assert_type(amax(1, 2, key=len), Any)  # TODO: int
+        assert_type(amax([1, 2], key=len), Any)  # TODO: int
