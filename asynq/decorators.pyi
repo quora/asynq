@@ -33,9 +33,7 @@ def get_async_or_sync_fn(fn: object) -> Any: ...
 class PureAsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
     def is_pure_async_fn(self) -> bool: ...
 
-class PureAsyncDecorator(
-    qcore.decorators.DecoratorBase, Generic[_T, _P]
-):
+class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T, _P]):
     binder_cls = PureAsyncDecoratorBinder
     def __init__(
         self,
@@ -47,9 +45,7 @@ class PureAsyncDecorator(
     def name(self) -> str: ...
     def is_pure_async_fn(self) -> bool: ...
     def asyncio(
-        self,
-        *args: _P.args,
-        **kwargs: _P.kwargs,
+        self, *args: _P.args, **kwargs: _P.kwargs
     ) -> Coroutine[Any, Any, _T]: ...
     def __call__(
         self, *args: Any, **kwargs: Any
@@ -105,14 +101,10 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T, _P]):
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
 
 class _MkAsyncDecorator:
-    def __call__(
-        self, fn: Callable[_P, Any]
-    ) -> AsyncDecorator[Any, _P]: ...
+    def __call__(self, fn: Callable[_P, Any]) -> AsyncDecorator[Any, _P]: ...
 
 class _MkPureAsyncDecorator:
-    def __call__(
-        self, fn: Callable[_P, _T]
-    ) -> PureAsyncDecorator[_T, _P]: ...
+    def __call__(self, fn: Callable[_P, _T]) -> PureAsyncDecorator[_T, _P]: ...
 
 # In reality these two can return other Decorator subclasses, but that doesn't matter for callers.
 @overload
