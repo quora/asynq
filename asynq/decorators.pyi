@@ -150,7 +150,7 @@ def asynq(  # type: ignore
 def asynq(  # type: ignore
     *,
     sync_fn: Optional[Callable[_P, Generator[Any, Any, _T]]] = ...,
-    cls: Type[futures.FutureBase] = ...,
+    cls: type[futures.FutureBase] = ...,
     asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
     **kwargs: Any,
 ) -> _MkAsyncDecorator: ...
@@ -158,7 +158,7 @@ def asynq(  # type: ignore
 def asynq(
     pure: bool,
     sync_fn: Optional[Callable[_P, Union[_T, Generator[Any, Any, _T]]]] = ...,
-    cls: Type[futures.FutureBase] = ...,
+    cls: type[futures.FutureBase] = ...,
     asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
     **kwargs: Any,
 ) -> _MkPureAsyncDecorator: ...
@@ -166,7 +166,7 @@ def asynq(
 def async_proxy(
     *,
     sync_fn: Optional[
-        Callable[OriginalFunctionParams, Union[_T, Generator[Any, Any, _T]]]
+        Callable[_P, Union[_T, Generator[Any, Any, _T]]]
     ] = ...,
     asyncio_fn: Optional[Callable[..., Coroutine[Any, Any, _T]]] = ...,
 ) -> _MkAsyncDecorator: ...
@@ -174,7 +174,7 @@ def async_proxy(
 def async_proxy(
     pure: bool,
     sync_fn: Optional[
-        Callable[OriginalFunctionParams, Union[_T, Generator[Any, Any, _T]]]
+        Callable[_P, Union[_T, Generator[Any, Any, _T]]]
     ] = ...,
     asyncio_fn: Optional[Callable[..., Coroutine[Any, Any, _T]]] = ...,
 ) -> _MkPureAsyncDecorator: ...
