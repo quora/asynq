@@ -16,3 +16,6 @@ exclude = '''
 
 [tool.mypy]
 warn_unused_ignores = true
+exclude = [
+  "asynq/tests/typing_example"
+]
