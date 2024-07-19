@@ -1,9 +1,9 @@
 import json
 import subprocess
-from typing import Any
+from typing import Any, Dict, List
 
 
-def _run_pyright(path) -> list[dict[str, Any]]:
+def _run_pyright(path) -> List[Dict[str, Any]]:
     p = subprocess.run(
         ["pyright", "--outputjson", path], text=True, capture_output=True
     )
