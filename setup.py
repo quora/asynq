@@ -40,7 +40,7 @@ DATA_FILES = (
     + [os.path.relpath(f, "asynq/") for f in glob.glob("asynq/*.pyi")]
 )
 
-VERSION = "1.5.1"
+VERSION = "1.6.0"
 
 
 EXTENSIONS = [
