@@ -1,4 +1,4 @@
-## Unreleased
+## 1.6.0
 * Support Cython 3
 * Drop support for Python 3.7 and 3.8
 * Add support for Python 3.12 and 3.13
