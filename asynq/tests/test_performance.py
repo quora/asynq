@@ -73,7 +73,8 @@ def test():
     with Profiler("test_performance(3000): actual test (w/assertions)"):
         performance_test(3000).value()
     gc.collect()
-    with debug.disable_complex_assertions(), Profiler(
-        "test_performance(3000): actual test (w/o assertions)"
+    with (
+        debug.disable_complex_assertions(),
+        Profiler("test_performance(3000): actual test (w/o assertions)"),
     ):
         performance_test(3000).value()
