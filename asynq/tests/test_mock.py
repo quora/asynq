@@ -137,22 +137,20 @@ class MockCheckerWithNew(MockChecker):
 
 
 def test_mock_async_context():
-    with asynq.mock.patch(
-        "asynq.tests.test_mock.fn"
-    ) as mock_fn, asynq.mock.patch.object(
-        Cls, "async_classmethod"
-    ) as mock_classmethod, asynq.mock.patch.object(
-        Cls, "async_method"
-    ) as mock_method:
+    with (
+        asynq.mock.patch("asynq.tests.test_mock.fn") as mock_fn,
+        asynq.mock.patch.object(Cls, "async_classmethod") as mock_classmethod,
+        asynq.mock.patch.object(Cls, "async_method") as mock_method,
+    ):
         MockCheckerWithAssignment.check(mock_fn, mock_classmethod, mock_method)
 
-    with asynq.mock.patch(
-        "asynq.tests.test_mock.fn", lambda: 42
-    ) as mock_fn, asynq.mock.patch.object(
-        Cls, "async_classmethod", classmethod(lambda _: 42)
-    ) as mock_classmethod, asynq.mock.patch.object(
-        Cls, "async_method", lambda _: 42
-    ) as mock_method:
+    with (
+        asynq.mock.patch("asynq.tests.test_mock.fn", lambda: 42) as mock_fn,
+        asynq.mock.patch.object(
+            Cls, "async_classmethod", classmethod(lambda _: 42)
+        ) as mock_classmethod,
+        asynq.mock.patch.object(Cls, "async_method", lambda _: 42) as mock_method,
+    ):
         MockCheckerWithNew.check(mock_fn, mock_classmethod, mock_method)
 
 
