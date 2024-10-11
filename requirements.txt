@@ -2,7 +2,7 @@ pytest
 Cython>=0.27.1
 qcore
 pygments
-black==24.3.0
-mypy==1.10.1
-pyright==1.1.362
-typing_extensions==4.11.0
+black==24.10.0
+mypy==1.11.2
+pyright==1.1.384
+typing_extensions==4.12.2
