@@ -7,9 +7,13 @@ def _run_pyright(path) -> List[Dict[str, Any]]:
     p = subprocess.run(
         ["pyright", "--outputjson", path], text=True, capture_output=True
     )
-    diagnostics = json.loads(p.stdout.replace("\xa0", " ")).get(
-        "generalDiagnostics", []
-    )
+    try:
+        diagnostics = json.loads(p.stdout.replace("\xa0", " ")).get(
+            "generalDiagnostics", []
+        )
+    except Exception as e:
+        raise RuntimeError(p.stderr) from e
+
     return [
         {"message": d["message"], "rule": d["rule"], "range": d["range"]}
         for d in diagnostics
