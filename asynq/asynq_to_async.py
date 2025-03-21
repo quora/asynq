@@ -14,17 +14,19 @@
 
 
 import asyncio
+import threading
 from typing import Any, Awaitable
 
 from .batching import BatchItemBase
 from .futures import ConstFuture
 
-_asyncio_mode = 0
+_asyncio_mode = threading.local()
+_asyncio_mode.counter = 0
 
 
 # asyncio_mode > 0 indicates that a synchronous call runs on an asyncio loop.
 def is_asyncio_mode():
-    return _asyncio_mode > 0
+    return _asyncio_mode.counter > 0
 
 
 async def _gather(awaitables):
@@ -78,8 +80,8 @@ class AsyncioMode:
 
     def __enter__(self):
         global _asyncio_mode
-        _asyncio_mode += 1
+        _asyncio_mode.counter += 1
 
     def __exit__(self, exc_type, exc_value, tb):
         global _asyncio_mode
-        _asyncio_mode -= 1
+        _asyncio_mode.counter -= 1

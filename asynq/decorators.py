@@ -26,6 +26,8 @@ from .asynq_to_async import AsyncioMode, is_asyncio_mode, resolve_awaitables
 
 __traceback_hide__ = True
 
+ENABLE_SYNCHRONOUS_CALL_CHECK = True
+
 
 def lazy(fn):
     """Converts a function into a lazy one - i.e. its call
@@ -215,7 +217,7 @@ class AsyncDecorator(PureAsyncDecorator):
         return "@asynq()"
 
     def __call__(self, *args, **kwargs):
-        if is_asyncio_mode():
+        if ENABLE_SYNCHRONOUS_CALL_CHECK and is_asyncio_mode():
             raise RuntimeError("asyncio mode does not support synchronous calls")
 
         return self._call_pure(args, kwargs).value()
@@ -237,7 +239,7 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
         self.sync_fn = sync_fn
 
     def __call__(self, *args, **kwargs):
-        if is_asyncio_mode():
+        if ENABLE_SYNCHRONOUS_CALL_CHECK and is_asyncio_mode():
             raise RuntimeError("asyncio mode does not support synchronous calls")
         return self.sync_fn(*args, **kwargs)
 
