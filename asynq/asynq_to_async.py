@@ -14,17 +14,19 @@
 
 
 import asyncio
-from typing import Any, Awaitable
+from collections.abc import Awaitable
+from contextvars import ContextVar, Token
+from typing import Any, Optional
 
 from .batching import BatchItemBase
 from .futures import ConstFuture
 
-_asyncio_mode = 0
+_asyncio_mode = ContextVar("asyncio_mode", default=False)
 
 
 # asyncio_mode > 0 indicates that a synchronous call runs on an asyncio loop.
-def is_asyncio_mode():
-    return _asyncio_mode > 0
+def is_asyncio_mode() -> bool:
+    return _asyncio_mode.get()
 
 
 async def _gather(awaitables):
@@ -76,10 +78,13 @@ class AsyncioMode:
     A user does not have to use this context manager directly.
     """
 
+    _token: Optional[Token[bool]] = None
+
     def __enter__(self):
         global _asyncio_mode
-        _asyncio_mode += 1
+        self._token = _asyncio_mode.set(True)
 
     def __exit__(self, exc_type, exc_value, tb):
         global _asyncio_mode
-        _asyncio_mode -= 1
+        if self._token:
+            _asyncio_mode.reset(self._token)
