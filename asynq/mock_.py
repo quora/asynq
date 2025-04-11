@@ -148,9 +148,10 @@ class _PatchAsync(_patch):
         mock_fn = super(_PatchAsync, self).__enter__()
         # so we can also mock non-functions for compatibility
         if callable(mock_fn):
-            async_fn = _AsyncWrapper(mock_fn)
+            async_fn = _AsynqWrapper(mock_fn)
             mock_fn.asynq = async_fn
             setattr(mock_fn, "async", async_fn)
+            mock_fn.asyncio = _AsyncioWrapper(mock_fn)
         return mock_fn
 
     def copy(self):
@@ -185,7 +186,7 @@ class _PatchAsync(_patch):
         return patcher
 
 
-class _AsyncWrapper(object):
+class _AsynqWrapper(object):
     """Wrapper for the .asynq attribute of patch'ed functions.
 
     Prevents people from setting and reading attributes on them.
@@ -197,6 +198,34 @@ class _AsyncWrapper(object):
 
     def __call__(self, *args, **kwargs):
         return ConstFuture(self._mock_fn(*args, **kwargs))
+
+    def __setattr__(self, attr, value):
+        raise TypeError(
+            "You cannot set attributes directly on a .asynq function. Set them on the "
+            "function itself instead."
+        )
+
+    def __getattr__(self, attr):
+        raise TypeError(
+            "You cannot read attributes directly on a .asynq function. Read them on the"
+            " function itself instead."
+        )
+
+
+class _AsyncioWrapper(object):
+    """Wrapper for the .asyncio attribute of patch'ed functions.
+
+    Prevents people from setting and reading attributes on them.
+
+    """
+
+    def __init__(self, mock_fn):
+        object.__setattr__(self, "_mock_fn", mock_fn)
+
+    def __call__(self, *args, **kwargs):
+        async def async_wrapper():
+            return self._mock_fn(*args, **kwargs)
+        return async_wrapper()
 
     def __setattr__(self, attr, value):
         raise TypeError(
