@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2022, macOS-13]
+        os: [ubuntu-22.04, windows-2022, macOS-13]
 
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
           path: dist
       - uses: actions/download-artifact@v4.1.7
         with:
-          name: ubuntu-20.04
+          name: ubuntu-22.04
           path: dist
       - uses: actions/download-artifact@v4.1.7
         with:
