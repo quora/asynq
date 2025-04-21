@@ -239,6 +239,7 @@ def _check_alru_cache():
 
     global constant_call_count
     constant_call_count = 0
+
     @alru_cache(maxsize=2)
     @asynq()
     def square(n):
