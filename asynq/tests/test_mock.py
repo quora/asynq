@@ -68,7 +68,7 @@ def class_method_non_async_caller():
 
 
 async def class_method_asyncio_caller():
-    return (await Cls.async_classmethod.asyncio())
+    return await Cls.async_classmethod.asyncio()
 
 
 @asynq.asynq()
@@ -83,7 +83,7 @@ def method_non_async_caller():
 
 
 async def method_asyncio_caller():
-    return (await Cls().async_method.asyncio())
+    return await Cls().async_method.asyncio()
 
 
 class Counter(object):

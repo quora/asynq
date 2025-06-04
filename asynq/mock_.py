@@ -225,6 +225,7 @@ class _AsyncioWrapper(object):
     def __call__(self, *args, **kwargs):
         async def async_wrapper():
             return self._mock_fn(*args, **kwargs)
+
         return async_wrapper()
 
     def __setattr__(self, attr, value):
