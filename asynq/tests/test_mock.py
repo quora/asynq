@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asynq
+import asyncio
 from qcore.asserts import assert_eq, assert_is, assert_not_in, AssertRaises
 
 # ===================================================
@@ -33,6 +34,10 @@ def async_caller():
 
 def non_async_caller():
     return fn()
+
+
+async def asyncio_caller():
+    return await fn.asyncio()
 
 
 class Cls(object):
@@ -62,6 +67,10 @@ def class_method_non_async_caller():
     return Cls.async_classmethod()
 
 
+async def class_method_asyncio_caller():
+    return await Cls.async_classmethod.asyncio()
+
+
 @asynq.asynq()
 def method_async_caller():
     obj = Cls()
@@ -71,6 +80,10 @@ def method_async_caller():
 
 def method_non_async_caller():
     return Cls().async_method()
+
+
+async def method_asyncio_caller():
+    return await Cls().async_method.asyncio()
 
 
 class Counter(object):
@@ -97,20 +110,28 @@ IMPORTANT_DICTIONARY = {"capybaras": "guinea pigs", "hutias": "coypus"}
 class MockChecker(object):
     @classmethod
     def check(cls, mock_fn, mock_classmethod, mock_method):
-        cls._check_mock(mock_fn, async_caller, non_async_caller)
+        cls._check_mock(mock_fn, async_caller, non_async_caller, asyncio_caller)
         cls._check_mock(
-            mock_classmethod, class_method_async_caller, class_method_non_async_caller
+            mock_classmethod,
+            class_method_async_caller,
+            class_method_non_async_caller,
+            class_method_asyncio_caller,
         )
-        cls._check_mock(mock_method, method_async_caller, method_non_async_caller)
+        cls._check_mock(
+            mock_method,
+            method_async_caller,
+            method_non_async_caller,
+            method_asyncio_caller,
+        )
 
     @classmethod
-    def _check_mock(cls, mock_fn, async_caller, non_async_caller):
+    def _check_mock(cls, mock_fn, async_caller, non_async_caller, asyncio_caller):
         raise NotImplementedError
 
 
 class MockCheckerWithAssignment(MockChecker):
     @classmethod
-    def _check_mock(cls, mock_fn, async_caller, non_async_caller):
+    def _check_mock(cls, mock_fn, async_caller, non_async_caller, asyncio_caller):
         mock_fn.return_value = 42
         assert_eq(0, mock_fn.call_count)
         assert_eq(42, non_async_caller())
@@ -123,12 +144,15 @@ class MockCheckerWithAssignment(MockChecker):
         assert_eq(43, non_async_caller())
         assert_eq((43, 43), async_caller())
 
+        assert_eq(43, asyncio.run(asyncio_caller()))
+
 
 class MockCheckerWithNew(MockChecker):
     @classmethod
-    def _check_mock(cls, mock_fn, async_caller, non_async_caller):
+    def _check_mock(cls, mock_fn, async_caller, non_async_caller, asyncio_caller):
         assert_eq(42, non_async_caller())
         assert_eq((42, 42), async_caller())
+        assert_eq(42, asyncio.run(asyncio_caller()))
 
 
 # ===================================================
