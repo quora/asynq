@@ -271,7 +271,10 @@ class AsyncProxyDecorator(AsyncDecorator):
             asyncio_fn = convert_asynq_to_async(self.fn)
 
             async def unwrap_coroutine(*args, **kwargs):
-                return await (await asyncio_fn(*args, **kwargs))
+                fut = await asyncio_fn(*args, **kwargs)
+                if isinstance(fut, futures.ConstFuture):
+                    return fut.value()
+                return await fut
 
             self.asyncio_fn = unwrap_coroutine
 
