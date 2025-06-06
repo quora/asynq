@@ -201,12 +201,14 @@ def test_proxy_passthrough():
 
     assert asyncio.run(f1.asyncio()) == 100
 
+
 def test_proxy_const():
     @asynq.async_proxy()
     def f1():
         return asynq.ConstFuture(42)
 
     assert asyncio.run(f1.asyncio()) == 42
+
 
 def test_proxy_and_bind():
     async def async_g(self, x):
