@@ -21,6 +21,7 @@ Helper functions for use with asynq (similar to itertools).
 import functools
 import inspect
 import itertools
+import asyncio
 import threading
 import time
 import weakref
@@ -282,6 +283,12 @@ def alazy_constant(ttl=0):
 
     return decorator
 
+async def _asyncio_sleep(secs: float) -> None:
+    await asyncio.sleep(secs)
+
+@asynq(asyncio_fn=_asyncio_sleep)
+def _asynq_sleep(secs: float) -> None:
+    time.sleep(secs)
 
 def aretry(exception_cls, max_tries=10, sleep=0.05):
     """Decorator for retrying an async function if it throws an exception.
@@ -289,6 +296,8 @@ def aretry(exception_cls, max_tries=10, sleep=0.05):
     exception_cls - an exception type or a parenthesized tuple of exception types
     max_tries - maximum number of times this function can be executed
     sleep - number of seconds to sleep between function retries
+
+    Compatible with asyncio mode.
 
     """
     assert max_tries > 0, "max_tries (%d) should be a positive integer" % max_tries
@@ -304,7 +313,7 @@ def aretry(exception_cls, max_tries=10, sleep=0.05):
                 except exception_cls:
                     if i + 1 == max_tries:
                         raise
-                    time.sleep(sleep)
+                    yield _asynq_sleep.asynq(sleep)
 
         # so that qcore.inspection.get_original_fn can retrieve the original function
         wrapper.original_fn = fn
