@@ -33,7 +33,11 @@ class Client(object):
 
     Example usage:
 
+        # Basic client without batch size limit
         client = Client(['127.0.0.1:11211'])
+        
+        # Client with batch size limit of 1000 items to prevent timeouts
+        client = Client(['127.0.0.1:11211'], max_batch_size=1000)
 
         @client.cached('user_name')
         def name_of_user(uid):
@@ -52,12 +56,16 @@ class Client(object):
 
     """
 
-    def __init__(self, servers):
+    def __init__(self, servers, max_batch_size=None):
         # keep a reference to the current batch and to the underlying library's client object
-        self.batch = _MCBatch(self)
+        self.max_batch_size = max_batch_size
+        self.batch = _MCBatch(self, max_batch_size=max_batch_size)
         self._mc_client = memcache.Client(servers)
 
     def _make_batch_item(self, command, args):
+        # If the current batch is full, switch to a new one
+        if self.batch.is_full():
+            self.batch._try_switch_active_batch()
         return _MCBatchItem(self.batch, command, args)
 
     @async_proxy()
@@ -112,13 +120,13 @@ class Client(object):
 
 
 class _MCBatch(BatchBase):
-    def __init__(self, client):
+    def __init__(self, client, max_batch_size=None):
         self.client = client
-        super().__init__()
+        super().__init__(max_batch_size=max_batch_size)
 
     def _try_switch_active_batch(self):
         if self.client.batch is self:
-            self.client.batch = _MCBatch(self.client)
+            self.client.batch = _MCBatch(self.client, max_batch_size=self.max_batch_size)
 
     def _flush(self):
         item_groups = itertools.groupby(self.items, lambda i: i.cmd)
