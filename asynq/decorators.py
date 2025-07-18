@@ -15,6 +15,7 @@
 
 import asyncio
 import inspect
+import logging
 from collections.abc import Coroutine
 from typing import Any
 
@@ -26,6 +27,7 @@ from . import async_task, futures
 from .asynq_to_async import AsyncioMode, is_asyncio_mode, resolve_awaitables
 
 __traceback_hide__ = True
+logger = logging.getLogger("asynq")
 
 
 def lazy(fn):
@@ -217,10 +219,17 @@ class AsyncDecorator(PureAsyncDecorator):
         return "@asynq()"
 
     def __call__(self, *args, **kwargs):
-        if is_asyncio_mode() and not self.allow_sync_call:
-            raise RuntimeError("asyncio mode does not support synchronous calls")
-
-        return self._call_pure(args, kwargs).value()
+        if is_asyncio_mode():
+            if self.allow_sync_call:
+                logger.warning(
+                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                )
+            else:
+                raise RuntimeError(
+                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                )
+        else:
+            return self._call_pure(args, kwargs).value()
 
 
 class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder):
@@ -241,9 +250,17 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
         self.sync_fn = sync_fn
 
     def __call__(self, *args, **kwargs):
-        if is_asyncio_mode() and not self.allow_sync_call:
-            raise RuntimeError("asyncio mode does not support synchronous calls")
-        return self.sync_fn(*args, **kwargs)
+        if is_asyncio_mode():
+            if self.allow_sync_call:
+                logger.warning(
+                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                )
+            else:
+                raise RuntimeError(
+                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                )
+        else:
+            return self.sync_fn(*args, **kwargs)
 
     def __get__(self, owner, cls):
         # This is needed so that we can use objects with __get__ as the sync_fn. If we just rely on
