@@ -222,11 +222,11 @@ class AsyncDecorator(PureAsyncDecorator):
         if is_asyncio_mode():
             if self.allow_sync_call:
                 logger.warning(
-                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
                 )
             else:
                 raise RuntimeError(
-                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
                 )
         else:
             return self._call_pure(args, kwargs).value()
@@ -253,11 +253,11 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
         if is_asyncio_mode():
             if self.allow_sync_call:
                 logger.warning(
-                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
                 )
             else:
                 raise RuntimeError(
-                    f"asyncio mode does not support synchronous calls: {self.fn} at {inspect.getsourcefile(self.fn)}"
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
                 )
         else:
             return self.sync_fn(*args, **kwargs)
