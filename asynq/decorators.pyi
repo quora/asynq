@@ -46,6 +46,7 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T, _P]):
         task_cls: Optional[type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
         asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
+        allow_sync_call: bool = ...,
     ) -> None: ...
     @overload
     def __init__(
@@ -54,6 +55,7 @@ class PureAsyncDecorator(qcore.decorators.DecoratorBase, Generic[_T, _P]):
         task_cls: Optional[type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
         asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
+        allow_sync_call: bool = ...,
     ) -> None: ...
     def name(self) -> str: ...
     def is_pure_async_fn(self) -> bool: ...
@@ -84,6 +86,7 @@ class AsyncDecorator(PureAsyncDecorator[_T, _P]):
         cls: Optional[type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
         asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
+        allow_sync_call: bool = ...,
     ): ...
     @overload
     def __init__(
@@ -92,6 +95,7 @@ class AsyncDecorator(PureAsyncDecorator[_T, _P]):
         cls: Optional[type[futures.FutureBase]],
         kwargs: Mapping[str, Any] = ...,
         asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
+        allow_sync_call: bool = ...,
     ): ...
     def is_pure_async_fn(self) -> bool: ...
     def asynq(self, *args: Any, **kwargs: Any) -> async_task.AsyncTask[_T]: ...
@@ -117,6 +121,7 @@ class AsyncProxyDecorator(AsyncDecorator[_T, _P]):
         self,
         fn: Callable[..., futures.FutureBase[_T]],
         asyncio_fn: Optional[Callable[..., Coroutine[Any, Any, _T]]] = ...,
+        allow_sync_call: bool = ...,
     ) -> None: ...
 
 class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T, _P]):
@@ -125,6 +130,7 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator[_T, _P]):
         fn: Callable[..., futures.FutureBase[_T]],
         sync_fn: Callable[..., _T],
         asyncio_fn: Optional[Callable[..., Coroutine[Any, Any, _T]]] = ...,
+        allow_sync_call: bool = ...,
     ) -> None: ...
     def __call__(self, *args: Any, **kwargs: Any) -> _T: ...
 
@@ -142,6 +148,7 @@ def asynq(
     sync_fn: Optional[Callable[_P, _T]] = ...,
     cls: type[futures.FutureBase] = ...,
     asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
+    allow_sync_call: bool = ...,
     **kwargs: Any,
 ) -> _MkAsyncDecorator: ...
 @overload
@@ -151,6 +158,7 @@ def asynq(
     sync_fn: Optional[Callable[_P, _T]] = ...,
     cls: type[futures.FutureBase] = ...,
     asyncio_fn: Optional[Callable[_P, Coroutine[Any, Any, _T]]] = ...,
+    allow_sync_call: bool = ...,
     **kwargs: Any,
 ) -> _MkPureAsyncDecorator: ...
 @overload

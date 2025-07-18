@@ -22,7 +22,6 @@ See the implementation of DecoratorBase.__get__ for how this works.
 
 from asynq import asynq
 
-
 called = {}
 
 

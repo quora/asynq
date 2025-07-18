@@ -15,7 +15,9 @@
 
 import asyncio
 import inspect
-from typing import Any, Coroutine
+import logging
+from collections.abc import Coroutine
+from typing import Any
 
 import qcore.decorators
 import qcore.helpers as core_helpers
@@ -25,6 +27,7 @@ from . import async_task, futures
 from .asynq_to_async import AsyncioMode, is_asyncio_mode, resolve_awaitables
 
 __traceback_hide__ = True
+logger = logging.getLogger("asynq")
 
 
 def lazy(fn):
@@ -147,12 +150,13 @@ class PureAsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
 class PureAsyncDecorator(qcore.decorators.DecoratorBase):
     binder_cls = PureAsyncDecoratorBinder
 
-    def __init__(self, fn, task_cls, kwargs={}, asyncio_fn=None):
+    def __init__(self, fn, task_cls, kwargs={}, asyncio_fn=None, allow_sync_call=False):
         qcore.decorators.DecoratorBase.__init__(self, fn)
         self.task_cls = task_cls
         self.needs_wrapper = core_inspection.is_cython_or_generator(fn)
         self.kwargs = kwargs
         self.asyncio_fn = asyncio_fn
+        self.allow_sync_call = allow_sync_call
 
     def name(self):
         return "@asynq(pure=True)"
@@ -202,8 +206,8 @@ class AsyncDecoratorBinder(qcore.decorators.DecoratorBinder):
 class AsyncDecorator(PureAsyncDecorator):
     binder_cls = AsyncDecoratorBinder
 
-    def __init__(self, fn, cls, kwargs={}, asyncio_fn=None):
-        super().__init__(fn, cls, kwargs, asyncio_fn)
+    def __init__(self, fn, cls, kwargs={}, asyncio_fn=None, allow_sync_call=False):
+        super().__init__(fn, cls, kwargs, asyncio_fn, allow_sync_call)
 
     def is_pure_async_fn(self):
         return False
@@ -216,9 +220,16 @@ class AsyncDecorator(PureAsyncDecorator):
 
     def __call__(self, *args, **kwargs):
         if is_asyncio_mode():
-            raise RuntimeError("asyncio mode does not support synchronous calls")
-
-        return self._call_pure(args, kwargs).value()
+            if self.allow_sync_call:
+                logger.warning(
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
+                )
+            else:
+                raise RuntimeError(
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
+                )
+        else:
+            return self._call_pure(args, kwargs).value()
 
 
 class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder):
@@ -232,14 +243,24 @@ class AsyncAndSyncPairDecoratorBinder(AsyncDecoratorBinder):
 class AsyncAndSyncPairDecorator(AsyncDecorator):
     binder_cls = AsyncAndSyncPairDecoratorBinder
 
-    def __init__(self, fn, cls, sync_fn, kwargs={}, asyncio_fn=None):
-        AsyncDecorator.__init__(self, fn, cls, kwargs, asyncio_fn)
+    def __init__(
+        self, fn, cls, sync_fn, kwargs={}, asyncio_fn=None, allow_sync_call=False
+    ):
+        AsyncDecorator.__init__(self, fn, cls, kwargs, asyncio_fn, allow_sync_call)
         self.sync_fn = sync_fn
 
     def __call__(self, *args, **kwargs):
         if is_asyncio_mode():
-            raise RuntimeError("asyncio mode does not support synchronous calls")
-        return self.sync_fn(*args, **kwargs)
+            if self.allow_sync_call:
+                logger.warning(
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
+                )
+            else:
+                raise RuntimeError(
+                    f"asyncio mode does not support synchronous calls: {self.fn.__name__} at {inspect.getsourcefile(self.fn)}"
+                )
+        else:
+            return self.sync_fn(*args, **kwargs)
 
     def __get__(self, owner, cls):
         # This is needed so that we can use objects with __get__ as the sync_fn. If we just rely on
@@ -262,9 +283,11 @@ class AsyncAndSyncPairDecorator(AsyncDecorator):
 
 
 class AsyncProxyDecorator(AsyncDecorator):
-    def __init__(self, fn, asyncio_fn=None):
+    def __init__(self, fn, asyncio_fn=None, allow_sync_call=False):
         # we don't need the task class but still need to pass it to the superclass
-        AsyncDecorator.__init__(self, fn, None, asyncio_fn=asyncio_fn)
+        AsyncDecorator.__init__(
+            self, fn, None, asyncio_fn=asyncio_fn, allow_sync_call=allow_sync_call
+        )
 
     def asyncio(self, *args, **kwargs) -> Coroutine[Any, Any, Any]:
         if self.asyncio_fn is None:
@@ -288,8 +311,10 @@ class AsyncProxyDecorator(AsyncDecorator):
 
 
 class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
-    def __init__(self, fn, sync_fn, asyncio_fn=None):
-        AsyncProxyDecorator.__init__(self, fn, asyncio_fn=asyncio_fn)
+    def __init__(self, fn, sync_fn, asyncio_fn=None, allow_sync_call=False):
+        AsyncProxyDecorator.__init__(
+            self, fn, asyncio_fn=asyncio_fn, allow_sync_call=allow_sync_call
+        )
         self.sync_fn = sync_fn
 
     def __call__(self, *args, **kwargs):
@@ -297,7 +322,12 @@ class AsyncAndSyncPairProxyDecorator(AsyncProxyDecorator):
 
 
 def asynq(
-    pure=False, sync_fn=None, cls=async_task.AsyncTask, asyncio_fn=None, **kwargs
+    pure=False,
+    sync_fn=None,
+    cls=async_task.AsyncTask,
+    asyncio_fn=None,
+    allow_sync_call=False,
+    **kwargs,
 ):
     """Async task decorator.
     Converts a method returning generator object to
@@ -317,18 +347,23 @@ def asynq(
             return qcore.decorators.decorate(PureAsyncDecorator, cls, kwargs)(fn)
         elif sync_fn is None:
             decorated = qcore.decorators.decorate(
-                AsyncDecorator, cls, kwargs, asyncio_fn
+                AsyncDecorator, cls, kwargs, asyncio_fn, allow_sync_call
             )(fn)
             return decorated
         else:
             return qcore.decorators.decorate(
-                AsyncAndSyncPairDecorator, cls, sync_fn, kwargs, asyncio_fn
+                AsyncAndSyncPairDecorator,
+                cls,
+                sync_fn,
+                kwargs,
+                asyncio_fn,
+                allow_sync_call,
             )(fn)
 
     return decorate
 
 
-def async_proxy(pure=False, sync_fn=None, asyncio_fn=None):
+def async_proxy(pure=False, sync_fn=None, asyncio_fn=None, allow_sync_call=False):
     if sync_fn is not None:
         assert pure is False, "sync_fn=? cannot be used together with pure=True"
 
@@ -339,7 +374,7 @@ def async_proxy(pure=False, sync_fn=None, asyncio_fn=None):
             return qcore.decorators.decorate(AsyncProxyDecorator, asyncio_fn)(fn)
         else:
             return qcore.decorators.decorate(
-                AsyncAndSyncPairProxyDecorator, sync_fn, asyncio_fn
+                AsyncAndSyncPairProxyDecorator, sync_fn, asyncio_fn, allow_sync_call
             )(fn)
 
     return decorate
