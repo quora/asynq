@@ -19,7 +19,6 @@ from qcore.asserts import assert_eq, assert_is, AssertRaises
 from .debug_cache import mc
 from .caching import ExternalCacheBatchItem
 
-
 current_context = None
 change_amount = 0
 

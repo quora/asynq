@@ -28,7 +28,6 @@ import qcore
 
 from . import contexts
 
-
 _empty_context = qcore.empty_context
 
 

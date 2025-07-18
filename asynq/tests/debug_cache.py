@@ -16,7 +16,6 @@ from qcore import none, miss
 from asynq import scheduler
 from .caching import ExternalCacheBase, LocalCache
 
-
 # Caches
 
 

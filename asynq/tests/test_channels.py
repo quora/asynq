@@ -16,7 +16,6 @@ from qcore import MarkerObject
 from asynq import asynq, async_proxy, ConstFuture
 from collections import deque
 
-
 # TODO(alex): finish w/this test
 
 
