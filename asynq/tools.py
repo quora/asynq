@@ -247,6 +247,7 @@ def alru_cache(maxsize=128, key_fn=None):
                 cache[key] = value
                 return value
 
+        wrapper.clear = cache.clear
         return wrapper
 
     return decorator

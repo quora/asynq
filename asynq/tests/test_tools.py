@@ -237,6 +237,42 @@ def _check_alru_cache():
     # now it's a cache miss
     assert_eq(27, (yield cube.asynq(3)))
 
+    global constant_call_count
+    constant_call_count = 0
+
+    @alru_cache(maxsize=2)
+    @asynq()
+    def square(n):
+        global constant_call_count
+        constant_call_count += 1
+        return n * n
+
+    assert_eq(1, (yield square.asynq(1)))
+    assert_eq(1, constant_call_count)
+
+    assert_eq(4, (yield square.asynq(2)))
+    assert_eq(2, constant_call_count)
+
+    assert_eq(1, (yield square.asynq(1)))
+    assert_eq(2, constant_call_count)
+
+    assert_eq(4, (yield square.asynq(2)))
+    assert_eq(2, constant_call_count)
+
+    square.clear()
+
+    assert_eq(1, (yield square.asynq(1)))
+    assert_eq(3, constant_call_count)
+
+    assert_eq(4, (yield square.asynq(2)))
+    assert_eq(4, constant_call_count)
+
+    assert_eq(9, (yield square.asynq(3)))
+    assert_eq(5, constant_call_count)
+
+    assert_eq(1, (yield square.asynq(1)))
+    assert_eq(6, constant_call_count)
+
 
 def test_alazy_constant():
     _check_alazy_constant_no_ttl()
