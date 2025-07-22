@@ -16,8 +16,7 @@
 import asyncio
 import inspect
 import logging
-from collections.abc import Coroutine
-from typing import Any
+from typing import Any, Coroutine
 
 import qcore.decorators
 import qcore.helpers as core_helpers
