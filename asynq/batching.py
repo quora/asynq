@@ -36,9 +36,10 @@ class BatchCancelledError(BatchingError):
 class BatchBase(futures.FutureBase):
     """Abstract base class describing a batch of operations."""
 
-    def __init__(self):
+    def __init__(self, max_batch_size=None):
         futures.FutureBase.__init__(self)  # Cython doesn't support super(...)
         self.items = []
+        self.max_batch_size = max_batch_size
 
     def is_flushed(self):
         return self.is_computed()
@@ -48,6 +49,10 @@ class BatchBase(futures.FutureBase):
 
     def is_empty(self):
         return len(self.items) == 0
+
+    def is_full(self):
+        """Returns True if the batch has reached its maximum size limit."""
+        return self.max_batch_size is not None and len(self.items) >= self.max_batch_size
 
     def get_priority(self):
         """Returns batch flush priority.
@@ -246,8 +251,8 @@ class DebugBatchItem(BatchItemBase):
 class DebugBatch(BatchBase):
     """Debug batch used to sync async execution."""
 
-    def __init__(self, name="default", index=0):
-        super(DebugBatch, self).__init__()
+    def __init__(self, name="default", index=0, max_batch_size=None):
+        super(DebugBatch, self).__init__(max_batch_size=max_batch_size)
         self.name = name
         self.index = index
 
