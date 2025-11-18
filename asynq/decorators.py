@@ -120,9 +120,7 @@ def convert_asynq_to_async(fn):
                         if exception is None:
                             result = generator.send(send)
                         else:
-                            result = generator.throw(
-                                type(exception), exception, exception.__traceback__
-                            )
+                            result = generator.throw(exception)
                     except StopIteration as exc:
                         return exc.value
 
