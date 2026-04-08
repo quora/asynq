@@ -158,6 +158,7 @@ class AsyncTask(futures.FutureBase):
             # super() doesn't work in Cython-ed version here
             self._dependencies = []
             self._last_value = None
+            self._frame = None  # Release frame reference to prevent retention
             futures.FutureBase._computed(self)
             error = self.error()
 
@@ -218,9 +219,15 @@ class AsyncTask(futures.FutureBase):
             else:
                 self._frame = debug.get_frame(self._generator)
                 if hasattr(error, "_task"):
-                    return self._generator.throw(error._type_, error, error._traceback)
+                    try:
+                        error.__traceback__ = error._traceback
+                        return self._generator.throw(error)
+                    finally:
+                        # Traceback has been propagated into the generator;
+                        # clear the stored copy to prevent frame retention
+                        error._traceback = None
                 else:
-                    return self._generator.throw(type(error), error)
+                    return self._generator.throw(error)
         except (StopIteration, GeneratorExit):
             # Returning leads to a StopIteration exception, which is
             # handled here. In this case we shouldn't need to extract frame
