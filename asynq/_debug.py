@@ -19,7 +19,7 @@ class DebugOptions(object):
     """
     All asynq debug options are stored in this structure.
 
-    The class itself is necessary mainly by performance reasons:
+    The class itself is necessary mainly for performance reasons:
     we want to avoid dictionary lookups on checks of debug options.
 
     """

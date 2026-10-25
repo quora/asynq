@@ -26,7 +26,7 @@ class NonAsyncContext(object):
     It means while a NonAsyncContext is active, async tasks cannot
     yield the control back to scheduler.
 
-    Contexts should subclass this class if they want it throw an AssertionError
+    Contexts should subclass this class if they want it to throw an AssertionError
     if async tasks end up yielding within them.
 
     Note: Remember to call super inside your __enter__/__exit__.
@@ -68,7 +68,7 @@ def leave_context(context, active_task):
 
 
 class AsyncContext(object):
-    """Base class for contexts that should pause and resume during an async's function execution.
+    """Base class for contexts that should pause and resume during an async function's execution.
 
     Your context should subclass this class and implement pause and resume (at least).
 

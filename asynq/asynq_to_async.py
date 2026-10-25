@@ -30,7 +30,7 @@ def is_asyncio_mode() -> bool:
 
 
 async def _gather(awaitables):
-    """Gather awaitables, but wait all other awaitables to finish even if some of them fail."""
+    """Gather awaitables, but wait for all other awaitables to finish even if some of them fail."""
 
     if len(awaitables) == 0:
         return []

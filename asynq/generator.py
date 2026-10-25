@@ -173,5 +173,5 @@ class _AsyncGenerator(object):
     def __repr__(self):
         return "<@async_generator() %s %s>" % (
             self.generator,
-            "stopped" if self.stopped else "",
+            "stopped" if self.is_stopped else "",
         )
